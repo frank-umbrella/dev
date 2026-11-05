@@ -332,6 +332,10 @@ catalog is small); a ticket's lines = subcollection read. Add
 
 ## 4. Screens
 
+Current navigation (0.8.0): see section 18. Home with the doors, Jobs (was
+Tickets), Scan, Shelf (was Stock and Units), Office (was More and the
+Console); the words below are the 0.1.0 to 0.7.0 ones.
+
 Six views. Desktop: top nav like Backup Audits. Phone (under 640px): bottom
 tab bar with Tickets, Scan, Stock, Orders, More. A sync pill in the header on
 every screen: Synced / Offline, 3 pending.
@@ -853,6 +857,7 @@ Build T0 first. T1 and T2 are worker work and need the plan tier known.
 | 0.4.0 | Console: reports with CSV / XLSX export, People, Settings, About (data dictionary), Export everything (one CSV per collection, zipped); accounting role end to end. |
 | 0.5.0 | Offline (sw.js + persistent cache + sync pill), PWA manifest, photos on products. |
 | 0.6.0 | loadout-worker: T1 Zapier intake (if Premium) or T2 API intake and note push (if Unlimited and approved); nightly CSV export to the project's Storage bucket, listed under Console > Backups (0.6.1); carrier tracking poll if wanted. Settings shows the tier and last sync. |
+| 0.8.0 | Simple mode (section 18): Home with the doors (Pick up, Deliver, Pull, Audit), Job and Pull sheet words, Shelf (Stock and Units), Office (More and the Console), the Pick up step and Confirm a delivery screens, Audit a shelf, one strip and one next step per job card, the wall board as a six-card grid, every old address kept as an alias. Built 2026-11-05, not committed. |
 
 Each version is a release: bump the version everywhere, README changelog entry
 with the why, small commits.
@@ -1472,3 +1477,42 @@ greyed, on-order amber, and "+N more lines" when the card runs out of room.
 Pinned jobs come first, then open jobs by install date. Legible at three
 meters: card title 32 px, lines 24 px, nothing under 22 px. `?board=1` and
 `?demo=1&board=1` and the `mode=` switch keep working.
+
+### 18.7 Audit, and the pick-up step (user, 2026-11-05, during the 0.8.0 build)
+
+- **Audit** replaces Count everywhere: the door says **Audit a shelf**
+  (verb and object, like the other doors), the screen and the Office
+  section say Audit, the location field says "Last audited". The movement
+  note says "Audit". Nothing else about the flow changes.
+- **Pick up** is a missing step. Today "Deliver to site" does two things at
+  once: the tech takes the staged product out of the bay, and it is
+  confirmed at the client. The shop wants them apart, because product sits
+  in a van between the two and someone should be on the hook for it. The
+  four steps of a job are now **Pull, Stage, Pick up, Deliver**:
+  - Line state `picked_up` sits between `staged` and `delivered`, with
+    `pickedUpAt`, `pickedUpBy`, `pickedUpByName` on the line and on the job
+    (`TK_STATUS` gains `picked_up`, label "Picked up"). Serialized units on
+    those lines are checked out to that person at pick-up (the `checkout`
+    movement that deliver writes today moves here); deliver then marks
+    them installed as it does on close today, or leaves them checked out
+    until the job closes, whichever the current deliver code does.
+  - A new door **Pick up from staging** ("Take a job's staged product into
+    your van; it is yours until it is delivered") for tech and warehouse.
+    It lists jobs with staged lines; on a job, tick the lines you are
+    taking (all by default), **Pick up** writes one `pickup` movement per
+    line (type added to the movement list and the data dictionary) and the
+    unit check-outs.
+  - **Confirm a delivery** lists jobs with picked-up lines first, then jobs
+    with staged lines (the warehouse delivering straight from the bay),
+    and confirms either.
+  - **Out with me** (tech home) shows picked-up lines by job as well as
+    units, since that is what sits in the van.
+  - Progress strips and the TV board cards read Pulled, Staged, Picked up,
+    Delivered. The board greys picked-up lines like pulled ones and labels
+    them "In the van".
+- Door colors: Audit blue, Pull amber, Pick up the dark slate of the app's
+  text color (white on it), Deliver green. Red stays for Short only.
+- Door order (user, 2026-11-05): most used on top. Warehouse Home: **Pick
+  up from staging**, **Confirm a delivery**, **Pull for a job**, **Audit a
+  shelf** last. Tech Home: Pick up, Confirm a delivery. The band colors and
+  the order of steps in the progress strip do not change.
