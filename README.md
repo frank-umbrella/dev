@@ -6,6 +6,6 @@ each tool lives in its own folder and is reached by its address.
 
 | Folder | What it is |
 | --- | --- |
-| `loadout/` | Loadout, the office inventory and pick-ticket app (moving here from `work/loadout`) |
+| `loadout/` | Loadout, the office inventory and pick-ticket app (moved here from `work/loadout` on 2026-11-05; the old address redirects) |
 
 The company hub stays at its own address; nothing here is linked from it.
