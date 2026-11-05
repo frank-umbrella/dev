@@ -1,0 +1,6 @@
+# Real shop data lives in sample folders and never ships
+*/samples/
+node_modules/
+.wrangler/
+.dev.vars
+*.log
