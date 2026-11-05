@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Loadout - Simple Mode Preview v0.1.0</title>
+<!--
+  Loadout simple mode switcher, v0.1.0, Nov 5, 2026. PLAN.md section 18, decisions D18 (option) and D19 (word).
+  Owner update Nov 5, 2026: option A and the word "Pull sheet" are chosen. B and C stay for comparison.
+
+  Design Read: internal tool for warehouse staff and technicians on a phone, Ledger-light language already set
+  by the app, dial ENERGY 1 / RHYTHM 2 / MOTION 1.
+
+  R-31 reasons, one line each:
+  - Color: the mock reuses the app's Ledger tokens from index.html unchanged, so the owner judges the layout, not a new look.
+  - Door colors: Count is the info blue, Pull the warn amber, Deliver the ok green, each the darker pill text value so white text passes 4.5:1 (6.48, 5.91, 6.55).
+  - Job bands: the same three colors sit as a top band on the Count, Pull and Deliver frames so a color means one job everywhere.
+  - Page chrome: dark around the phones, copied from design-preview.html and week-preview.html, so the light mock reads as the thing on show.
+  - Layout: one phone per job in the order a day runs (home, pull, deliver, count, shelf, office); frames wrap to a column on a narrow window.
+  - Typography: Segoe UI / system stack and Consolas for labels and serials, the app's own pair; nothing new to load from file://.
+  - Spacing: the app's 8/12/16/24 scale inside frames; wider gaps between frames so each phone reads as its own screen.
+  - Cards: only where a thing is one record (a job, an office section); lines and units are rows, not cards.
+  - Icons: drawn to match the app's tab bar strokes; each names its job (clipboard = count, box out = pull, truck = deliver).
+  - Uppercase labels with .04em tracking: kept from the app, where they mark field labels beside dense numbers.
+  - Motion: only the expand-in-place (units under a product, the printed sheet preview); off under prefers-reduced-motion.
+  - Accent: the app blue on the one primary button per screen; amber on the page chrome marks the active switch, as in the earlier previews.
+-->
+<style>
+  /* ---------- page chrome (dark, around the phones; from the earlier previews) ---------- */
+  :root{
+    --pg:#16161c;--pgcard:#24242e;--pgline:#33333f;--pgtext:#e8e8ee;--pgmuted:#9a9aab;--pgacc:#f5a623;
+    /* Ledger light tokens, copied from index.html */
+    --m-bg:#f4f6f9;--m-bg2:#e9edf3;--m-card:#ffffff;--m-card2:#f1f4f8;--m-line:#dde3ea;--m-line2:#c7d0da;
+    --m-control-line:#767f8c;--m-pilltext:#4f5a68;
+    --m-text:#1a2233;--m-muted:#5b6675;--m-accent:#1e6fd9;--m-accent2:#155cb8;--m-onaccent:#ffffff;
+    --m-ok:#1f9d5a;--m-warn:#d98b1e;--m-danger:#d3403a;--m-info:#1e6fd9;
+    --m-ok-text:#166b3e;--m-warn-text:#8a5a14;--m-bad-text:#a82e29;--m-info-text:#1a5cb5;
+    --m-topbar:#ffffff;--m-toptext:#1a2233;--m-topmuted:#5b6675;--m-brandmark:#1e6fd9;--m-navon:#e8f0fc;
+    --m-font:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;
+    --m-mono:Consolas,"Cascadia Mono",Menlo,monospace;
+    --m-radius:8px;
+    /* one color per job, from the status pill text values; white text on each passes 4.5:1 */
+    --job-count:var(--m-info-text);--job-pull:var(--m-warn-text);--job-deliver:var(--m-ok-text);
+    --stick:120px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--pg);color:var(--pgtext);font:15px/1.55 "Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;overflow-x:clip}
+  button,input{font:inherit;color:inherit}
+  :focus-visible{outline:2px solid var(--pgacc);outline-offset:2px}
+  .wrap{max-width:1290px;margin:0 auto;padding:22px 16px 60px}
+  h1{font-size:26px;margin:0 0 4px;line-height:1.25}
+  h2{font-size:19px;margin:34px 0 10px;padding-top:18px;border-top:1px solid var(--pgline)}
+  p{margin:6px 0 10px;max-width:78ch}
+  .sub{color:var(--pgmuted);margin:0 0 12px}
+  .ver{display:inline-block;font-size:11px;padding:2px 8px;border:1px solid var(--pgline);border-radius:999px;color:var(--pgmuted);margin-left:8px;vertical-align:middle}
+  ul.chg{margin:4px 0 12px;padding-left:20px;max-width:80ch}
+  ul.chg li{margin:4px 0}
+  code{background:#0f0f14;border:1px solid var(--pgline);padding:1px 5px;border-radius:4px;font-size:13px;overflow-wrap:anywhere}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--pgline);color:var(--pgmuted)}
+  .tag.rec{border-color:var(--pgacc);color:var(--pgacc)}
+  .foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--pgline);font-size:13px;color:var(--pgmuted)}
+
+  /* ---------- switcher bar ---------- */
+  .switcher{position:sticky;top:0;z-index:5;background:rgba(22,22,28,.96);border:1px solid var(--pgline);border-radius:10px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;margin:14px 0 10px}
+  .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0}
+  .lbl{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--pgmuted);margin-right:2px;min-width:44px}
+  .switcher button{background:#1c1c25;color:#cfcfda;border:1px solid var(--pgline);border-radius:8px;padding:6px 12px;font-size:14px;cursor:pointer;min-height:44px}
+  .switcher button:hover{border-color:#5a5a6c}
+  .switcher button[aria-pressed="true"]{background:#2d2d3a;color:#fff;border-color:var(--pgacc)}
+  .switcher button .tag{margin-left:6px;vertical-align:1px}
+  .switcher .hint{flex-basis:100%;font-size:12px;color:var(--pgmuted);margin:0}
+  @media (max-width:760px){.switcher{position:static}}
+  .caption{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;margin:0 0 18px;font-size:14px}
+  .caption b{font-size:16px;color:#fff}
+  .caption span.d{color:var(--pgmuted);flex-basis:100%}
+
+  /* ---------- frames ---------- */
+  .frames{display:flex;flex-wrap:wrap;gap:30px 24px;justify-content:center}
+  .fcol{width:390px;max-width:100%;min-width:0;display:flex;flex-direction:column;gap:8px}
+  .fcap{min-height:66px}
+  .fcap h3{margin:0;font-size:15px;color:#fff;scroll-margin-top:var(--stick)}
+  .fcap h3:focus-visible{outline-offset:4px}
+  .fcap p{margin:2px 0 0;color:var(--pgmuted);font-size:13.5px}
+  .phone{height:760px;background:#0b0c0e;border-radius:40px;padding:10px;border:2px solid #2a2d33}
+  .screen{position:relative;height:100%;border-radius:30px;overflow:hidden;background:var(--m-bg);color:var(--m-text);font:14px/1.45 var(--m-font);font-variant-numeric:tabular-nums}
+  .sbody{height:100%;display:flex;flex-direction:column}
+  .screen :focus-visible{outline:2px solid var(--m-accent2);outline-offset:2px}
+  .band{height:8px;flex:none}
+  .band.count{background:var(--job-count)}.band.pull{background:var(--job-pull)}.band.deliver{background:var(--job-deliver)}
+  .ph-top{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--m-topbar);border-bottom:1px solid var(--m-line);flex:none}
+  .brand{display:flex;align-items:center;gap:7px;font-weight:700;font-size:16px}
+  .brand svg{width:22px;height:22px;color:var(--m-brandmark)}
+  .who,.sync{font-size:12px;color:var(--m-topmuted);border:1px solid var(--m-line);border-radius:999px;padding:2px 9px;white-space:nowrap}
+  .who{margin-left:auto}
+  .sync{display:inline-flex;align-items:center;gap:5px}
+  .sync i{width:7px;height:7px;border-radius:50%;background:var(--m-ok)}
+  .ph-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px;min-height:0}
+  .dock{flex:none;padding:10px 12px;background:var(--m-card);border-top:1px solid var(--m-line)}
+  .dock .hint{margin:6px 0 0}
+  .toast{position:absolute;left:50%;top:58px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 28px);background:#1a2233;color:#fff;font-size:13px;padding:8px 12px;border-radius:var(--m-radius);z-index:4;text-align:center}
+  .toast:empty{display:none}
+
+  /* tab bar, as in the app (Scan raised) */
+  .tabbar{display:flex;flex:none;gap:4px;background:var(--m-card);border-top:1px solid var(--m-line);padding:4px 4px 10px}
+  .tabbar button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12.5px;color:var(--m-muted);background:none;border:0;padding:4px 0;cursor:pointer;min-height:52px;border-radius:var(--m-radius)}
+  .tabbar svg{width:22px;height:22px}
+  .tabbar button[aria-current="page"]{color:var(--m-accent2);font-weight:600}
+  .tabbar button.scan svg{width:44px;height:44px;padding:10px;border-radius:50%;margin-top:-18px;background:var(--m-card2);border:1px solid var(--m-control-line)}
+  .tabbar button.scan[aria-current="page"] svg{background:var(--m-accent);color:var(--m-onaccent);border-color:var(--m-accent)}
+
+  /* building blocks */
+  .h4{margin:16px 0 8px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--m-muted);font-weight:600}
+  .h4:first-child{margin-top:2px}
+  .hint{font-size:12.5px;color:var(--m-muted);margin:6px 0 0}
+  .mcard{background:var(--m-card);border:1px solid var(--m-line);border-radius:var(--m-radius);padding:12px 14px;min-width:0}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;border:1px solid var(--m-control-line);background:var(--m-card);color:var(--m-text);border-radius:var(--m-radius);padding:6px 14px;font-size:14px;font-weight:600;cursor:pointer;text-align:center;max-width:100%}
+  .btn:hover{border-color:var(--m-text)}
+  .btn.acc{background:var(--m-accent);border-color:var(--m-accent);color:var(--m-onaccent)}
+  .btn.acc:hover{background:var(--m-accent2)}
+  .btn.short{color:var(--m-bad-text);border-color:color-mix(in srgb,var(--m-danger) 60%,var(--m-control-line))}
+  .btn.big{width:100%;min-height:52px;font-size:16px}
+  .btn.wide{width:100%}
+  .btn[disabled]{background:var(--m-card2);border-color:var(--m-line2);color:var(--m-muted);cursor:default}
+  .btn svg{width:18px;height:18px;flex:none}
+  .tbtn{background:none;border:0;color:var(--m-accent2);font-weight:600;cursor:pointer;min-height:44px;padding:0 4px;text-decoration:underline;text-underline-offset:2px}
+  .st{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;color:var(--m-pilltext);background:color-mix(in srgb,var(--m-muted) 14%,transparent)}
+  .st.ok{color:var(--m-ok-text);background:color-mix(in srgb,var(--m-ok) 14%,transparent)}
+  .st.warn{color:var(--m-warn-text);background:color-mix(in srgb,var(--m-warn) 16%,transparent)}
+  .st.bad{color:var(--m-bad-text);background:color-mix(in srgb,var(--m-danger) 13%,transparent)}
+  .st.info{color:var(--m-info-text);background:color-mix(in srgb,var(--m-info) 14%,transparent)}
+  .st svg{width:13px;height:13px}
+  .mono{font-family:var(--m-mono);font-size:13px}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* doors (option A) */
+  .doors{display:grid;gap:10px;margin-bottom:6px}
+  .door{display:grid;grid-template-columns:40px minmax(0,1fr);align-items:center;gap:4px 12px;width:100%;min-height:76px;padding:12px 14px;border:0;border-radius:var(--m-radius);color:#fff;text-align:left;cursor:pointer}
+  .door svg{width:32px;height:32px;grid-row:1/3}
+  .door b{font-size:18px;line-height:1.2}
+  .door span{font-size:13px;line-height:1.35}
+  .door.count{background:var(--job-count)}.door.pull{background:var(--job-pull)}.door.deliver{background:var(--job-deliver)}
+  .door:hover{filter:brightness(1.08)}
+  .screen .door:focus-visible{outline:3px solid var(--m-text);outline-offset:2px}
+
+  /* jobs */
+  .jobs{display:grid;gap:8px}
+  .job{display:block;width:100%;text-align:left;background:var(--m-card);border:1px solid var(--m-line);border-radius:var(--m-radius);padding:10px 12px;cursor:pointer}
+  button.job:hover{border-color:var(--m-control-line)}
+  div.job{cursor:default}
+  .job .jt{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+  .job .jt b{font-size:15px;min-width:0;overflow-wrap:anywhere}
+  .job .jn{font-size:12.5px;color:var(--m-muted);white-space:nowrap}
+  .job .jj{font-size:13px;color:var(--m-muted)}
+  .job .btn{margin-top:8px;width:100%}
+  .strip{margin-top:6px}
+  .bar{display:flex;height:8px;border-radius:999px;background:var(--m-card2);border:1px solid var(--m-line);overflow:hidden}
+  .bar i{display:block;height:100%}
+  .bar .bd{background:var(--m-ok-text)}.bar .bs{background:var(--m-ok)}.bar .bp{background:var(--m-warn)}
+  .strip p{margin:3px 0 0;font-size:12.5px;color:var(--m-text)}
+
+  /* job header */
+  .jh .back{display:inline-flex;align-items:center;gap:4px;margin:-6px 0 2px -4px}
+  .jh .back svg{width:16px;height:16px}
+  .jh h2{all:unset;display:block;font-size:20px;font-weight:700;line-height:1.25}
+  .jh .jsub{font-size:13.5px;color:var(--m-muted)}
+  .jh .ids{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--m-muted);margin-top:2px}
+  .jh .ids b{color:var(--m-text);font-weight:600}
+  .jh .strip p{font-weight:600}
+
+  /* lines */
+  .area{margin:14px 0 4px;font-weight:700;font-size:13px;border-bottom:1.5px solid var(--m-text);padding-bottom:3px}
+  .lines{list-style:none;margin:0;padding:0}
+  .ln{padding:9px 0;border-bottom:1px solid var(--m-line);display:grid;gap:4px}
+  .ln .pn{font-weight:600;overflow-wrap:anywhere}
+  .ln .pn small{display:block;font-weight:400;color:var(--m-muted);font-size:12.5px}
+  .ln .meta{font-size:12.5px;color:var(--m-muted)}
+  .ln .meta b{color:var(--m-text)}
+  .ln .btn{justify-self:start;text-align:left}
+  .sheet{border:1px dashed var(--m-control-line);border-radius:var(--m-radius);background:var(--m-card);padding:10px 12px;margin-top:8px;font-size:12.5px}
+  .sheet .sh{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+  .sheet .sh b{font-family:var(--m-mono);font-size:15px;letter-spacing:.04em}
+  .qr{width:58px;height:58px;flex:none;border:2px solid var(--m-text);display:grid;place-items:center;font:700 11px var(--m-mono)}
+  .sheet ol{margin:8px 0 0;padding-left:18px}
+  .sheet li{margin:2px 0}
+
+  /* expand in place: the only motion */
+  .xp{display:grid;grid-template-rows:0fr;transition:grid-template-rows .2s ease}
+  .xp>div{overflow:hidden;min-height:0;visibility:hidden;transition:visibility 0s .2s}
+  .xp.open{grid-template-rows:1fr}
+  .xp.open>div{visibility:visible;transition:visibility 0s}
+  .chev{width:18px;height:18px;flex:none;transition:transform .2s ease}
+  [aria-expanded="true"] .chev{transform:rotate(180deg)}
+  @media (prefers-reduced-motion:reduce){.xp,.xp>div,.chev{transition:none}}
+
+  /* delivery */
+  .seg{display:flex;gap:4px;background:var(--m-card2);border:1px solid var(--m-control-line);border-radius:var(--m-radius);padding:3px;margin-bottom:10px}
+  .seg button{flex:1;min-height:44px;border:0;border-radius:calc(var(--m-radius) - 2px);background:none;font-weight:600;font-size:13.5px;cursor:pointer;color:var(--m-text)}
+  .seg button[aria-pressed="true"],.seg button[aria-selected="true"]{background:var(--m-accent);color:var(--m-onaccent)}
+  .dl{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;padding:6px 0;border-bottom:1px solid var(--m-line)}
+  .chk{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+  .chk input{width:22px;height:22px;flex:none;accent-color:var(--m-accent);margin:0}
+  .chk span{min-width:0;overflow-wrap:anywhere}
+  .chk small{display:block;color:var(--m-muted);font-size:12.5px}
+  .dl .row2{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-left:32px}
+  .dl .btn{min-height:44px;font-size:13px;padding:4px 10px}
+  .dl .btn[aria-pressed="true"]{background:var(--m-navon);border-color:var(--m-accent2);color:var(--m-accent2)}
+  .done{background:color-mix(in srgb,var(--m-ok) 10%,var(--m-card));border:1px solid color-mix(in srgb,var(--m-ok) 45%,var(--m-line));border-radius:var(--m-radius);padding:10px 12px;margin-top:10px}
+  .done b{color:var(--m-ok-text)}
+
+  /* count */
+  .shelves{display:grid;gap:8px}
+  .shelf{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:56px;background:var(--m-card);border:1px solid var(--m-line);border-radius:var(--m-radius);padding:8px 12px;cursor:pointer;text-align:left}
+  .shelf:hover{border-color:var(--m-control-line)}
+  .shelf small{display:block;color:var(--m-muted);font-size:12.5px}
+  .shelf .old{color:var(--m-warn-text);font-weight:600}
+  .crow{padding:10px 0;border-bottom:1px solid var(--m-line)}
+  .crow .pn{font-weight:600;overflow-wrap:anywhere}
+  .crow .exp{font-size:12.5px;color:var(--m-muted)}
+  .cctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+  .pm{width:44px;height:44px;flex:none;border:1px solid var(--m-control-line);background:var(--m-card);border-radius:var(--m-radius);font-size:22px;font-weight:600;line-height:1;cursor:pointer}
+  .cnum{width:76px;height:52px;flex:none;font-size:28px;font-weight:700;text-align:center;border:2px solid var(--m-control-line);border-radius:var(--m-radius);background:var(--m-card);color:var(--m-text)}
+  .cnum::placeholder{color:var(--m-muted);font-weight:400}
+  .match{min-height:44px}
+  .match[aria-pressed="true"]{background:color-mix(in srgb,var(--m-ok) 14%,var(--m-card));border-color:var(--m-ok-text);color:var(--m-ok-text)}
+  .cst{font-size:12.5px;margin-top:4px;min-height:18px}
+  .cst.ok{color:var(--m-ok-text)}.cst.warn{color:var(--m-warn-text)}.cst.none{color:var(--m-muted)}
+
+  /* shelf */
+  .tabs{display:flex;gap:4px;background:var(--m-card2);border:1px solid var(--m-control-line);border-radius:var(--m-radius);padding:3px;margin-bottom:10px}
+  .tabs button{flex:1 1 0;min-width:0;min-height:44px;border:0;border-radius:calc(var(--m-radius) - 2px);background:none;font-weight:600;font-size:12.5px;line-height:1.2;cursor:pointer;color:var(--m-text);padding:2px 4px}
+  .prod{border-bottom:1px solid var(--m-line)}
+  .prow{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 2px;background:none;border:0;text-align:left;color:var(--m-text)}
+  button.prow{cursor:pointer}
+  button.prow:hover{background:var(--m-card2)}
+  .prow .pt{flex:1;min-width:0}
+  .prow .pt b{font-weight:600;overflow-wrap:anywhere}
+  .prow .pt small{display:block;color:var(--m-muted);font-size:12.5px}
+  .prow .q{text-align:right;font-weight:700;white-space:nowrap}
+  .prow .q small{display:block;font-weight:400;color:var(--m-muted);font-size:12px}
+  .units{list-style:none;margin:0 0 8px;padding:0 0 0 12px;border-left:2px solid var(--m-line2)}
+  .units li{padding:5px 0;font-size:13px}
+  .units li small{display:block;color:var(--m-muted);font-size:12.5px}
+  .noser{color:var(--m-muted)}
+  .countentry{margin-bottom:12px}
+
+  /* office */
+  .office{display:grid;gap:8px}
+  .oc{display:block;width:100%;text-align:left;background:var(--m-card);border:1px solid var(--m-line);border-radius:var(--m-radius);padding:10px 12px;cursor:pointer;min-height:56px}
+  .oc:hover{border-color:var(--m-control-line)}
+  .oc b{display:block;font-size:15px}
+  .oc span{display:block;font-size:13px;color:var(--m-muted)}
+
+  /* camera (option C) */
+  .cam{position:relative;height:250px;border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at 50% 42%,#39424c 0,#1b2026 50%,#090a0c 100%)}
+  .cam .box{position:absolute;left:14%;right:14%;top:16%;bottom:34%;border:2px solid rgba(255,255,255,.92);border-radius:10px}
+  .cam .camhint{position:absolute;left:10px;right:10px;bottom:10px;text-align:center;font-size:13px;color:#fff;background:#1b2026;border-radius:6px;padding:6px 8px}
+  .srch{margin:12px 0 6px}
+  .srch label{display:block;font-size:12.5px;font-weight:600;color:var(--m-muted);margin-bottom:4px}
+  .srch input{width:100%;min-height:44px;border:1px solid var(--m-control-line);border-radius:var(--m-radius);background:var(--m-card);padding:6px 12px;font-size:16px}
+  .srch input::placeholder{color:var(--m-muted)}
+  .outs{display:grid;gap:6px;margin-top:10px}
+  .out{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;font-size:13px;text-align:left;background:none;border:1px dashed var(--m-control-line);border-radius:var(--m-radius);padding:6px 10px;cursor:pointer;color:var(--m-text)}
+  .out b{white-space:nowrap}
+  .res{display:grid;gap:6px;margin-top:6px}
+  .res .job{padding:8px 10px}
+  .empty{font-size:13px;color:var(--m-muted);padding:8px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Loadout simple mode <span class="ver">preview v0.1.0</span></h1>
+  <p class="sub">The app reorganized around three jobs: counting a shelf, pulling product for a job, and confirming it reached the client. You picked option A and the word Pull sheet; B and C stay here so you can compare. Set Role to see each person's Home, and Word to read the paper with another name. Every client, job and count is the app's demo data, and nothing you press here is saved.</p>
+
+  <div class="switcher" id="switcher">
+    <div class="grp" role="group" aria-labelledby="lbOpt"><span class="lbl" id="lbOpt">Option</span>
+      <button type="button" data-opt="a">A. Three doors <span class="tag rec">Chosen</span></button>
+      <button type="button" data-opt="b">B. Jobs first</button>
+      <button type="button" data-opt="c">C. Scan first</button>
+    </div>
+    <div class="grp" role="group" aria-labelledby="lbRole"><span class="lbl" id="lbRole">Role</span>
+      <button type="button" data-role="warehouse">Warehouse</button>
+      <button type="button" data-role="tech">Tech</button>
+      <button type="button" data-role="admin">Admin</button>
+    </div>
+    <div class="grp" role="group" aria-labelledby="lbWord"><span class="lbl" id="lbWord">Word</span>
+      <button type="button" data-word="pull">Pull sheet</button>
+      <button type="button" data-word="pick">Pick list</button>
+      <button type="button" data-word="order">Job order</button>
+    </div>
+    <p class="hint">Left and right arrow keys step through the options. The address keeps your choices, so a copied link opens on the same option, role and word.</p>
+  </div>
+  <div class="caption" id="caption" aria-live="polite"></div>
+
+  <div class="frames">
+    <section class="fcol" aria-labelledby="cap-home"><div class="fcap"><h3 id="cap-home" tabindex="-1">1. Home</h3><p id="say-home"></p></div><div class="phone"><div class="screen"><div class="sbody" id="f-home"></div><div class="toast" role="status"></div></div></div></section>
+    <section class="fcol" aria-labelledby="cap-pull"><div class="fcap"><h3 id="cap-pull" tabindex="-1">2. Pull for a job</h3><p>Warehouse is pulling product for Job 1042, three lines in.</p></div><div class="phone"><div class="screen"><div class="sbody" id="f-pull"></div><div class="toast" role="status"></div></div></div></section>
+    <section class="fcol" aria-labelledby="cap-dlv"><div class="fcap"><h3 id="cap-dlv" tabindex="-1">3. Confirm a delivery</h3><p>The same job later, at the site: tick what arrived and confirm it.</p></div><div class="phone"><div class="screen"><div class="sbody" id="f-dlv"></div><div class="toast" role="status"></div></div></div></section>
+    <section class="fcol" aria-labelledby="cap-count"><div class="fcap"><h3 id="cap-count" tabindex="-1">4. Count a shelf</h3><p>Pick a shelf, then confirm or correct each product on it.</p></div><div class="phone"><div class="screen"><div class="sbody" id="f-count"></div><div class="toast" role="status"></div></div></div></section>
+    <section class="fcol" aria-labelledby="cap-shelf"><div class="fcap"><h3 id="cap-shelf" tabindex="-1">5. Shelf</h3><p>Looking up what the shop owns, where it sits, and who has it out.</p></div><div class="phone"><div class="screen"><div class="sbody" id="f-shelf"></div><div class="toast" role="status"></div></div></div></section>
+    <section class="fcol" aria-labelledby="cap-office"><div class="fcap"><h3 id="cap-office" tabindex="-1">6. Office</h3><p>Finding the tools that used to live under More and the Console.</p></div><div class="phone"><div class="screen"><div class="sbody" id="f-office"></div><div class="toast" role="status"></div></div></div></section>
+  </div>
+
+  <h2 id="chgHead">What changes</h2>
+  <ul class="chg" id="chg"></ul>
+  <p id="why"></p>
+  <p class="sub">Same in every option: the data, the importer, the worker, the wall board, Week, labels and QR codes. Empty, loading, offline and error screens keep the wording in <code>PLAN.md</code> section 4 with the new labels. Count does not hide the expected number (D20, recommended no for the first version).</p>
+
+  <p class="foot">Loadout simple mode preview v0.1.0, Nov 5, 2026. Demo data only. PLAN.md section 18.</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  /* ---------- state ---------- */
+  var S={opt:"a",role:"warehouse",word:"pull"};
+  var W={pull:["Pull sheet","pull sheet","PULL SHEET"],pick:["Pick list","pick list","PICK LIST"],order:["Job order","job order","JOB ORDER"]};
+  function w(i){ return W[S.word][i]; }
+  var ROLE={warehouse:"Warehouse",tech:"Tech",admin:"Admin"};
+  var OPTS={
+    a:{name:"A. Three doors",chosen:true,d:"Home is three colored doors, one per job, with the jobs list under them. Each color follows its job onto the matching screen as a band along the top.",
+      chg:["Home opens on three doors: blue Count a shelf, amber Pull for a job, green Confirm a delivery.","Ticket becomes Job; its lines print as the {low}.","Stock and Units become Shelf; More and the Console become Office.","Tab bar: Jobs, Scan, Shelf, Office. Scan stays the raised button in the middle.","Count is new: pick a shelf, confirm or correct each product, finish."],
+      why:"Each of the three people you named sees their own door first, in a color they can hit without reading."},
+    b:{name:"B. Jobs first",d:"Home is the jobs list. Every card has a progress strip and one button for its next step. Count lives under Shelf.",
+      chg:["Home is the jobs list; each card carries one strip and one next-step button.","Count a shelf moves to the top of Shelf.","Ticket becomes Job; its lines print as the {low}.","Stock and Units become Shelf; More and the Console become Office.","Tab bar: Jobs, Scan, Shelf, Office, same as A."],
+      why:"Fewest screens. It leans on the strip on each card to say where the job stands."},
+    c:{name:"C. Scan first",d:"Home is the camera. A shelf label starts a count, the QR on a printed {low} opens the job mid-pull, and lists sit behind a search field.",
+      chg:["Home is the camera, with a search field under it for anything without a label.","A shelf label starts a count; the {low} QR opens the job where it was left.","A delivery is confirmed from the job, not from a door.","Tab bar: Scan, Jobs, Shelf, Office.","Stock and Units become Shelf; More and the Console become Office."],
+      why:"Fastest with a phone in one hand at the shelf; slowest for the office, which mostly reads lists."}
+  };
+
+  function store(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+  function load(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function esc(s){ return String(s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
+
+  /* ---------- icons (strokes match the app's tab bar) ---------- */
+  function svg(p,extra){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"'+(extra||"")+'>'+p+'</svg>'; }
+  var I={
+    jobs:svg('<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/>'),
+    scan:svg('<path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M4 12h16"/>'),
+    shelf:svg('<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/>'),
+    office:svg('<rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M8.5 7h2M13.5 7h2M8.5 11h2M13.5 11h2M8.5 15h2M13.5 15h2M10.5 21v-3h3v3"/>'),
+    count:svg('<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 12.5l2.5 2.5 4.5-5"/>'),
+    pull:svg('<path d="M4 10h16v10H4zM12 3v10M8.5 6.5 12 3l3.5 3.5"/>'),
+    deliver:svg('<path d="M2 6h11v10H2zM13 9h4l3 3.5V16h-7"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>'),
+    back:svg('<path d="m15 6-6 6 6 6"/>'),
+    check:svg('<path d="m5 12 5 5 9-10"/>'),
+    chev:svg('<path d="m6 9 6 6 6-6"/>',' class="chev"'),
+    mark:'<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>'
+  };
+
+  /* ---------- demo data (from index.html loadDemo) ---------- */
+  var LINES0=[
+    {id:"amp",area:"Reception",pn:"Sonos Amp",d:"Streaming amplifier",need:1,from:"",have:"None on the shelves",st:"short"},
+    {id:"chief",area:"Reception",pn:"Chief RPMAU",d:"Projector mount, not in the catalog yet",need:1,from:"",have:"Not stocked",st:"short"},
+    {id:"hdmi",area:"Reception",pn:"HDMI patch, 6 ft, black",d:"",need:4,from:"Storage room, RCA A/V Video",st:"pull"},
+    {id:"u6",area:"Operatory 1-4",pn:"Ubiquiti U6-Pro",d:"WiFi 6 access point",need:4,from:"",have:"0 in Warehouse",st:"short"},
+    {id:"axis",area:"Operatory 1-4",pn:"Axis M3065-V",d:"Mini dome camera",need:2,from:"Warehouse",st:"pulled"},
+    {id:"u2v",area:"Network closet",pn:"Middle Atlantic U2V",d:"2RU vented rack shelf",need:2,from:"Warehouse",st:"pulled"},
+    {id:"lev",area:"Network closet",pn:"Leviton 61110-BE6",d:"Cat6 keystone jack, blue",need:24,from:"Warehouse",st:"pull"},
+    {id:"cat6",area:"Wire",pn:"CAT6 Riser, 23/4, Blue",d:"",need:1000,unit:"ft",from:"Box B1026, Bay 2",st:"pulled"}
+  ];
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  var P={lines:clone(LINES0),print:false};
+  var D={checked:{},van:{},done:false};
+  var SHELVES=[
+    {id:"rca",name:"Storage room, RCA A/V Video",last:"Aug 7",old:true,items:[
+      {id:"hdmi",pn:"HDMI patch, 6 ft, black",exp:4},{id:"split",pn:"2 way coaxial splitter",exp:3},
+      {id:"xlr",pn:"XLR, female, 3 pin",exp:4},{id:"rcav",pn:"1 Pin A/V Cable, Blue Band, RCA-M to RCA-M, 6 ft",exp:5}]},
+    {id:"patch",name:"Storage room, Patch cables",last:"Oct 16",items:[
+      {id:"c6p",pn:"CAT6 UTP patch cable, Blue, 3 ft",exp:6},{id:"pwr",pn:"Power cable, Edison-M to C13-F, 6 ft",exp:5}]},
+    {id:"wh",name:"Warehouse",last:"Oct 16",items:[
+      {id:"axis",pn:"Axis M3065-V",exp:1},{id:"u2v",pn:"Middle Atlantic U2V",exp:3},{id:"lev",pn:"Leviton 61110-BE6",exp:64},
+      {id:"u6",pn:"Ubiquiti U6-Pro",exp:0},{id:"port",pn:"Sonos Port",exp:2}]},
+    {id:"van1",name:"Van 1",last:"",items:[{id:"lev",pn:"Leviton 61110-BE6",exp:24}]}
+  ];
+  var C={shelf:"rca",vals:{rca:{hdmi:3,split:3}},done:false};
+  var PRODUCTS=[
+    {id:"u6",pn:"Ubiquiti U6-Pro",where:"Bay 2 1, out 1",q:"1",par:"par 2",low:true,units:[
+      {k:"MAC 00A1B2",w:"Bay 2, staged for Job 1042",s:"since Nov 2"},{k:"Label Q2X7A2, no serial",w:"With Tech, Lakeview office refresh",s:"since Nov 1",out:true}]},
+    {id:"udm",pn:"Ubiquiti UDM-SE",where:"Out 1",q:"0",par:"",units:[{k:"Serial A1B3C4",w:"With Tech, van stock",s:"since Oct 25",out:true}]},
+    {id:"axis",pn:"Axis M3065-V",where:"Warehouse 1, Bay 2 2, out 1",q:"3",par:"par 2",units:[
+      {k:"MAC 12AB34",w:"With Install crew, for the lobby cameras",s:"since Nov 2",out:true}],more:"3 more have no serial: Warehouse 1, Bay 2 2."},
+    {id:"usw",pn:"Ubiquiti USW-24-POE",where:"Installed 1",q:"0",par:"",units:[{k:"Serial C4F5E1",w:"Installed at Harbor Clinic, Harbor clinic network",s:"since Oct 18"}]},
+    {id:"port",pn:"Sonos Port",where:"Warehouse 2",q:"2",par:"",units:[{k:"Sonos Port #1, no serial",w:"Warehouse",s:"since Aug 17"},{k:"Sonos Port #2, no serial",w:"Warehouse",s:"since Aug 17"}]},
+    {id:"amp",pn:"Sonos Amp",where:"Warehouse 1, damaged",q:"1",par:"",units:[{k:"Label V8B2C3, no serial",w:"Warehouse, came back damaged",s:"since Nov 2"}]},
+    {id:"cat6",pn:"CAT6 Riser, 23/4, Blue",where:"Box A1026 640 ft, Box B1026 1,000 ft",q:"1,640",unit:"ft",par:"par 1,000"},
+    {id:"cat5",pn:"CAT5E Riser, 24/4, Gray",where:"Box C926, Warehouse",q:"410",unit:"ft",par:"par 1,000",low:true},
+    {id:"rg6",pn:"Coaxial, RG6, White",where:"Box D926, location not confirmed",q:"300",unit:"ft",par:"par 500",low:true},
+    {id:"lev",pn:"Leviton 61110-BE6",where:"Warehouse 64, Van 1 24",q:"88",par:"par 100",low:true},
+    {id:"hdmi",pn:"HDMI patch, 6 ft, black",where:"Storage room, RCA A/V Video 4",q:"4",par:"par 6",low:true},
+    {id:"c6p",pn:"CAT6 UTP patch cable, Blue, 3 ft",where:"Patch cables 6, Bay 2 6",q:"12",par:"par 10"},
+    {id:"xlr",pn:"XLR, female, 3 pin",where:"RCA A/V Video 4, Bay 1 2",q:"6",par:""}
+  ];
+  var LOCS=[["Warehouse","5 products, 2 serialized units"],["Storage room, Patch cables","2 products"],["Storage room, RCA A/V Video","4 products"],["Bay 1","Job 1048, Harbor Clinic"],["Bay 2","Job 1042, Lakeview Dental"],["Bay 3","Waiting room TVs, Ridge Family Practice"],["Van 1","Leviton 61110-BE6 24"],["Shop truck","Nothing here"]];
+  var SH={tab:"all",open:{}};
+  var OFFICE=[
+    ["Orders and tracking","What is on order, and where each package is right now.",1],
+    ["Clients","Client names and their jobs; most arrive with an import.",1],
+    ["Reports","Stock value, spend by vendor, what went to each job.",1],
+    ["People","Who can sign in, and what each person can do.",1],
+    ["Settings","Costs on or off, label size, carriers, QR threshold.",1],
+    ["Labels","Print labels for shelves, wire boxes and serialized units.",0],
+    ["Movements","Every pull, count and check-out, with who and when.",0],
+    ["Import","Bring in a Portal proposal or the inventory sheet.",1],
+    ["Backups","Download a full copy of the data.",1],
+    ["Export","Spreadsheets of stock, jobs and movements.",1],
+    ["About","Version, what changed, and who to ask.",0]
+  ];
+  var OUT_ME=[{pn:"Ubiquiti U6-Pro",k:"Label Q2X7A2",w:"Lakeview office refresh",s:"since Nov 1"},{pn:"Ubiquiti UDM-SE",k:"Serial A1B3C4",w:"Van stock",s:"since Oct 25"}];
+  var SEARCH="";
+
+  /* ---------- derived ---------- */
+  function pullCounts(){
+    var n=P.lines.length,pu=0,stg=0;
+    P.lines.forEach(function(l){ if(l.st==="pulled"||l.st==="staged") pu++; if(l.st==="staged") stg++; });
+    return {lines:n,pulled:pu,staged:stg,dlv:0};
+  }
+  function jobs(){
+    return [
+      {n:"1042",client:"Lakeview Dental",job:"Lakeview office refresh",bay:"Bay 2",due:"Install Nov 5",c:pullCounts()},
+      {n:"1048",client:"Harbor Clinic",job:"Harbor clinic network",bay:"Bay 1",due:"Install Nov 6",c:{lines:3,pulled:3,staged:3,dlv:0}},
+      {n:"1050",client:"Lakeview Dental",job:"Change order: lobby camera",bay:"Bay 2",due:"Install Nov 7",c:{lines:2,pulled:1,staged:1,dlv:0}},
+      {n:"1053",client:"Ridge Family Practice",job:"Waiting room TVs",bay:"No bay yet",due:"No install date",c:{lines:3,pulled:0,staged:0,dlv:0}}
+    ];
+  }
+  function nextStep(c){
+    if(c.dlv>=c.lines) return null;
+    if(c.staged>=c.lines) return {t:"Confirm delivery",go:"dlv"};
+    if(c.pulled>=c.lines) return {t:"Stage",go:"pull"};
+    if(c.pulled===0) return {t:"Start pulling",go:"pull"};
+    return {t:"Keep pulling",go:"pull"};
+  }
+  function stripText(c){ return "Pulled "+c.pulled+" of "+c.lines+", Staged "+c.staged+", Delivered "+c.dlv; }
+  function strip(c){
+    var d=c.dlv/c.lines*100,s=(c.staged-c.dlv)/c.lines*100,p=(c.pulled-c.staged)/c.lines*100;
+    return '<div class="strip"><div class="bar" aria-hidden="true"><i class="bd" style="width:'+d+'%"></i><i class="bs" style="width:'+s+'%"></i><i class="bp" style="width:'+p+'%"></i></div><p>'+stripText(c)+'</p></div>';
+  }
+
+  /* ---------- shared chrome ---------- */
+  function top(band){
+    return (band?'<div class="band '+band+'" aria-hidden="true"></div>':'')+'<div class="ph-top"><span class="brand">'+I.mark+'Loadout</span><span class="who">'+ROLE[S.role]+'</span><span class="sync" title="Shows Offline and a pending count when the phone has no signal."><i></i>Synced</span></div>';
+  }
+  function tabbar(on){
+    var order=S.opt==="c"?["scan","jobs","shelf","office"]:["jobs","scan","shelf","office"];
+    var name={jobs:"Jobs",scan:"Scan",shelf:"Shelf",office:"Office"};
+    return '<nav class="tabbar" aria-label="App tabs">'+order.map(function(k){
+      var act,tip="";
+      if(k==="shelf") act="go:shelf"; else if(k==="office") act="go:office";
+      else if(k==="jobs"){ if(S.opt==="c"&&S.role!=="admin"){ act="toast:Mockup: Jobs is the plain jobs list, the same list option B uses as Home."; tip=' title="Mockup: the jobs list, as on option B Home"'; } else act="go:home"; }
+      else { if(S.opt==="c") act="go:home"; else { act="toast:Mockup: Scan opens the camera, the same Scan screen as today. Option C starts on it."; tip=' title="Mockup: opens the camera, as today"'; } }
+      return '<button type="button" class="'+(k==="scan"?"scan":"")+'" data-act="'+esc(act)+'" data-k="tab-'+k+'"'+tip+(k===on?' aria-current="page"':"")+'>'+I[k]+name[k]+'</button>';
+    }).join("")+'</nav>';
+  }
+  function frame(body,dock,on,band){ return top(band)+'<div class="ph-scroll">'+body+'</div>'+(dock?'<div class="dock">'+dock+'</div>':"")+tabbar(on); }
+
+  /* ---------- 1. Home ---------- */
+  function jobCard(j,withBtn){
+    var ns=nextStep(j.c),title=j.n==="1042"?"":' title="The mockup shows Job 1042 for every job"';
+    var inner='<span class="jt"><b>'+j.client+'</b><span class="jn">Job '+j.n+'</span></span><span class="jj">'+j.job+', '+j.bay+', '+j.due+'</span>'+strip(j.c);
+    if(withBtn) return '<div class="job">'+inner+(ns?'<button type="button" class="btn" data-act="go:'+ns.go+'" data-k="jb-'+j.n+'"'+title+'>'+ns.t+'</button>':'<p class="hint">Delivered.</p>')+'</div>';
+    return '<button type="button" class="job" data-act="go:'+(ns?ns.go:"pull")+'" data-k="jr-'+j.n+'"'+title+'>'+inner+'</button>';
+  }
+  function door(kind,label,when){
+    var go={count:"count",pull:"pull",deliver:"dlv"}[kind];
+    return '<button type="button" class="door '+kind+'" data-act="go:'+go+'" data-k="door-'+kind+'">'+I[kind==="deliver"?"deliver":kind]+'<b>'+label+'</b><span>'+when+'</span></button>';
+  }
+  function outWithMe(){
+    return '<div class="h4">Out with me</div><div class="jobs">'+OUT_ME.map(function(u,i){
+      return '<button type="button" class="job" data-act="outtab" data-k="om-'+i+'"><span class="jt"><b>'+u.pn+'</b><span class="jn">'+u.s+'</span></span><span class="jj"><span class="mono">'+u.k+'</span>, '+u.w+'</span></button>';
+    }).join("")+'</div>';
+  }
+  function toDeliver(withBtn){
+    var js=jobs().filter(function(j){ return j.c.staged>j.c.dlv; });
+    return '<div class="h4">Jobs with something to deliver</div><div class="jobs">'+js.map(function(j){
+      if(!withBtn) return '<button type="button" class="job" data-act="go:dlv" data-k="td-'+j.n+'"><span class="jt"><b>'+j.client+'</b><span class="jn">Job '+j.n+'</span></span><span class="jj">'+j.job+', '+j.bay+'</span>'+strip(j.c)+'</button>';
+      return '<div class="job"><span class="jt"><b>'+j.client+'</b><span class="jn">Job '+j.n+'</span></span><span class="jj">'+j.job+', '+j.bay+'</span>'+strip(j.c)+'<button type="button" class="btn" data-act="go:dlv" data-k="tdb-'+j.n+'">Confirm delivery</button></div>';
+    }).join("")+'</div>';
+  }
+  function adminHome(withBtn){
+    return '<button type="button" class="btn acc wide" data-act="toast:Mockup: New job opens the import sheet, the same one New ticket opens today." data-k="newjob" title="Mockup: opens the import sheet">New job</button>'+
+      '<div class="h4">Jobs</div><div class="jobs">'+jobs().map(function(j){ return jobCard(j,withBtn); }).join("")+'</div>';
+  }
+  function camera(){
+    return '<div class="cam" role="img" aria-label="Camera view, static in this mockup"><div class="box"></div><div class="camhint">Point at a shelf label, a '+w(1)+' QR, or a box sticker</div></div>'+
+      '<div class="srch"><label for="csearch">Or search</label><input id="csearch" type="search" placeholder="Job number, client, or shelf" value="'+esc(SEARCH)+'" autocomplete="off" data-k="csearch"></div>'+
+      '<div class="res" id="cres">'+searchResults()+'</div>'+
+      '<div class="h4">What a scan opens</div><div class="outs">'+
+      '<button type="button" class="out" data-act="go:count" data-k="o1"><b>Shelf label</b> starts a count of that shelf</button>'+
+      '<button type="button" class="out" data-act="go:pull" data-k="o2"><b>'+w(0)+' QR</b> opens the job mid-pull</button>'+
+      '<button type="button" class="out" data-act="go:shelf" data-k="o3"><b>Box sticker</b> shows the product and where it sits</button></div>';
+  }
+  function searchResults(){
+    var q=SEARCH.trim().toLowerCase(); if(!q) return "";
+    var hits=[];
+    jobs().forEach(function(j){ if((j.n+" "+j.client+" "+j.job).toLowerCase().indexOf(q)>=0){ var ns=nextStep(j.c); hits.push('<button type="button" class="job" data-act="go:'+(ns?ns.go:"pull")+'"><span class="jt"><b>'+j.client+'</b><span class="jn">Job '+j.n+'</span></span><span class="jj">'+j.job+'</span></button>'); } });
+    SHELVES.forEach(function(s){ if(s.name.toLowerCase().indexOf(q)>=0) hits.push('<button type="button" class="job" data-act="shelfcount:'+s.id+'"><span class="jt"><b>'+s.name+'</b><span class="jn">Shelf</span></span><span class="jj">'+s.items.length+' products, '+(s.last?"last counted "+s.last:"not counted yet")+'</span></button>'); });
+    return hits.length?hits.join(""):'<p class="empty">Nothing matches "'+esc(SEARCH.trim())+'". Try a job number, a client, or a shelf name.</p>';
+  }
+  function renderHome(){
+    var o=S.opt,r=S.role,b="";
+    var say={warehouse:"Warehouse opens the app at the start of the day.",tech:"A tech opens the app before driving to a site.",admin:"The office opens the app to see where every job stands."}[r];
+    document.getElementById("say-home").textContent=say;
+    if(r==="admin") b=(o==="c"?'<p class="hint" style="margin-top:0">The office lands on Jobs in every option.</p>':"")+adminHome(o!=="a");
+    else if(o==="a"){
+      if(r==="warehouse") b='<div class="doors">'+door("count","Count a shelf","When a shelf looks off, or it is due for a count.")+door("pull","Pull for a job","When a job is waiting for its product.")+door("deliver","Confirm a delivery","When the product is on site with the client.")+'</div><div class="h4">Jobs</div><div class="jobs">'+jobs().map(function(j){ return jobCard(j,false); }).join("")+'</div>';
+      else b='<div class="doors">'+door("deliver","Confirm a delivery","When the product is on site with the client.")+'</div>'+outWithMe()+toDeliver(false);
+    } else if(o==="b"){
+      if(r==="warehouse") b='<div class="h4">Jobs</div><div class="jobs">'+jobs().map(function(j){ return jobCard(j,true); }).join("")+'</div>';
+      else b=outWithMe()+toDeliver(true);
+    } else {
+      b=camera()+(r==="tech"?outWithMe():"");
+    }
+    return frame(b,"",o==="c"&&r!=="admin"?"scan":"jobs");
+  }
+
+  /* ---------- 2. Pull for a job ---------- */
+  function jobHead(c){
+    return '<div class="jh"><button type="button" class="tbtn back" data-act="go:home" data-k="back">'+I.back+'Jobs</button><h2>Lakeview Dental</h2><div class="jsub">Lakeview office refresh, 210 Main St, Suite 4</div>'+
+      '<div class="ids"><span>Job <b>1042</b></span><span>Proposal <b>1042</b></span><span>Staging <b>Bay 2</b></span></div>'+strip(c)+'</div>';
+  }
+  function lineHtml(l){
+    var q=l.need.toLocaleString("en-US")+(l.unit?" "+l.unit:""),meta,act="";
+    if(l.st==="pull"){ meta='Need <b>'+q+'</b>, on <b>'+l.from+'</b>'; act='<button type="button" class="btn" data-act="pl:'+l.id+'" data-k="pl-'+l.id+'">Pull '+q+' from '+l.from+'</button>'; }
+    else if(l.st==="pulled"){ meta='Need <b>'+q+'</b>, pulled from <b>'+l.from+'</b>'; act='<button type="button" class="btn" data-act="sg:'+l.id+'" data-k="pl-'+l.id+'">Stage in Bay 2</button>'; }
+    else if(l.st==="staged"){ meta='Need <b>'+q+'</b>, from <b>'+l.from+'</b>'; act='<span class="st ok">'+I.check+'Staged in Bay 2</span>'; }
+    else if(l.st==="short"){ meta='Need <b>'+q+'</b>, '+l.have; act='<button type="button" class="btn short" data-act="or:'+l.id+'" data-k="pl-'+l.id+'">Short: order '+q+'</button>'; }
+    else { meta='Need <b>'+q+'</b>, '+l.have; act='<span class="st warn">On the draft order</span>'; }
+    return '<li class="ln" id="ln-'+l.id+'"><div class="pn">'+l.pn+(l.d?'<small>'+l.d+'</small>':"")+'</div><div class="meta">'+meta+'</div>'+act+'</li>';
+  }
+  function renderPull(){
+    var c=pullCounts(),areas=[],b="";
+    P.lines.forEach(function(l){ if(areas.indexOf(l.area)<0) areas.push(l.area); });
+    b+=jobHead(c);
+    b+='<div class="h4" style="margin-top:14px">'+w(0)+', '+c.lines+' lines</div>';
+    b+='<button type="button" class="btn wide" data-act="print" data-k="print" aria-expanded="'+P.print+'" aria-controls="sheetx">Print '+w(1)+' '+I.chev+'</button>';
+    b+='<div class="xp'+(P.print?" open":"")+'" id="sheetx"><div><div class="sheet"><div class="sh"><div><b>'+w(2)+'</b><br>Job 1042, proposal 1042<br>Lakeview Dental, Lakeview office refresh<br>Stage in Bay 2</div><div class="qr" title="The QR opens this job mid-pull">QR</div></div><ol>'+
+      P.lines.map(function(l){ return '<li>'+l.pn+', '+l.need.toLocaleString("en-US")+(l.unit?" "+l.unit:"")+(l.from?", "+l.from:"")+'</li>'; }).join("")+'</ol><p class="hint">Mockup of the printed page. The real button opens the print dialog.</p></div></div></div>';
+    areas.forEach(function(a){
+      b+='<div class="area">'+a+'</div><ul class="lines">'+P.lines.filter(function(l){ return l.area===a; }).map(lineHtml).join("")+'</ul>';
+    });
+    b+='<p class="hint">Short lines go on one draft order for the office. <button type="button" class="tbtn" data-act="pullreset" data-k="pullreset">Start this mockup over</button></p>';
+    var toPull=P.lines.filter(function(l){ return l.st==="pull"; }).length, toStage=P.lines.filter(function(l){ return l.st==="pulled"; }).length, dock;
+    if(toPull) dock='<button type="button" class="btn acc big" data-act="keep" data-k="pmain">Keep pulling</button><p class="hint">'+toPull+' line'+(toPull>1?"s":"")+' left to pull.</p>';
+    else if(toStage) dock='<button type="button" class="btn acc big" data-act="stageall" data-k="pmain">Stage what is pulled</button><p class="hint">'+toStage+' line'+(toStage>1?"s":"")+' pulled, not staged yet.</p>';
+    else dock='<button type="button" class="btn acc big" data-act="go:dlv" data-k="pmain">Go to Confirm a delivery</button><p class="hint">Everything on the shelves is staged in Bay 2.</p>';
+    return frame(b,dock,S.opt==="c"?"scan":"jobs","pull");
+  }
+
+  /* ---------- 3. Confirm a delivery ---------- */
+  var DL=[["amp","Sonos Amp","1"],["chief","Chief RPMAU","1"],["hdmi","HDMI patch, 6 ft, black","4"],["u6","Ubiquiti U6-Pro","4"],["axis","Axis M3065-V","2"],["u2v","Middle Atlantic U2V","2"],["lev","Leviton 61110-BE6","24"],["cat6","CAT6 Riser, 23/4, Blue","1,000 ft"]];
+  function renderDlv(){
+    var nChk=DL.filter(function(d){ return D.checked[d[0]]; }).length, nVan=DL.filter(function(d){ return D.van[d[0]]; }).length;
+    var c={lines:8,pulled:8,staged:8,dlv:D.done?nChk:0};
+    var b='<div class="seg" role="group" aria-label="Show the screen"><button type="button" data-act="dmode:before" data-k="dm-b" aria-pressed="'+!D.done+'">Before</button><button type="button" data-act="dmode:done" data-k="dm-d" aria-pressed="'+D.done+'">Done</button></div>';
+    b+=jobHead(c);
+    b+='<div class="h4" style="margin-top:14px">Staged lines on the '+w(1)+'</div>';
+    b+=DL.map(function(d){
+      var id=d[0],van=!!D.van[id],chk=!!D.checked[id];
+      if(D.done) return '<div class="dl"><div class="chk" style="cursor:default"><span>'+d[1]+'<small>'+d[2]+'</small></span></div><div class="row2">'+(chk?'<span class="st ok">'+I.check+'Delivered</span>':van?'<span class="st warn">Left in Van 1</span>':'<span class="st">Not delivered</span>')+'</div></div>';
+      return '<div class="dl"><label class="chk"><input type="checkbox" data-act="dchk:'+id+'" data-k="dc-'+id+'"'+(chk?" checked":"")+(van?" disabled":"")+'><span>'+d[1]+'<small>'+d[2]+(van?", left in Van 1":"")+'</small></span></label><div class="row2"><button type="button" class="btn" data-act="dvan:'+id+'" data-k="dv-'+id+'" aria-pressed="'+van+'">Left in the van</button></div></div>';
+    }).join("");
+    var dock;
+    if(D.done) dock='<div class="done"><b>Delivered to site</b><br>Confirmed by '+ROLE[S.role]+', Nov 5, 2:40 PM. '+nChk+' of 8 lines delivered'+(nVan?", "+nVan+" left in Van 1":"")+'.</div><button type="button" class="tbtn" data-act="dundo" data-k="dundo">Undo</button>';
+    else dock='<button type="button" class="btn acc big" data-act="dconfirm" data-k="dconfirm"'+(nChk?"":" disabled")+'>Delivered to site</button><p class="hint">'+(nChk?nChk+" of 8 ticked"+(nVan?", "+nVan+" left in the van":"")+".":"Tick each line that arrived first.")+'</p>';
+    return frame(b,dock,S.opt==="c"?"scan":"jobs","deliver");
+  }
+
+  /* ---------- 4. Count a shelf ---------- */
+  function shelfById(id){ for(var i=0;i<SHELVES.length;i++) if(SHELVES[i].id===id) return SHELVES[i]; return null; }
+  function cval(sid,pid){ var v=(C.vals[sid]||{})[pid]; return v===undefined||v===null||v===""?null:v; }
+  function rowState(sid,p){ var v=cval(sid,p.id); if(v===null) return ["none","Not counted yet"]; if(v===p.exp) return ["ok","Matches"]; return ["warn","Corrected: "+p.exp+" to "+v]; }
+  function countSummary(s){
+    var cor=0,mat=0,left=0; s.items.forEach(function(p){ var r=rowState(s.id,p)[0]; if(r==="ok") mat++; else if(r==="warn") cor++; else left++; });
+    return {cor:cor,mat:mat,left:left};
+  }
+  function sumText(m){ return m.cor+" corrected, "+m.mat+" matched"+(m.left?", "+m.left+" to count":""); }
+  function renderCount(){
+    var tabOn=S.opt==="b"?"shelf":S.opt==="c"?"scan":"jobs",b,dock="";
+    if(!C.shelf){
+      b='<div class="h4">Pick a shelf</div><div class="shelves">'+SHELVES.map(function(s){
+        return '<button type="button" class="shelf" data-act="cshelf:'+s.id+'" data-k="cs-'+s.id+'"><span><b>'+s.name+'</b><small>'+s.items.length+' product'+(s.items.length>1?"s":"")+'</small></span><small class="'+(s.old?"old":"")+'">'+(s.last?"Last counted "+s.last:"Not counted yet")+'</small></button>';
+      }).join("")+'</div><p class="hint">A count older than 60 days shows in amber.</p>';
+      return frame(b,"",tabOn,"count");
+    }
+    var s=shelfById(C.shelf);
+    b='<button type="button" class="tbtn back" data-act="cback" data-k="cback" style="display:inline-flex;align-items:center;gap:4px;margin:-6px 0 2px -4px">'+I.back+'All shelves</button><h2 style="margin:0;font-size:19px">'+s.name+'</h2><p class="hint" style="margin-top:2px">'+(s.last?"Last counted "+s.last:"Not counted yet")+'. The faint number is what the app expects.</p>';
+    if(C.done){
+      var m=countSummary(s);
+      b+='<div class="done"><b>Count saved</b><br>'+s.name+': '+m.cor+' corrected, '+m.mat+' matched. Last counted is now Nov 5.</div>';
+      dock='<button type="button" class="btn big" data-act="cagain" data-k="cagain">Count another shelf</button>';
+      return frame(b,dock,tabOn,"count");
+    }
+    b+=s.items.map(function(p){
+      var v=cval(s.id,p.id),r=rowState(s.id,p);
+      return '<div class="crow" data-row="'+p.id+'"><div class="pn">'+p.pn+'</div><div class="exp">Expected '+p.exp+'</div><div class="cctl">'+
+        '<button type="button" class="pm" data-act="cminus:'+p.id+'" data-k="cm-'+p.id+'" aria-label="One fewer '+esc(p.pn)+'">-</button>'+
+        '<input class="cnum" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="5" data-cnt="'+p.id+'" data-k="cn-'+p.id+'" aria-label="Count of '+esc(p.pn)+'" placeholder="'+p.exp+'" value="'+(v===null?"":v)+'">'+
+        '<button type="button" class="pm" data-act="cplus:'+p.id+'" data-k="cp-'+p.id+'" aria-label="One more '+esc(p.pn)+'">+</button>'+
+        '<button type="button" class="btn match" data-act="cmatch:'+p.id+'" data-k="cx-'+p.id+'" aria-pressed="'+(r[0]==="ok")+'">'+I.check+'Matches</button></div>'+
+        '<div class="cst '+r[0]+'">'+r[1]+'</div></div>';
+    }).join("");
+    var m=countSummary(s);
+    dock='<button type="button" class="btn acc big" data-act="cfinish" data-k="cfinish" id="cfin"'+(m.left?" disabled":"")+'>Finish count</button><p class="hint" id="csum">'+sumText(m)+(m.left?". Count every product to finish.":".")+'</p>';
+    return frame(b,dock,tabOn,"count");
+  }
+  function paintCount(){
+    var s=shelfById(C.shelf); if(!s||C.done) return;
+    var root=document.getElementById("f-count");
+    s.items.forEach(function(p){
+      var row=root.querySelector('[data-row="'+p.id+'"]'); if(!row) return;
+      var r=rowState(s.id,p),st=row.querySelector(".cst");
+      st.className="cst "+r[0]; st.textContent=r[1];
+      row.querySelector(".match").setAttribute("aria-pressed",String(r[0]==="ok"));
+    });
+    var m=countSummary(s);
+    document.getElementById("cfin").disabled=!!m.left;
+    document.getElementById("csum").textContent=sumText(m)+(m.left?". Count every product to finish.":".");
+  }
+
+  /* ---------- 5. Shelf ---------- */
+  function prodHtml(p){
+    var q='<span class="q">'+p.q+(p.unit?" "+p.unit:"")+(p.low?'<small><span class="st warn">Low</span></small>':p.par?'<small>'+p.par+'</small>':"")+'</span>';
+    var t='<span class="pt"><b>'+p.pn+'</b><small>'+p.where+(p.low&&p.par?", "+p.par:"")+'</small></span>';
+    if(!p.units) return '<div class="prod"><div class="prow">'+t+q+'</div></div>';
+    var open=!!SH.open[p.id];
+    return '<div class="prod"><button type="button" class="prow" data-act="sx:'+p.id+'" data-k="sx-'+p.id+'" aria-expanded="'+open+'" aria-controls="u-'+p.id+'">'+t+q+I.chev+'</button>'+
+      '<div class="xp'+(open?" open":"")+'" id="u-'+p.id+'"><div><ul class="units">'+p.units.map(function(u){ return '<li><span class="mono">'+u.k+'</span><small>'+u.w+', '+u.s+'</small></li>'; }).join("")+(p.more?'<li class="noser">'+p.more+'</li>':"")+'</ul></div></div></div>';
+  }
+  function renderShelf(){
+    var tabs=[["all","All"],["low","Low"],["out","Out with people"],["locs","Locations"]],b="";
+    if(S.opt==="b") b+='<button type="button" class="btn wide countentry" data-act="go:count" data-k="countentry">'+I.count+'Count a shelf</button>';
+    b+='<div class="tabs" role="tablist" aria-label="Shelf views">'+tabs.map(function(t){ var on=SH.tab===t[0];
+      return '<button type="button" role="tab" id="t-'+t[0]+'" aria-controls="tp-shelf" aria-selected="'+on+'" tabindex="'+(on?0:-1)+'" data-act="stab:'+t[0]+'" data-k="st-'+t[0]+'">'+t[1]+'</button>'; }).join("")+'</div>';
+    var p='<div role="tabpanel" id="tp-shelf" aria-labelledby="t-'+SH.tab+'">';
+    if(SH.tab==="all") p+='<p class="hint" style="margin:0 0 4px">Rows with an arrow have serialized units. Tap to list them.</p>'+PRODUCTS.map(prodHtml).join("");
+    else if(SH.tab==="low") p+=PRODUCTS.filter(function(x){ return x.low; }).map(prodHtml).join("");
+    else if(SH.tab==="out"){ var outs=[]; PRODUCTS.forEach(function(x){ (x.units||[]).forEach(function(u){ if(u.out) outs.push([x,u]); }); });
+      p+=outs.map(function(o){ return '<div class="prod"><div class="prow"><span class="pt"><b>'+o[0].pn+'</b><small><span class="mono">'+o[1].k+'</span></small><small>'+o[1].w+'</small></span><span class="q"><small>'+o[1].s+'</small></span></div></div>'; }).join(""); }
+    else p+=LOCS.map(function(l){ return '<div class="prod"><div class="prow"><span class="pt"><b>'+l[0]+'</b><small>'+l[1]+'</small></span></div></div>'; }).join("");
+    b+=p+'</div>';
+    return frame(b,"","shelf");
+  }
+
+  /* ---------- 6. Office ---------- */
+  function renderOffice(){
+    var full=S.role==="admin",list=OFFICE.filter(function(o){ return full||!o[2]; });
+    var b='<div class="office">'+list.map(function(o,i){ return '<button type="button" class="oc" data-act="toast:Mockup: opens '+esc(o[0])+', the same screen as today." data-k="oc-'+i+'"><b>'+o[0]+'</b><span>'+o[1]+'</span></button>'; }).join("")+'</div>';
+    if(!full) b+='<p class="hint">Orders, Reports, People, Settings and four more sections are for the admin. Set Role to Admin to see them.</p>';
+    return frame(b,"","office");
+  }
+
+  /* ---------- render ---------- */
+  var R={home:renderHome,pull:renderPull,dlv:renderDlv,count:renderCount,shelf:renderShelf,office:renderOffice};
+  function render(id){
+    var el=document.getElementById("f-"+id),sc=el.querySelector(".ph-scroll"),y=sc?sc.scrollTop:0;
+    var a=document.activeElement,k=a&&el.contains(a)?a.getAttribute("data-k"):null;
+    el.innerHTML=R[id]();
+    var sc2=el.querySelector(".ph-scroll"); if(sc2) sc2.scrollTop=y;
+    if(k){ var n=el.querySelector('[data-k="'+k+'"]'); if(n&&!n.disabled) n.focus({preventScroll:true}); else { var f=el.querySelector(".ph-scroll button, .ph-scroll input"); if(f) f.focus({preventScroll:true}); } }
+  }
+  function renderAll(){ Object.keys(R).forEach(render); paintTop(); }
+  function paintTop(){
+    [["opt","data-opt"],["role","data-role"],["word","data-word"]].forEach(function(p){
+      document.querySelectorAll("#switcher ["+p[1]+"]").forEach(function(b){ b.setAttribute("aria-pressed",String(b.getAttribute(p[1])===S[p[0]])); });
+    });
+    var o=OPTS[S.opt];
+    document.getElementById("caption").innerHTML="<b>"+o.name+"</b>"+(o.chosen?'<span class="tag rec">Chosen</span>':'<span class="tag">for comparison</span>')+'<span class="d">'+o.d.replace("{low}",w(1))+"</span>";
+    document.getElementById("chgHead").textContent="What changes in "+o.name;
+    document.getElementById("chg").innerHTML=o.chg.map(function(t){ return "<li>"+t.replace("{low}",w(1))+"</li>"; }).join("");
+    document.getElementById("why").innerHTML="<b>Why:</b> "+o.why;
+    setStick();
+  }
+  function setStick(){ var sw=document.getElementById("switcher"); var st=getComputedStyle(sw).position==="sticky"?sw.offsetHeight+16:12; document.documentElement.style.setProperty("--stick",st+"px"); }
+  window.addEventListener("resize",setStick);
+
+  function toast(btn,msg){
+    /* btn is the pressed control or a frame id; a control may already be gone after a re-render */
+    var scr=typeof btn==="string"?document.getElementById("f-"+btn).parentNode:btn.closest(".screen");
+    var t=scr.querySelector(".toast"); t.textContent=msg;
+    clearTimeout(t._h); t._h=setTimeout(function(){ t.textContent=""; },3200);
+  }
+  function go(id){
+    var h=document.getElementById("cap-"+id); h.scrollIntoView({block:"start"}); h.focus({preventScroll:true});
+  }
+
+  /* ---------- actions ---------- */
+  function line(id){ for(var i=0;i<P.lines.length;i++) if(P.lines[i].id===id) return P.lines[i]; }
+  document.addEventListener("click",function(e){
+    var sw=e.target.closest("#switcher button");
+    if(sw){ ["opt","role","word"].forEach(function(k){ var v=sw.getAttribute("data-"+k); if(v) S[k]=v; }); save(); renderAll(); return; }
+    var el=e.target.closest("[data-act]"); if(!el||el.tagName==="INPUT") return;
+    var a=el.getAttribute("data-act"),i=a.indexOf(":"),cmd=i<0?a:a.slice(0,i),arg=i<0?"":a.slice(i+1);
+    switch(cmd){
+      case "go": go(arg); break;
+      case "toast": toast(el,arg); break;
+      case "outtab": SH.tab="out"; render("shelf"); go("shelf"); break;
+      case "shelfcount": C.shelf=arg; C.done=false; render("count"); go("count"); break;
+      case "pl": line(arg).st="pulled"; render("pull"); render("home"); break;
+      case "sg": line(arg).st="staged"; render("pull"); render("home"); break;
+      case "or": line(arg).st="ordered"; render("pull"); toast("pull","Mockup: added to the draft order for the office."); break;
+      case "keep": var n=P.lines.filter(function(l){ return l.st==="pull"; })[0]; if(n){ var b=document.querySelector('#f-pull [data-k="pl-'+n.id+'"]'); if(b) b.focus(); } break;
+      case "stageall": P.lines.forEach(function(l){ if(l.st==="pulled") l.st="staged"; }); render("pull"); render("home"); break;
+      case "pullreset": P.lines=clone(LINES0); P.print=false; render("pull"); render("home"); break;
+      case "print": P.print=!P.print; el.setAttribute("aria-expanded",String(P.print)); document.getElementById("sheetx").classList.toggle("open",P.print); break;
+      case "dvan": D.van[arg]=!D.van[arg]; if(D.van[arg]) D.checked[arg]=false; render("dlv"); break;
+      case "dconfirm": D.done=true; render("dlv"); break;
+      case "dundo": D.done=false; render("dlv"); var u=document.querySelector('#f-dlv [data-k="dconfirm"]'); if(u) u.focus(); break;
+      case "dmode": if(arg==="done"){ D.checked={}; D.van={lev:true}; DL.forEach(function(d){ if(d[0]!=="lev") D.checked[d[0]]=true; }); D.done=true; } else { D.checked={}; D.van={}; D.done=false; } render("dlv"); break;
+      case "cshelf": C.shelf=arg; C.done=false; render("count"); var f=document.querySelector("#f-count .cnum"); if(f) f.focus(); break;
+      case "cback": C.shelf=null; C.done=false; render("count"); var g=document.querySelector("#f-count .shelf"); if(g) g.focus(); break;
+      case "cagain": C.shelf=null; C.done=false; render("count"); var h=document.querySelector("#f-count .shelf"); if(h) h.focus(); break;
+      case "cminus": case "cplus": case "cmatch":
+        var sh=shelfById(C.shelf),pr=sh.items.filter(function(x){ return x.id===arg; })[0],vals=C.vals[C.shelf]||(C.vals[C.shelf]={}),cur=cval(C.shelf,arg);
+        if(cmd==="cmatch") vals[arg]=pr.exp; else { cur=cur===null?pr.exp:cur; vals[arg]=Math.max(0,cur+(cmd==="cplus"?1:-1)); }
+        var inp=document.querySelector('#f-count [data-cnt="'+arg+'"]'); if(inp) inp.value=vals[arg]; paintCount(); break;
+      case "cfinish": var s2=shelfById(C.shelf); C.done=true; s2.last="Nov 5"; s2.old=false; render("count"); toast("count","Mockup: nothing is saved."); var c2=document.querySelector('#f-count [data-k="cagain"]'); if(c2) c2.focus(); break;
+      case "stab": SH.tab=arg; render("shelf"); break;
+      case "sx": SH.open[arg]=!SH.open[arg]; el.setAttribute("aria-expanded",String(SH.open[arg])); document.getElementById("u-"+arg).classList.toggle("open",SH.open[arg]); break;
+    }
+  });
+  document.addEventListener("change",function(e){
+    var t=e.target; if(t.type==="checkbox"&&t.hasAttribute("data-act")){ var id=t.getAttribute("data-act").split(":")[1]; D.checked[id]=t.checked; render("dlv"); }
+  });
+  document.addEventListener("input",function(e){
+    var t=e.target;
+    if(t.hasAttribute("data-cnt")){ var v=t.value.replace(/[^0-9]/g,""); if(v!==t.value) t.value=v; var vals=C.vals[C.shelf]||(C.vals[C.shelf]={}); vals[t.getAttribute("data-cnt")]=v===""?null:parseInt(v,10); paintCount(); }
+    else if(t.id==="csearch"){ SEARCH=t.value; document.getElementById("cres").innerHTML=searchResults(); }
+  });
+  document.addEventListener("keydown",function(e){
+    var t=e.target;
+    if(t.getAttribute&&t.getAttribute("role")==="tab"&&(e.key==="ArrowRight"||e.key==="ArrowLeft"||e.key==="Home"||e.key==="End")){
+      var all=[].slice.call(t.parentNode.querySelectorAll('[role="tab"]')),ix=all.indexOf(t);
+      ix=e.key==="Home"?0:e.key==="End"?all.length-1:(ix+(e.key==="ArrowRight"?1:-1)+all.length)%all.length;
+      SH.tab=all[ix].getAttribute("data-act").split(":")[1]; render("shelf"); document.querySelector('#f-shelf [role="tab"][aria-selected="true"]').focus(); e.preventDefault(); return;
+    }
+    if(t.closest&&t.closest(".phone")) return;
+    var tag=t.tagName; if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT") return;
+    if(e.key!=="ArrowRight"&&e.key!=="ArrowLeft") return;
+    var order=["a","b","c"],j=order.indexOf(S.opt); S.opt=order[(j+(e.key==="ArrowRight"?1:-1)+3)%3]; save(); renderAll();
+    if(t.closest&&t.closest("#switcher [data-opt]")){ var nb=document.querySelector('#switcher [data-opt="'+S.opt+'"]'); if(nb) nb.focus(); }
+  });
+
+  /* ---------- URL and memory: ?opt= or #opt= opens a choice ---------- */
+  function save(){
+    var h="opt="+S.opt+"&role="+S.role+"&word="+S.word;
+    try{ history.replaceState(null,"",location.pathname+location.search.replace(/([?&])(opt|role|word)=[^&]*/g,"$1").replace(/[?&]+$/,"")+"#"+h); }catch(e){}
+    store("loadout.simplepreview",h);
+  }
+  function readInto(str){
+    (str||"").replace(/^[#?]/,"").split("&").forEach(function(p){
+      var kv=p.split("="),k=kv[0],v=(kv[1]||"").toLowerCase();
+      if(k==="opt"&&OPTS[v]) S.opt=v; if(k==="role"&&ROLE[v]) S.role=v; if(k==="word"&&W[v]) S.word=v;
+    });
+  }
+  readInto(load("loadout.simplepreview")); readInto(location.search); readInto(location.hash);
+  window.addEventListener("hashchange",function(){ readInto(location.hash); renderAll(); });
+  renderAll();
+})();
+</script>
+</body>
+</html>

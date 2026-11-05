@@ -1375,3 +1375,100 @@ deterministic (section 3). The same screen takes a plain CSV with the same
 columns for later bulk edits.
 
 Open: D16 (start length per box) and D17 (assigned inventory).
+
+## 18. Simple mode: organize the app around the three jobs (user, 2026-11-05)
+
+After the first test drive on real data the user said Stock, Units, and the
+Console are confusing, and that the app has to be simple for three people:
+the one doing inventory, the one pulling product for a job, and the one
+confirming the product made it to the client. Today the navigation is
+organized by data type (Tickets, Week, Scan, Stock, More with Orders,
+Tracking, Units, Console, Movements, Clients, Jobs, Labels, Import). The
+fix is to organize it by job.
+
+### 18.1 Words
+
+- "Ticket" goes. In warehousing the paper is a **pick list** or **pick
+  ticket**; AV and low-voltage integrators say **pull sheet** and talk about
+  "pulling for a job"; field-service shops say **kit**. The shop already says
+  "pull product for a job", so the app says **Job** for the thing and **Pull
+  sheet** for its lines. Ticket number becomes the job number; the proposal
+  number stays beside it.
+- The three steps a job goes through are verbs the shop uses: **Pull**
+  (from the shelf to the bay), **Stage** (sitting in the bay, ready),
+  **Deliver** (on site, confirmed). Lines keep the same states; only the
+  labels change.
+- **Shelf** replaces both Stock and Units: one list of what the shop owns.
+  A product with serialized units expands to show each unit (serial, MAC,
+  where it is or who has it). "Out with people" is a tab on Shelf, which is
+  the old Units > Out list.
+- **Office** replaces More + Console: one screen with sections (Orders and
+  tracking, Clients, Reports, People, Settings, Labels, Movements, Import,
+  Backups, Export, About). Warehouse and tech roles see only the sections
+  they can use (Labels, Movements, About).
+- **Count** is the inventory job: pick a shelf, see what should be there,
+  confirm or correct each line, done. It is new; today counting means
+  editing stock by hand.
+
+### 18.2 Home by role
+
+| Role | Home shows | First action |
+| --- | --- | --- |
+| warehouse | three doors (Count a shelf, Pull for a job, Confirm a delivery) over the jobs list | Pull for a job |
+| tech | jobs with product out with me, plus Confirm a delivery | Confirm a delivery |
+| admin | the jobs list with progress strips, Office in the tab bar | New job |
+| accounting | Office > Reports | Reports |
+
+Every job card carries one progress strip (Pulled 3 of 8, Staged, Delivered)
+and one next-action button (Keep pulling, Stage, Confirm delivery), so a
+person never has to pick from five row actions.
+
+### 18.3 Options for the user to pick (switcher: simple-preview.html)
+
+- **A. Three doors (recommended).** Home = three big buttons for the three
+  jobs, the jobs list under them. Tab bar: Jobs, Scan, Shelf, Office.
+  Reason: the three people the user named each see their door first;
+  nothing else competes.
+- **B. Jobs first.** Home = the jobs list with progress strips and one
+  next-action button per card; Count lives under Shelf. Same tab bar.
+  Reason: fewer screens; relies on the strip to carry the three steps.
+- **C. Scan first.** Home = the camera. A shelf label starts a count, the
+  QR on a printed pull sheet opens the job mid-pull, a delivery is confirmed
+  from the job. Lists sit behind a search field. Reason: fastest with a
+  phone in one hand; worst for the office.
+
+Word choice is a second switch inside the file: Pull sheet / Pick list /
+Job order, so the user can read each screen with the word the shop will use.
+
+### 18.4 What does not change
+
+Data model, ids, rules, the importer, the worker, the wall board, Week,
+Orders and Tracking (they move under Office), labels and QR codes. This is a
+navigation and wording release, plus the new Count flow.
+
+### 18.5 Decided (user, 2026-11-05: "lets try it")
+
+- D18 Option A, Three doors. The user's own fallback idea was "a landing
+  page with a few buttons with colors that state job functions", which is
+  A, so the doors carry three distinct colors by job (Count, Pull, Deliver)
+  taken from the existing status colors, and each job's screens wear the
+  same color as a thin band so the color means the same thing everywhere.
+- D19 The word is Pull sheet; the thing is a Job.
+- D20 No blind count in the first version; the expected number shows faint.
+- Build: 0.8.0 on Opus after the user has seen simple-preview.html.
+
+### 18.6 Wall board as a grid (user, 2026-11-05)
+
+The user does not want the TV cycling one job at a time. The board becomes
+a **grid of six job cards, three across and two down**, and rotates only
+when there are more than six jobs to show (then page by page, at the saved
+rotation interval, with a page dot row at the bottom). Fewer than six: the
+cards grow to fill the screen; one job fills the whole screen as today.
+
+Each card: client and job name, job number, bay, the progress strip
+(Pulled 3 of 8, Staged, Delivered) with the Pull door color as its band,
+then the lines still to pull grouped by shelf in pick order, pulled lines
+greyed, on-order amber, and "+N more lines" when the card runs out of room.
+Pinned jobs come first, then open jobs by install date. Legible at three
+meters: card title 32 px, lines 24 px, nothing under 22 px. `?board=1` and
+`?demo=1&board=1` and the `mode=` switch keep working.
