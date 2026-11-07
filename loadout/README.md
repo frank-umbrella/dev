@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.8.0**.
+Current version: **0.8.1**.
 
 ## Files
 
@@ -227,7 +227,10 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   **Labels**: label sheets (Avery 5160 or 2 x 4). Settings, at the end of
   the wall board part, also has **Open the demo board** (`?demo=1&board=1`),
   to show the TV screen without signing a TV in. Office also carries the Add
-  to home screen card until it is dismissed on that device.
+  to home screen card until it is dismissed on that device. **This phone**
+  (0.8.1, `#office/phone`, every role) never goes away: the install steps for
+  the browser in hand, the address and Copy address on a desktop, and Show
+  the tip again once the strip or the card was dismissed.
 - **Old addresses**: every link an older build printed or bookmarked still
   opens: `#tickets`, `#ticket/<id>`, `#stock/...`, `#items/...`,
   `#more/...`, and `#console/...` land on the 0.8.0 screen and the address
@@ -307,7 +310,9 @@ The demo hook adds `window.Loadout.sync({online: false, pending: 3})` to drive
 the sync pill (`sync(null)` goes back to Demo),
 `window.Loadout.pending("products", id, true)` to put the pending chip on a
 row, `window.Loadout.install("prompt" | "ios" | "menu" | "none")` to pick
-which Add to home screen card shows, and (0.5.2) `window.Loadout.exportTables()`
+which Add to home screen card shows (0.8.1: the address takes it too,
+`?demo=1&install=ios#office/phone`, plus `install=home` for the already on
+the home screen state), and (0.5.2) `window.Loadout.exportTables()`
 to read the Export everything tables without downloading, and (0.6.0)
 `window.Loadout.boardRotate(6)` to set the board's rotation for watching the
 scroll and the 2 px shift. 0.5.2 adds a Short
@@ -370,7 +375,12 @@ no signal.
   Safari's toolbar, scroll down, and tap **Add to Home Screen**. The card under
   Office shows the same two steps.
 
-The card and the strip each go away for good on that device once dismissed.
+The card and the strip each go away on that device once dismissed. Office >
+This phone (0.8.1) is for everyone and never goes away: it shows the same
+steps for the browser in hand, and **Show the tip again** brings the card and
+the strip back. On a phone the sign-in screen says to sign in first, then use
+Office > This phone: sign-in is a Google popup, and an app opened from the
+iPhone home screen may not be able to finish it.
 The first sign-in needs a connection; after that the phone stays signed in
 and opens offline. Changes made offline go up the next time the phone has
 signal with Loadout open.
@@ -843,6 +853,28 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.8.1 (2026-11-06)
+
+The owner asked two things: is there a setting to add the icon in case
+someone on an iPhone or Android phone has trouble, and does anything show on
+the first visit before sign-in. Until now the strip and the Office card could
+each be dismissed for good on a device, nothing brought them back, and the
+sign-in screen said nothing.
+
+- **Office > This phone**: a card for every role on every device that never
+  goes away. It shows Add to home screen where Chrome offers its own dialog,
+  the two Share steps on an iPhone, the browser menu steps elsewhere, and on
+  a desktop the app's address with Copy address to send it to a phone. Once
+  Loadout runs from the home screen it says so and nothing else.
+- **Show the tip again**: on This phone, once the strip or the card was
+  dismissed, brings both back on that device.
+- **Sign-in screen**: on a phone or tablet, one line says to sign in first,
+  then use Office > This phone. Sign-in stays first because it is a Google
+  popup, and an app opened from the iPhone home screen may not be able to
+  finish it.
+- The demo takes `&install=ios`, `prompt`, `menu`, `none`, or `home` in the
+  address, so each state of This phone can be seen.
 
 ### 0.8.0 (2026-11-05)
 

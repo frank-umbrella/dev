@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.8.0</title>
+<title>Loadout v0.8.1</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.8.0">
+<meta name="loadout-version" content="0.8.1">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -845,6 +845,17 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
 .a2card ol li{margin:2px 0}
 .a2card .btnrow{margin-top:8px}
 .shareic{display:inline-block;width:15px;height:15px;vertical-align:-2px;color:var(--m-accent2)}
+/* 0.8.1 Office > This phone: the way back to the home screen steps, for every role, never dismissed */
+.phonesec{max-width:560px}
+.phonesec p{margin:0 0 var(--s1)}
+.phonesec ol{margin:0 0 var(--s1);padding-left:20px}
+.phonesec ol li{margin:4px 0}
+.phonesec .btnrow{margin-top:var(--s1)}
+/* the address is copied character for character, so it reads in the mono face and wraps anywhere */
+.phonesec .addr{display:block;font:14px/1.4 var(--m-mono);background:var(--m-card2);border:1px solid var(--m-line);border-radius:var(--m-radius);padding:var(--s1) var(--s2);overflow-wrap:anywhere;color:var(--m-text);user-select:all}
+.phonesec .again{margin-top:var(--s3);padding-top:var(--s2);border-top:1px solid var(--m-line)}
+.signin-card .a2pre{display:none;font-size:12.5px;color:var(--m-muted);margin:8px 0 0}
+@media (max-width:639.98px),(pointer:coarse){.signin-card .a2pre{display:block}}
 .a2strip{display:none}
 .pslot{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;min-width:0}
 .pslot .pimg{width:168px;height:168px;flex:none;border-radius:var(--m-radius);border:1px solid var(--m-line);background:var(--m-card);object-fit:contain;display:block}
@@ -1116,6 +1127,8 @@ a.textbtn{display:inline-flex;align-items:center}
       Sign in with Google
     </button>
     <div class="domain">Restricted to <code>@umbrellaautomation.com</code> accounts.</div>
+    <!-- 0.8.1: phones and tablets only. Sign-in is a Google popup a home-screen app on iPhone may not finish, so sign in comes first -->
+    <p class="a2pre">Sign in first. Then Office &gt; This phone puts Loadout on your home screen.</p>
     <div id="signinErr" class="err" hidden></div>
     <a class="demo" href="?demo=1" title="Opens Loadout on invented sample data with no sign-in. Nothing in it is saved.">Open the demo</a>
   </div>
@@ -1126,7 +1139,7 @@ a.textbtn{display:inline-flex;align-items:center}
   <header class="top">
     <div class="brand">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.8.0</span>
+      Loadout <span class="v" id="verBadge">v0.8.1</span>
     </div>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
@@ -1161,7 +1174,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.8.0</span>
+    <span id="footVer">Loadout v0.8.1</span>
     <span id="footWho"></span>
     <span id="footRole"></span>
     <span id="footSync"></span>
@@ -1190,7 +1203,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.8.0";
+const VERSION = "0.8.1";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -5118,6 +5131,8 @@ const OFFICE = [
   ["import", "Import inventory sheet", "Bring the shop's inventory spreadsheet in.", r => r === "admin"],
   ["backups", "Backups", "The nightly copies of the data, to download by day.", r => r === "admin" || r === "accounting"],
   ["export", "Export everything", "Every collection as a workbook or zipped CSVs.", r => r === "admin" || r === "accounting"],
+  /* 0.8.1: every role, every device; the strip and the card can be dismissed, this cannot */
+  ["phone", "This phone", "Put Loadout on the home screen, or get the tip back.", () => true],
   ["about", "About", "Version, what changed, and what each field means.", () => true]
 ];
 const officeCan = k => { const o = OFFICE.find(x => x[0] === k); return !!o && o[3](S.role); };
@@ -5151,6 +5166,7 @@ function renderOffice(force) {
   else if (sec === "backups") h += backupsHTML();
   else if (sec === "export") h += exportHTML();
   else if (sec === "about") h += aboutHTML();
+  else if (sec === "phone") h += phoneHTML();
   el.innerHTML = h + "</div>";
   wireGlow(el); wireMoney(el);
   if (sec === "import") bindImport(el);
@@ -8551,6 +8567,8 @@ document.addEventListener("click", e => {
     case "a2Add": a2Prompt(); break;
     case "a2Hide": a2Dismiss(b.dataset.k); paintA2(); if (S.view === "office") render(true); break;
     case "a2How": a2Dismiss("strip"); paintA2(); go("office"); break;
+    case "a2Back": a2Reset(); break;
+    case "a2Copy": a2CopyAddr(); break;
     case "xupc": { const p = P(); if (!p) break; S.x = null; S.pendingUpcFor = p.id; go("scan"); toast("Scan the barcode on the box for " + productName(p)); break; }
     case "adjust": openAdjust(P()); break;
     case "serialize": openSerialize(P()); break;
@@ -8663,14 +8681,18 @@ function scrollToBoard() { const s = $("#bdSect"); if (s) { s.scrollIntoView({ b
    shows the two steps by hand. Each is remembered as dismissed per
    device. Nothing shows once Loadout runs from the home screen.
    ============================================================== */
-const A2 = { evt: null, installed: false, force: null };
+/* 0.8.1: the demo takes ?install=ios|prompt|menu|none|home so each state of
+   Office > This phone can be seen without the device; home stands in for
+   running from the home screen */
+const A2_FORCE = DEMO && ["ios", "prompt", "menu", "none", "home"].includes(QUERY.get("install")) ? QUERY.get("install") : null;
+const A2 = { evt: null, installed: false, force: A2_FORCE };
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); A2.evt = e; paintA2(); if (S.view === "office") render(true); });
 window.addEventListener("appinstalled", () => { A2.evt = null; A2.installed = true; paintA2(); if (S.view === "office") render(true); });
 const SHARE_SVG = '<svg class="shareic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
 function a2Standalone() { try { return A2.installed || matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; } catch (e) { return false; } }
 /* prompt: Chrome's own dialog; ios: the Share steps; menu: another phone browser; none: nothing to offer */
 function a2Mode() {
-  if (A2.force) return A2.force;
+  if (A2.force) return A2.force === "home" ? "none" : A2.force;
   if (a2Standalone() || BOARD) return "none";
   if (A2.evt) return "prompt";
   const ua = navigator.userAgent || "";
@@ -8696,6 +8718,38 @@ function installCardHTML() {
     : why + "<p>Open the browser menu and pick Add to Home screen or Install app.</p>" + '<div class="btnrow"><button type="button" class="btn" data-act="a2Hide" data-k="card">Got it</button></div>';
   return '<div class="a2card" id="a2Card"><svg class="mk" viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>' +
     '<div class="a2t"><b>Add Loadout to the home screen</b>' + body + "</div></div>";
+}
+/* Office > This phone (0.8.1). Never dismissed: when the strip or the card
+   was waved away and an install went wrong, this is the way back. */
+function phoneHTML() {
+  const m = a2Mode(), home = m === "none" && (A2.force === "home" || (!A2.force && a2Standalone()));
+  if (home) return '<div class="phonesec"><p>Loadout is on this home screen.</p></div>';
+  const why = "<p>It opens on Home, full screen, and keeps working in the warehouse with no signal.</p>";
+  let h;
+  if (m === "prompt") h = why + '<div class="btnrow"><button type="button" class="btn acc" data-act="a2Add" title="Opens the browser\'s own install dialog. Nothing is added until you confirm there.">Add to home screen</button></div>';
+  else if (m === "ios") h = why + "<ol><li>Tap Share " + SHARE_SVG + " in Safari's toolbar.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li></ol>";
+  else if (m === "menu") h = why + "<p>Open the browser menu and pick Add to Home screen or Install app.</p>";
+  else h = "<p>Open this address on your phone, then come back here.</p>" +
+    '<code class="addr" id="a2Addr">' + esc(a2Addr()) + "</code>" +
+    '<div class="btnrow"><button type="button" class="btn" data-act="a2Copy" title="Copies the address so you can send it to your phone by text or email.">Copy address</button></div>';
+  /* the tip only comes back on a phone, so the button shows only where it can */
+  const gone = [a2Hidden("strip") && "the tip under the header", a2Hidden("card") && "the card on Office"].filter(Boolean);
+  if (m !== "none" && gone.length)
+    h += '<div class="again"><p class="hint">' + gone.join(" and ").replace(/^t/, "T") + (gone.length > 1 ? " were" : " was") + ' dismissed on this device.</p><div class="btnrow"><button type="button" class="btn" data-act="a2Back" title="Brings back the tip under the header and the card at the top of Office on this device.">Show the tip again</button></div></div>';
+  return '<div class="phonesec">' + h + "</div>";
+}
+/* the app's own address, without the demo or any other query */
+function a2Addr() { return location.origin + location.pathname; }
+async function a2CopyAddr() {
+  try { await navigator.clipboard.writeText(a2Addr()); toast("Address copied"); }
+  catch (e) { toast("Copy did not work here. Select the address and copy it.", true); }
+}
+function a2Reset() {
+  try { localStorage.removeItem("loadout.a2hs.strip"); localStorage.removeItem("loadout.a2hs.card"); } catch (e) {}
+  A2.hidden = null; paintA2(); render(true);
+  /* the button is gone after the redraw; focus goes back to the crumb so the keyboard keeps its place */
+  const f = $("#v-office .crumb a"); if (f) f.focus();
+  toast("The home screen tip is back");
 }
 function paintA2() {
   const el = $("#a2Strip"); if (!el) return;
