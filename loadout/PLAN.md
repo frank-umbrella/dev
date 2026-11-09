@@ -1516,3 +1516,43 @@ meters: card title 32 px, lines 24 px, nothing under 22 px. `?board=1` and
   up from staging**, **Confirm a delivery**, **Pull for a job**, **Audit a
   shelf** last. Tech Home: Pick up, Confirm a delivery. The band colors and
   the order of steps in the progress strip do not change.
+
+## 19. Ideas from Sortly and Zoho Inventory (user, 2026-11-09; not scheduled)
+
+The user shared Sortly (sortly.com/features) and Zoho Inventory screens as
+reference. Nothing here is scheduled; the owner's test drive comes first.
+Ranked by fit:
+
+1. **Counts on the doors (Zoho's dashboard counters).** Zoho's home is four
+   counters: To be packed, To be shipped, To be delivered, To be invoiced.
+   That is Loadout's job steps. Each door on Home shows its count: "Pick up
+   from staging, 3 jobs waiting", "Confirm a delivery, 2 in vans", "Pull
+   for a job, 4 open", "Audit a shelf, 5 shelves over 60 days". Small
+   build, strong payoff: a person sees whether there is work behind a door
+   before tapping it. Candidate for 0.8.2.
+2. **Chain scanning (Sortly's Quick Action).** Scan a location label, then
+   scan items, and each item moves there; a sticky card at the bottom shows
+   the target. Loadout has location labels and unit QR codes already, so
+   Scan gains a "Move to" mode: first scan sets the destination, following
+   scans move units or boxes with one `move` movement each. Also the fast
+   way to audit a shelf of serialized units (scan each, the rest are "not
+   here"). Medium build.
+3. **Admin summary on Home (Sortly's dashboard).** One strip above the jobs
+   list for admin and accounting: on hand value (when costs are on), low
+   stock count, units out with people, jobs in vans, plus the last five
+   movements. Everything exists in Reports and Movements; this is a
+   digest. Small build.
+4. **Location tree on the desktop (Sortly's folder sidebar).** Shelf >
+   Locations on a wide screen as an area > shelf tree on the left with the
+   products of the chosen shelf on the right. Loadout has flat area+shelf
+   locations, so the tree is a view, not a model change. Medium build.
+5. **Label preview in search results (Sortly).** A search hit shows the
+   label as it prints (name, QR). Loadout's Labels section prints sheets;
+   a per-row "Print this label" from Shelf is the useful half. Small.
+
+Not borrowing: photos as the first column (the shop's catalog has few
+photos; the name and part number carry the row), tags (kind, type and
+attributes already do this), prices on every row (costs are off per D7
+until the owner wants them), folders as the data model (locations and
+jobs stay flat per section 16), and the red accent (the door colors and
+Ledger tokens stay).
