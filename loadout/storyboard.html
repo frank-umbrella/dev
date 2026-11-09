@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Loadout - Overview, Test drive, Storyboard, SOP and Tech spec v0.8.1</title>
+<title>Loadout - Overview, Test drive, Storyboard, SOP and Tech spec v0.8.2</title>
 <meta name="description" content="Storyboard and functional SOP for Loadout, the internal inventory, job, and order tracking tool, updated to match the built app. Draft for owner review.">
 <meta name="robots" content="noindex, nofollow">
-<meta name="version" content="0.8.1">
+<meta name="version" content="0.8.2">
 <script>
   // ?print=1 strips the chrome for a PDF. ?tab=overview|story|sop|tech picks the tab;
   // ?all=1 shows every tab at once (for a single PDF of the whole document).
@@ -447,7 +447,7 @@
     Loadout
   </h1>
   <p class="subtitle">How product moves through the shop, from approved proposal to installed, and what gets recorded at each step</p>
-  <p class="draft">Draft for review, 2026-11-06 (v0.8.1: Test drive step 1 says where to put Loadout on the home screen after signing in, Office &gt; This phone; v0.8.0: the app 0.8.0 opens on Home with four doors, Pick up from staging, Confirm a delivery, Pull for a job, and Audit a shelf; what was a ticket is a Job and its lines the Pull sheet, Stock and Units are Shelf, More and Office are Office, Pick up is its own step before Deliver, and the wall board is a grid of six jobs; the Test drive follows the doors; v0.7.0: a Test drive tab to walk the app on real data, and SOP-12 covers serials, MAC addresses, and pulled units on the Devices tab; v0.6.2: the nightly backup goes to the same Google project as the database and is listed under Office &gt; Backups, not Google Drive; v0.6.1: words match the app's 0.5.2 vocabulary). Updated to match the built app, releases 0.1.0 to 0.5.2: every screen, button, and status word below is the one in the app today, and two panels are new (14, the Week view, and 15, Tracking). Earlier drafts: v0.5 named the tool Loadout, v0.4 added the Tech spec tab, v0.3 the Overview, v0.2 the wall board.</p>
+  <p class="draft">Draft for review, 2026-11-09 (v0.8.2: each door on Home says how much waits behind it, and Test drive step 1 says what the counts should read; v0.8.1: Test drive step 1 says where to put Loadout on the home screen after signing in, Office &gt; This phone; v0.8.0: the app 0.8.0 opens on Home with four doors, Pick up from staging, Confirm a delivery, Pull for a job, and Audit a shelf; what was a ticket is a Job and its lines the Pull sheet, Stock and Units are Shelf, More and Office are Office, Pick up is its own step before Deliver, and the wall board is a grid of six jobs; the Test drive follows the doors; v0.7.0: a Test drive tab to walk the app on real data, and SOP-12 covers serials, MAC addresses, and pulled units on the Devices tab; v0.6.2: the nightly backup goes to the same Google project as the database and is listed under Office &gt; Backups, not Google Drive; v0.6.1: words match the app's 0.5.2 vocabulary). Updated to match the built app, releases 0.1.0 to 0.5.2: every screen, button, and status word below is the one in the app today, and two panels are new (14, the Week view, and 15, Tracking). Earlier drafts: v0.5 named the tool Loadout, v0.4 added the Tech spec tab, v0.3 the Overview, v0.2 the wall board.</p>
 
   <div class="tabs" role="tablist" aria-label="Sections of this document">
     <button type="button" role="tab" id="tabbtn-overview" aria-controls="tab-overview" aria-selected="true" data-tab="overview">Overview<span class="hint">the five-minute read</span></button>
@@ -544,7 +544,7 @@
   <h3>The screens</h3>
   <p>Five places, the same on the phone's tab bar and the desktop's menu: Home, Jobs, Scan (the raised button in the middle), Shelf, Office.</p>
   <ul class="plain">
-    <li><b>Home</b>: the doors (Pick up from staging, Confirm a delivery, Pull for a job, Audit a shelf) over the open jobs. Each door has its color, and the same color runs as a thin band along the top of that door's screens.</li>
+    <li><b>Home</b>: the doors (Pick up from staging, Confirm a delivery, Pull for a job, Audit a shelf) over the open jobs. Each door says how much waits behind it. Each door has its color, and the same color runs as a thin band along the top of that door's screens.</li>
     <li><b>Jobs</b>: every job by status, with filters, an Install column, a progress strip, and one next-step button; open one to see its pull sheet by area.</li>
     <li><b>Scan</b>: the camera and whatever the scan found: a product card, a unit card, a wire box's box sheet, or a shelf.</li>
     <li><b>Shelf</b>: the catalog with All, Low, Out with people (who has which unit), and Locations, and a Consumables only filter. A product with serialized units lists them in place.</li>
@@ -565,6 +565,7 @@
     <li><b>0.5.1, 2026-11-02.</b> Tracking split into office and clients with status times, Mark delivered for drop-shipped boxes, costs fixed on the PO, and the Reviewed button for jobs made from Portal.</li>
     <li><b>0.6.0 to 0.7.0, 2026-11-02 to 11-05.</b> One-handed phone layout, the nightly backup listed in the app, serials and MAC addresses, and the inventory sheet's pulled units.</li>
     <li><b>0.8.0, 2026-11-05.</b> Home with the doors, the words Job and Pull sheet, Shelf and Office, Pick up as its own step, Audit a shelf, and the board as a grid of six jobs.</li>
+    <li><b>0.8.2, 2026-11-09.</b> Each door on Home leads with its count: jobs waiting to be picked up, jobs in vans and in the bay, jobs to pull, shelves due for an audit. Zero reads in grey, such as Nothing staged.</li>
     <li><b>0.8.1, 2026-11-06.</b> Office &gt; This phone, for every role, puts Loadout on the home screen or brings the dismissed tip back; the sign-in screen on a phone says to sign in first.</li>
     <li><b>0.5.2, 2026-11-02.</b> One set of words and pill colors for every state, in every view, the board, Week, Tracking, and the exports; one word per movement in the log; PO numbers from one shared counter; and a Short line can be ordered from its job.</li>
     <li><b>The worker.</b> loadout-worker, for the Zapier import and the nightly backup, is built but not deployed yet. The backup goes to a folder in the same Google project the database lives in, listed inside Loadout under Office &gt; Backups.</li>
@@ -594,7 +595,7 @@
   <h2 id="drive">Test drive</h2>
   <p class="lede">One morning in the shop, with the real data in Loadout: 15 steps, in the order a job runs (pull, pick up, deliver), then an audit and the office. The doors on Home are in the order the shop uses them most, so Audit a shelf is the last one. Each step says what to do, what you should see, and which panel or SOP it walks through. If something does not match, write it in the table at the bottom. Print this tab with the button at the bottom and carry it.</p>
   <ol class="drive">
-      <li><b>Sign in on your phone.</b><span class="do"><i>Do</i>Open Loadout on the phone and sign in with your work Google account.</span><span class="see"><i>You should see</i>Home, with four colored doors, most used on top: Pick up from staging (dark), Confirm a delivery (green), Pull for a job (amber), and Audit a shelf (blue) last, then the open jobs, each with one progress strip and one button. The pill in the top bar says Synced. A tech sees Out with me first, then Pick up and Confirm a delivery. After signing in, Office &gt; This phone puts Loadout on the home screen.</span><span class="ref"><a href="#sop-10">SOP-10</a></span></li>
+      <li><b>Sign in on your phone.</b><span class="do"><i>Do</i>Open Loadout on the phone and sign in with your work Google account.</span><span class="see"><i>You should see</i>Home, with four colored doors, most used on top: Pick up from staging (dark), Confirm a delivery (green), Pull for a job (amber), and Audit a shelf (blue) last. Under each door the line leads with what waits behind it, such as "3 jobs waiting", "2 in vans, 1 in the bay", "4 jobs to pull", "5 shelves due"; a door with nothing behind it reads in grey, such as Nothing staged. Open a door and its list has that many jobs or shelves. Then the open jobs, each with one progress strip and one button. The pill in the top bar says Synced. A tech sees Out with me first, then Pick up and Confirm a delivery with the same counts. After signing in, Office &gt; This phone puts Loadout on the home screen.</span><span class="ref"><a href="#sop-10">SOP-10</a></span></li>
       <li><b>Make a job from a Portal CSV.</b><span class="do"><i>Do</i>Open Jobs, press New job, keep Import a Portal CSV, and choose an accepted proposal's CSV. Pick the client and job name, then Create job.</span><span class="see"><i>You should see</i>A new job with its pull sheet grouped by area, and the skipped rows listed before you create it.</span><span class="ref"><a href="#panel-1">Panel 1, SOP-3</a></span></li>
       <li><b>Pull for a job.</b><span class="do"><i>Do</i>On Home press Pull for a job and open the new job. On a line, press its one button, for example Pull 2 from Warehouse, pick the shelf, and press Pull.</span><span class="see"><i>You should see</i>An amber band along the top. The line moves to Staged and the strip under the job's title reads Pulled 1 of 8. The shelf count goes down by the same number.</span><span class="ref"><a href="#panel-2">Panel 2, SOP-4</a></span></li>
       <li><b>Print the pull sheet.</b><span class="do"><i>Do</i>On the job press Print pull sheet.</span><span class="see"><i>You should see</i>A letter page titled Pull sheet, job and the number, with every line by area and the shelf to pull it from.</span><span class="ref"><a href="#sop-4">SOP-4</a></span></li>
@@ -1478,7 +1479,7 @@ Staged 9/12 lines in Bay 2. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
 </article>
 
 <footer class="pagefoot">
-  <p>Loadout storyboard v0.8.1, 2026-11-06. Matches the app at 0.8.1 (Home with the doors, Jobs, Shelf, Office, Pick up, Audit, the board grid). Internal, Umbrella Automation.</p>
+  <p>Loadout storyboard v0.8.2, 2026-11-09. Matches the app at 0.8.2 (Home with the doors and their counts, Jobs, Shelf, Office, Pick up, Audit, the board grid). Internal, Umbrella Automation.</p>
   <button type="button" class="btn-print" id="printTab">Print this tab as PDF</button>
   <button type="button" class="btn-print" id="printAll">Print everything as PDF</button>
 </footer>

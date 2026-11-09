@@ -1529,7 +1529,8 @@ Ranked by fit:
    from staging, 3 jobs waiting", "Confirm a delivery, 2 in vans", "Pull
    for a job, 4 open", "Audit a shelf, 5 shelves over 60 days". Small
    build, strong payoff: a person sees whether there is work behind a door
-   before tapping it. Candidate for 0.8.2.
+   before tapping it. Built in 0.8.2 (the count is the length of the list
+   behind the door; zero reads grey, such as "Nothing staged").
 2. **Chain scanning (Sortly's Quick Action).** Scan a location label, then
    scan items, and each item moves there; a sticky card at the bottom shows
    the target. Loadout has location labels and unit QR codes already, so

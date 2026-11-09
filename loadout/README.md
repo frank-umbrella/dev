@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.8.1**.
+Current version: **0.8.2**.
 
 ## Files
 
@@ -38,15 +38,20 @@ shelf. The tab bar on the phone and the nav on the desktop are the same five:
 Home, Jobs, Scan (the raised button), Shelf, Office.
 
 - **Home**: four colored doors for warehouse and admin, most used on top,
-  each with the verb and one line on when to use it: **Pick up from
-  staging** (dark slate), **Confirm a delivery** (green), **Pull for a job**
-  (amber), and **Audit a shelf** (blue) last. Under them, every open job as a card with one progress
+  each with the verb and one line that leads with how much waits behind it:
+  **Pick up from staging** (dark slate, "3 jobs waiting"), **Confirm a
+  delivery** (green, "2 in vans, 1 in the bay"), **Pull for a job** (amber,
+  "4 jobs to pull"), and **Audit a shelf** (blue, "5 shelves due", never
+  audited or over 60 days) last. The count is the length of the list the
+  door opens; a door with nothing behind it reads in grey (Nothing staged,
+  Nothing to deliver, Nothing to pull, All shelves audited). Hovering a door
+  shows when to use it. Under them, every open job as a card with one progress
   strip (Pulled 3 of 8, Staged 1, Picked up 1, Delivered 1) and one button,
   its next step: Keep pulling, Pick up, Confirm delivery, or Close job.
   Admins also get New job and a Week link there. A tech's Home is **Out
   with me** (picked-up lines by job, then the units checked out to them,
   each with its job and since when) and the Pick up and Confirm a delivery
-  doors. Accounting lands on Office, Reports; the board account on the wall
+  doors, with the same counts. Accounting lands on Office, Reports; the board account on the wall
   board. A door's color runs as a thin band along the top of its screens
   (the job page is the Pull screen) and nowhere else.
 - **Pull for a job**: the open jobs with lines still on a shelf, soonest
@@ -853,6 +858,28 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.8.2 (2026-11-09)
+
+The owner looked at Zoho Inventory's home screen, which opens on counters
+(to be packed, to be shipped, to be delivered), and wanted the same from
+Loadout: see whether work is waiting behind a door before tapping it.
+
+- **Counts on the doors**: the line under each door now starts with what is
+  behind it. Pick up from staging: jobs with staged lines not yet picked up.
+  Confirm a delivery: jobs in vans and jobs in the bay. Pull for a job: open
+  jobs with lines still on a shelf. Audit a shelf: shelves, bays, and vans
+  never audited or audited over 60 days ago. Each count is the length of the
+  list the door opens, worked out from the same code, so the two always
+  agree, and it moves as soon as the data syncs.
+- **Nothing waiting reads quiet**: a door with nothing behind it says so in
+  grey (Nothing staged, Nothing to deliver, Nothing to pull, All shelves
+  audited). A count is white with the number in bold. No badges.
+- The short why after the count (shelf to bay, bay to your van) drops on a
+  phone when it would push the line to two; the longer when-to-use sentence
+  is the door's hover tip now.
+- A door's hover is a thin white ring instead of a lighter color, so the
+  grey text keeps 4.5:1 on every door while the pointer is over it.
 
 ### 0.8.1 (2026-11-06)
 
