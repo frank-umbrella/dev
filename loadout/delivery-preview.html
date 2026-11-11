@@ -4,10 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="version" content="0.1.1">
-<title>Loadout delivery preview v0.1.1</title>
+<meta name="version" content="0.2.0">
+<title>Loadout delivery preview v0.2.0</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="window.__threeFailed=true"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" onerror="window.__threeFailed=true"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js" onerror="window.__threeFailed=true"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js" onerror="window.__threeFailed=true"></script>
 <style>
 /* Preview page only. The cutscene injects its own dlv- styles so it can be lifted into the app. */
 :root{--pv-bg:#10151f;--pv-btn:#222b3a;--pv-btn-on:#1e6fd9;--pv-text:#e8edf4;--pv-muted:#aab4c3;--pv-edge:#6b7a90;--pv-focus:#8cbcff}
@@ -17,14 +20,15 @@ main{min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 #stage{position:relative;background:#0b0f16;border:1px solid #2b3546;border-radius:8px;overflow:hidden;max-width:100%}
 .controls{display:flex;flex-wrap:wrap;gap:10px 16px;justify-content:center;align-items:center;max-width:100%}
-.seg{display:flex;gap:0}
+.seg{display:flex;flex-wrap:wrap;gap:0;align-items:center}
+.seg>span{color:var(--pv-muted);font-size:13px;margin-right:8px}
 .seg button{border-radius:0}
-.seg button:first-child{border-radius:8px 0 0 8px}
+.seg span+button,.seg button:first-child{border-radius:8px 0 0 8px}
 .seg button:last-child{border-radius:0 8px 8px 0}
 .seg button+button{border-left:0}
-.controls button{min-height:44px;min-width:44px;padding:0 16px;background:var(--pv-btn);color:var(--pv-text);border:1px solid var(--pv-edge);border-radius:8px;font:inherit;font-weight:600;cursor:pointer}
+.controls button{min-height:44px;min-width:44px;padding:0 14px;background:var(--pv-btn);color:var(--pv-text);border:1px solid var(--pv-edge);border-radius:8px;font:inherit;font-weight:600;cursor:pointer}
 .controls button[aria-pressed="true"]{background:var(--pv-btn-on);border-color:var(--pv-btn-on);color:#fff}
-.controls button:focus-visible{outline:3px solid var(--pv-focus);outline-offset:2px;position:relative;z-index:1}
+.controls button:focus-visible,.credits a:focus-visible{outline:3px solid var(--pv-focus);outline-offset:2px;position:relative;z-index:1}
 .note{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 16px;max-width:min(100%,720px);padding:12px 16px;background:#18202d;border:1px solid var(--pv-edge);border-radius:8px;text-align:center}
 .note[hidden]{display:none}
 .note p{margin:0;flex:1 1 280px;min-width:0}
@@ -32,9 +36,10 @@ main{min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:
 .note button.quiet{background:var(--pv-btn);border-color:var(--pv-edge);color:var(--pv-text)}
 .note button:focus-visible{outline:3px solid var(--pv-focus);outline-offset:2px}
 #status{margin:0;color:var(--pv-muted);font-size:14px;min-height:20px;text-align:center}
-.ver{color:var(--pv-muted);font-size:13px;margin:0}
+.ver,.credits{color:var(--pv-muted);font-size:13px;margin:0;text-align:center;max-width:720px}
+.credits a{color:#b9d4ff;display:inline-block;padding:12px 4px;min-height:44px}
 body.freeze main{padding:0;gap:0}
-body.freeze .controls,body.freeze #status,body.freeze .ver,body.freeze .note{display:none}
+body.freeze .controls,body.freeze #status,body.freeze .ver,body.freeze .note,body.freeze .credits{display:none}
 body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!important;border:0;border-radius:0}
 </style>
 </head>
@@ -58,54 +63,86 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
       <button type="button" data-speed="1" aria-pressed="true">1x</button>
       <button type="button" data-speed="0.5" aria-pressed="false">0.5x</button>
     </div>
+    <div class="seg" role="group" aria-label="Banner words">
+      <span aria-hidden="true">Words</span>
+      <button type="button" data-words="onsite" aria-pressed="true">Product on site</button>
+      <button type="button" data-words="complete" aria-pressed="false">Delivery complete</button>
+      <button type="button" data-words="reached" aria-pressed="false">Product reached project</button>
+    </div>
+    <div class="seg" role="group" aria-label="Banner look">
+      <span aria-hidden="true">Look</span>
+      <button type="button" data-look="brand" aria-pressed="true">Brand</button>
+      <button type="button" data-look="gold" aria-pressed="false">Gold</button>
+    </div>
+    <div class="seg" role="group" aria-label="Quality">
+      <span aria-hidden="true">Quality</span>
+      <button type="button" data-q="auto" aria-pressed="true">Auto</button>
+      <button type="button" data-q="high" aria-pressed="false">High</button>
+      <button type="button" data-q="medium" aria-pressed="false">Medium</button>
+      <button type="button" data-q="low" aria-pressed="false">Low</button>
+    </div>
   </div>
   <p id="status" aria-live="polite"></p>
-  <p class="ver">Preview v0.1.1. Tap the scene, or press Esc, Enter or Space, to skip to the banner. Do it again to close.</p>
+  <p class="ver">Preview v0.2.0. Tap the scene, or press Esc, Enter or Space, to skip to the banner. Do it again to close. The 3D scene loads its models from the published address, so a copy opened from a local file shows the still banner.</p>
+  <p class="credits">Models, sky and textures are free CC0 assets from Kenney and Poly Haven. <a href="delivery/credits.txt">Credits</a></p>
 </main>
 
 <script>
-/* ===== Delivery cutscene: playDelivery(container, { job, client, motion, onDone, onMode }) -> { skip(), stop() } =====
-   skip() is the person's skip (first during the drive jumps to the banner, then ends); stop() ends at once. */
+/* ===== Delivery cutscene: playDelivery(container, { job, client, words, look, quality, motion, onDone, onMode }) -> { skip(), stop() } =====
+   skip() is the person's skip (first jumps to the banner, then ends); stop() ends at once. */
 (function () {
   'use strict';
 
-  // Timeline in seconds. Shot 1 the shop, shot 2 the house, shot 3 the banner.
-  var T_REV0 = 0.2, T_REV1 = 0.85, T_GO = 0.9, T_CUT = 2.4, T_BANNER = 4.0, T_LAND = 4.38;
-  var T_HOLD = T_LAND + 4.0, T_FADE = 0.45;
-  var HX = -150, HZ = 250; // where the house street sits, far outside the shop's fog range
-  var VAN_IN = 11; // van x (from HX) at the cut to the house: about a third of it already in frame
+  // Timeline in seconds. Shot 1 the shop, 2 the drive, 3 arrival, 4 at the van's back, 5 at the door, then the banner.
+  var T = { REV0: 0.25, REV1: 1.05, GO: 1.1, CUT1: 2.6, CUT2: 4.0, BRAKE: 3.85, STOP: 4.55, CUT3: 4.6,
+    DOOR0: 4.6, DOOR1: 4.9, SLIDE0: 4.8, SLIDE1: 5.15, BACK1: 5.4, TURN1: 5.7, CUT4: 6.0, SET0: 6.3, SET1: 6.65,
+    SLOW: 6.65, BANNER: 6.8, LAND: 7.05 };
+  T.HOLD = T.LAND + 3.4; T.FADE = 0.45;
+  var SLOWK = 0.3; // world speed after the box is down
+  var HX = -150, HZ = 250; // the house street, far outside the shop's fog range
   var D2R = Math.PI / 180;
+  var SUN = [0.553, 0.743, 0.377]; // the sun's direction in the sky image (brightest texel), so cast shadows match the sky
+  var VAN_S = 1.8, PERSON_H = 1.74;
 
-  // Colors: Ledger tokens from index.html, Umbrella brand blue, and the scene's own muted ground set.
-  var C = {
-    ink: '#1a2233', accent: '#1e6fd9', deliver: '#166b3e', umbBlue: '#1A9BE8', umbInk: '#1a1f2b',
-    van: 0x3b4048, vanTrim: 0xa3aab3, vanGlass: 0x8b98a8, grass: 0x93ad6e, asphalt: 0x50555d,
-    road: 0x464a51, paint: 0xe9ecef, yellow: 0xe2b93b, concrete: 0xc9c6bf, brick: 0x9c5a44,
-    parapet: 0xae6c55, roofStrip: 0xe8e4da, roofEnd: 0x86664a, roofBox: 0x9aa0a6, glass: 0x3d566d
-  };
+  var C = { accent: '#1e6fd9', umbBlue: '#1A9BE8', umbInk: '#1a1f2b', charcoal: '#3a3e45', paint: 0xe9ecef, yellow: 0xe2b93b };
 
-  var MARK_PATHS = { // the Loadout hard-case mark, from favicon.svg (64x64 box)
-    lid: 'M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6'
-  };
+  var MARK_LID = 'M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6';
   var MARK_SVG = '<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><rect width="64" height="64" rx="14" fill="#1e6fd9"/>' +
     '<g transform="translate(8,8) scale(.75)" fill="none" stroke="#fff"><rect x="8" y="20" width="48" height="34" rx="6" stroke-width="5"/>' +
-    '<path d="' + MARK_PATHS.lid + '" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke-width="4"/>' +
+    '<path d="' + MARK_LID + '" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke-width="4"/>' +
     '<rect x="27" y="31" width="10" height="8" rx="2" fill="#fff" stroke="none"/></g></svg>';
+  var WORDS = { onsite: 'Product on site', complete: 'Delivery complete', reached: 'Product reached project' };
 
   var CSS = [
-    '.dlv-root{position:absolute;inset:0;overflow:hidden;container-type:size;background:linear-gradient(#b9d0e3 0%,#dce6ee 58%,#e9eef2 100%);cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}',
-    '.dlv-root canvas{position:absolute;inset:0;width:100%;height:100%;display:block}',
-    '.dlv-root.dlv-flat{background:#1a2233}',
-    '.dlv-banner{position:absolute;left:-8%;right:-8%;top:54%;transform-origin:50% 50%;opacity:0;pointer-events:none}',
-    '.dlv-flat .dlv-banner{top:50%;opacity:1;transform:translateY(-50%) rotate(-3deg)}',
-    '.dlv-band{background:#fbfaf6;border-top:5px solid #1a2233;border-bottom:5px solid #1a2233;box-shadow:0 10px 0 rgba(16,21,31,.28);display:flex;align-items:center;justify-content:center;gap:max(10px,2.6cqw);padding:max(10px,2.2cqh) 8%}',
-    '.dlv-band svg{flex:none;width:min(14cqw,19cqh,112px);height:min(14cqw,19cqh,112px)}',
-    '.dlv-txt{display:flex;flex-direction:column;min-width:0}',
-    '.dlv-word{font-family:"Segoe UI Black","Arial Black","Helvetica Neue",system-ui,sans-serif;font-weight:900;font-size:min(11.5cqw,16cqh,124px);line-height:1;letter-spacing:-.01em;color:#166b3e;',
-    'text-shadow:-2px -2px 0 #0b2a18,2px -2px 0 #0b2a18,-2px 2px 0 #0b2a18,2px 2px 0 #0b2a18,0 -2px 0 #0b2a18,0 2px 0 #0b2a18,-2px 0 0 #0b2a18,2px 0 0 #0b2a18,5px 6px 0 #b8d8c4}',
-    '.dlv-job{font-family:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;font-weight:700;font-size:max(15px,min(3.6cqw,5.4cqh,30px));color:#1a2233;margin-top:max(6px,1.2cqh);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-    '.dlv-skip{position:absolute;top:10px;right:10px;min-width:64px;min-height:44px;padding:0 16px;border:1px solid #8796ab;border-radius:8px;background:rgba(16,21,31,.82);color:#fff;font:600 15px/1 "Segoe UI",system-ui,sans-serif;cursor:pointer}',
+    '.dlv-root{position:absolute;inset:0;overflow:hidden;container-type:size;background:#2b3440;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}',
+    '.dlv-root canvas{position:absolute;inset:0;width:100%;height:100%;display:block;transition:filter .45s ease-out}',
+    '.dlv-root.dlv-end canvas{filter:saturate(.22) brightness(.62) blur(1.6px)}',
+    '.dlv-root.dlv-flat{background:#2a2f37}',
+    '.dlv-bar{position:absolute;left:0;right:0;height:7.5%;background:#07090c;transform:scaleY(0);transition:transform .25s ease-out;pointer-events:none}',
+    '.dlv-bar.top{top:0;transform-origin:50% 0}.dlv-bar.bot{bottom:0;transform-origin:50% 100%}',
+    '.dlv-bars-on .dlv-bar{transform:scaleY(1)}',
+    '.dlv-frozen canvas,.dlv-frozen .dlv-bar{transition:none}',
+    '.dlv-load{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(70%,320px);text-align:center;color:#f2f4f7;font:600 15px/1.4 "Segoe UI",system-ui,sans-serif;pointer-events:none}',
+    '.dlv-load i{display:block;height:4px;margin-top:10px;background:rgba(255,255,255,.22);border-radius:2px;overflow:hidden}',
+    '.dlv-load i b{display:block;height:100%;width:0;background:#1A9BE8;transition:width .15s linear}',
+    '.dlv-banner{position:absolute;left:0;right:0;top:60%;transform-origin:50% 50%;opacity:0;pointer-events:none}',
+    '.dlv-flat .dlv-banner{top:50%;opacity:1;transform:translateY(-50%)}',
+    '.dlv-band{display:flex;align-items:center;justify-content:center;gap:max(12px,2.4cqw);padding:max(14px,2.6cqh) max(16px,6cqw)}',
+    '.dlv-band svg{flex:none;width:clamp(44px,min(11cqw,16cqh),104px);height:clamp(44px,min(11cqw,16cqh),104px)}',
+    '.dlv-txt{display:flex;flex-direction:column;min-width:0;max-width:min(980px,100%)}',
+    '.dlv-word{font-family:"Segoe UI Black","Arial Black","Helvetica Neue",system-ui,sans-serif;font-weight:900;font-size:clamp(28px,min(8.4cqw,13cqh),112px);line-height:1.02;letter-spacing:-.01em;text-wrap:balance;overflow-wrap:normal}',
+    '.dlv-job{font-family:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;font-weight:700;font-size:max(15px,min(3.4cqw,5cqh,28px));margin-top:max(8px,1.4cqh);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+    /* Brand: heavy white on a charcoal band, the company blue as the rule, job line light grey */
+    '.dlv-look-brand .dlv-band{background:#23272e;border-top:6px solid #1A9BE8;box-shadow:0 12px 0 rgba(0,0,0,.35)}',
+    '.dlv-look-brand .dlv-word{color:#ffffff}',
+    '.dlv-look-brand .dlv-job{color:#c9d0da}',
+    /* Gold: warm gold lettering with a dark outline on a dark translucent band, job line off-white */
+    '.dlv-look-gold .dlv-band{background:rgba(8,9,11,.8);border-top:2px solid rgba(240,190,80,.55);border-bottom:2px solid rgba(240,190,80,.55)}',
+    '.dlv-look-gold .dlv-word{color:#f4c44e;-webkit-text-stroke:2px #1b1406;paint-order:stroke fill;text-shadow:0 3px 0 #1b1406,0 6px 14px rgba(0,0,0,.6)}',
+    '.dlv-look-gold .dlv-job{color:#f3eee3}',
+    '.dlv-skip{position:absolute;top:10px;right:10px;min-width:64px;min-height:44px;padding:0 16px;border:1px solid #8796ab;border-radius:8px;background:rgba(16,21,31,.82);color:#fff;font:600 15px/1 "Segoe UI",system-ui,sans-serif;cursor:pointer;z-index:2}',
     '.dlv-skip:focus-visible{outline:3px solid #8cbcff;outline-offset:2px}',
+    '.dlv-why{position:absolute;left:12px;right:12px;bottom:12px;margin:0;color:#e9edf2;font:600 14px/1.4 "Segoe UI",system-ui,sans-serif;text-align:center}',
     '.dlv-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}'
   ].join('\n');
 
@@ -116,12 +153,14 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
   function lerp(a, b, k) { return a + (b - a) * k; }
   function inOut(p) { p = clamp01(p); return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
   function out3(p) { p = clamp01(p); return 1 - Math.pow(1 - p, 3); }
-  function outBack(p) { p = clamp01(p); var c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); }
+  function smooth(p) { p = clamp01(p); return p * p * (3 - 2 * p); }
   function clean(s, dflt) {
     var v = (s == null ? '' : String(s)).replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 60);
     return v || dflt;
   }
   function jobLine(o) { return 'Job ' + clean(o.job, '1042') + ', ' + clean(o.client, 'Lakeview Dental'); }
+  function wordsOf(o) { return WORDS[o.words] || WORDS.onsite; }
+  function lookOf(o) { return o.look === 'gold' ? 'gold' : 'brand'; }
 
   function ensureCss() {
     var el = document.getElementById('dlv-css');
@@ -131,11 +170,12 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
   }
 
   // The banner DOM is the same in the 3D scene and the fallback, so the wording and marks match.
-  function buildBanner(root, line) {
+  function buildBanner(root, words, line) {
     var sr = document.createElement('p'); sr.className = 'dlv-sr'; sr.setAttribute('role', 'status');
-    sr.textContent = 'Delivered. ' + line; root.appendChild(sr);
+    sr.textContent = words + '. ' + line; root.appendChild(sr);
     var b = document.createElement('div'); b.className = 'dlv-banner'; b.setAttribute('aria-hidden', 'true');
-    b.innerHTML = '<div class="dlv-band">' + MARK_SVG + '<div class="dlv-txt"><div class="dlv-word">Delivered</div><div class="dlv-job"></div></div></div>';
+    b.innerHTML = '<div class="dlv-band">' + MARK_SVG + '<div class="dlv-txt"><div class="dlv-word"></div><div class="dlv-job"></div></div></div>';
+    b.querySelector('.dlv-word').textContent = words;
     b.querySelector('.dlv-job').textContent = line;
     root.appendChild(b);
     var skip = document.createElement('button'); skip.type = 'button'; skip.className = 'dlv-skip';
@@ -143,8 +183,6 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
     return { banner: b, skipBtn: skip };
   }
 
-  // No probe canvas here: an extra throwaway context is a wasted GPU context on a phone.
-  // play3D creates the one real renderer and throws if WebGL is missing, which lands in the fallback.
   function canWebGL() { return !!window.WebGLRenderingContext; }
 
   // opts.motion: "auto" honors the device's reduced-motion setting, "on" plays the scene anyway
@@ -154,9 +192,10 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
     var motion = opts.motion === 'on' || opts.motion === 'off' ? opts.motion : 'auto';
     var devReduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     var still = motion === 'off' || (motion === 'auto' && devReduce);
-    var no3d = window.__threeFailed || typeof THREE === 'undefined' || !canWebGL();
-    if (opts.fallback || still || no3d) {
-      return playFallback(container, opts, no3d ? 'no-3d' : opts.fallback ? 'requested' : motion === 'off' ? 'motion-off' : 'reduced-motion');
+    var no3d = window.__threeFailed || typeof THREE === 'undefined' || !THREE.GLTFLoader || !THREE.RGBELoader || !THREE.SkeletonUtils || !canWebGL();
+    var fileUrl = location.protocol === 'file:' && !opts.assetBase;
+    if (opts.fallback || still || no3d || fileUrl) {
+      return playFallback(container, opts, opts.fallback ? 'requested' : still ? (motion === 'off' ? 'motion-off' : 'reduced-motion') : no3d ? 'no-3d' : 'file');
     }
     try { return play3D(container, opts); } catch (e) {
       if (window.console) console.warn('delivery 3D failed, showing banner', e);
@@ -167,9 +206,9 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
   /* ---------- Shared shell: root element, listeners, teardown ---------- */
   function makeShell(container, opts, flat) {
     var css = ensureCss();
-    var root = document.createElement('div'); root.className = 'dlv-root' + (flat ? ' dlv-flat' : '');
-    var line = jobLine(opts);
-    var parts = buildBanner(root, line);
+    var root = document.createElement('div');
+    root.className = 'dlv-root dlv-look-' + lookOf(opts) + (flat ? ' dlv-flat' : '');
+    var parts = buildBanner(root, wordsOf(opts), jobLine(opts));
     container.appendChild(root);
     var shell = { root: root, banner: parts.banner, skipBtn: parts.skipBtn, done: false, timers: [], cleanups: [] };
     function on(target, type, fn, o) {
@@ -201,10 +240,12 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
   }
 
   /* ---------- Fallback: the banner alone, still, dismissible ---------- */
+  var WHY = { file: 'The 3D scene needs the published address. Here is the still banner.' };
   function playFallback(container, opts, why) {
     var shell = makeShell(container, opts, true);
     shell.root.setAttribute('data-mode', 'fallback-' + why);
     shell.skipBtn.textContent = 'Done';
+    if (WHY[why]) { var w = document.createElement('p'); w.className = 'dlv-why'; w.textContent = WHY[why]; shell.root.appendChild(w); }
     function end() { shell.finish('dismissed'); }
     bindSkip(shell, end);
     if (!opts.freeze) shell.timers.push(setTimeout(function () { shell.finish('done'); }, 4000));
@@ -212,206 +253,96 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
     return { skip: end, stop: function () { shell.finish('stopped'); } };
   }
 
-  /* ---------- Geometry merging: one vertex-colored mesh per static set keeps draw calls low ---------- */
-  function Merger() { this.p = []; this.n = []; this.c = []; }
-  Merger.prototype.add = function (geom, color, m) {
-    var g = geom.index ? geom.toNonIndexed() : geom;
-    if (g !== geom) geom.dispose();
-    if (m) g.applyMatrix4(m);
-    g.computeVertexNormals();
-    var p = g.attributes.position.array, n = g.attributes.normal.array, col = new THREE.Color(color);
-    for (var i = 0; i < p.length; i += 3) {
-      this.p.push(p[i], p[i + 1], p[i + 2]); this.n.push(n[i], n[i + 1], n[i + 2]); this.c.push(col.r, col.g, col.b);
-    }
-    g.dispose();
+  /* ---------- Assets: loaded once per page, parsed objects cached between replays ---------- */
+  var MODELS = { van: 'models/car/van.glb', sedan: 'models/car/sedan.glb', suv: 'models/car/suv.glb', hatch: 'models/car/hatchback-sports.glb',
+    manD: 'models/people/character-male-d.glb', manF: 'models/people/character-male-f.glb',
+    houseA: 'models/suburb/building-type-a.glb', houseC: 'models/suburb/building-type-c.glb', houseJ: 'models/suburb/building-type-j.glb',
+    treeL: 'models/suburb/tree-large.glb', treeS: 'models/suburb/tree-small.glb' };
+  var TEXTURES = { asphalt: 'asphalt_02', brick: 'red_brick_03', concrete: 'concrete_floor_02', grass: 'leafy_grass' };
+  var SKY = 'sky/kloofendal_48d_partly_cloudy_puresky_1k.hdr';
+  var assetPromise = null;
+  function loadAssets(base, onProgress) {
+    if (assetPromise) { onProgress(1); return assetPromise; }
+    var mgr = new THREE.LoadingManager();
+    mgr.onProgress = function (u, n, total) { onProgress(n / Math.max(total, 1)); };
+    var gl = new THREE.GLTFLoader(mgr), tl = new THREE.TextureLoader(mgr), hl = new THREE.RGBELoader(mgr).setDataType(THREE.HalfFloatType);
+    var out = { gltf: {}, tex: {}, sky: null }, jobs = [];
+    function p(fn) { jobs.push(new Promise(fn)); }
+    Object.keys(MODELS).forEach(function (k) { p(function (ok, no) { gl.load(base + MODELS[k], function (g) { out.gltf[k] = g; ok(); }, null, no); }); });
+    Object.keys(TEXTURES).forEach(function (k) {
+      ['diff', 'nor_gl'].forEach(function (kind) {
+        p(function (ok, no) { tl.load(base + 'textures/' + TEXTURES[k] + '_' + kind + '_1k.jpg', function (t) { out.tex[k + (kind === 'diff' ? '' : 'N')] = t; ok(); }, null, no); });
+      });
+    });
+    p(function (ok, no) { hl.load(base + SKY, function (t) { out.sky = t; ok(); }, null, no); });
+    assetPromise = Promise.all(jobs).then(function () { return out; });
+    assetPromise.catch(function () { assetPromise = null; });
+    return assetPromise;
+  }
+
+  /* ---------- World geometry: boxes with world-scale UVs, merged per material ---------- */
+  // r128 takes hex colors as linear values; the design colors here are sRGB, so convert them once
+  function sc(hex) { return new THREE.Color(hex).convertSRGBToLinear(); }
+  function Builder() { this.p = []; this.n = []; this.u = []; this.c = []; }
+  Builder.prototype.quad = function (a, b, c, d, n, uvs, col) {
+    var P = this.p, N = this.n, U = this.u, Cc = this.c;
+    [a, b, c, a, c, d].forEach(function (v, i) {
+      P.push(v[0], v[1], v[2]); N.push(n[0], n[1], n[2]);
+      var uv = uvs[[0, 1, 2, 0, 2, 3][i]]; U.push(uv[0], uv[1]); Cc.push(col.r, col.g, col.b);
+    });
   };
-  Merger.prototype.build = function () {
+  // axis-aligned box by extents; tile = meters per texture repeat; skips the bottom face
+  Builder.prototype.box = function (x0, x1, y0, y1, z0, z1, tile, color, noTopUV) {
+    var col = sc(color == null ? 0xffffff : color), s = 1 / (tile || 4);
+    this.quad([x0, y1, z1], [x1, y1, z1], [x1, y1, z0], [x0, y1, z0], [0, 1, 0], [[x0 * s, -z1 * s], [x1 * s, -z1 * s], [x1 * s, -z0 * s], [x0 * s, -z0 * s]], col);
+    this.quad([x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], [0, 0, 1], [[x0 * s, y0 * s], [x1 * s, y0 * s], [x1 * s, y1 * s], [x0 * s, y1 * s]], col);
+    this.quad([x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], [0, 0, -1], [[-x1 * s, y0 * s], [-x0 * s, y0 * s], [-x0 * s, y1 * s], [-x1 * s, y1 * s]], col);
+    this.quad([x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [1, 0, 0], [[-z1 * s, y0 * s], [-z0 * s, y0 * s], [-z0 * s, y1 * s], [-z1 * s, y1 * s]], col);
+    this.quad([x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], [-1, 0, 0], [[z0 * s, y0 * s], [z1 * s, y0 * s], [z1 * s, y1 * s], [z0 * s, y1 * s]], col);
+  };
+  // any three.js geometry placed by a matrix (for round parts); UVs kept from the geometry
+  Builder.prototype.geo = function (g, m, color) {
+    var ng = g.index ? g.toNonIndexed() : g; if (m) ng.applyMatrix4(m);
+    var p = ng.attributes.position.array, n = ng.attributes.normal.array, uv = ng.attributes.uv ? ng.attributes.uv.array : null, col = sc(color == null ? 0xffffff : color);
+    for (var i = 0, k = 0; i < p.length; i += 3, k += 2) {
+      this.p.push(p[i], p[i + 1], p[i + 2]); this.n.push(n[i], n[i + 1], n[i + 2]);
+      this.u.push(uv ? uv[k] : 0, uv ? uv[k + 1] : 0); this.c.push(col.r, col.g, col.b);
+    }
+    g.dispose(); if (ng !== g) ng.dispose();
+  };
+  Builder.prototype.build = function () {
     var g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(this.p, 3));
     g.setAttribute('normal', new THREE.Float32BufferAttribute(this.n, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(this.u, 2));
     g.setAttribute('color', new THREE.Float32BufferAttribute(this.c, 3));
     g.computeBoundingSphere();
     return g;
   };
-  function M(x, y, z, ry, rx, rz) {
-    return new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx || 0, ry || 0, rz || 0)).setPosition(x, y, z);
+  function M(x, y, z, ry, rx, rz, s) {
+    var m = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx || 0, ry || 0, rz || 0, 'YXZ'));
+    if (s) m.scale(new THREE.Vector3(s, s, s));
+    return m.setPosition(x, y, z);
   }
-  // box by its x/z extents and bottom y
-  function bx(mg, x0, x1, y0, y1, z0, z1, color) {
-    mg.add(new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0), color, M((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2));
-  }
-  function bxR(mg, cx, cy, cz, w, h, d, color, ry, rx, rz) { mg.add(new THREE.BoxGeometry(w, h, d), color, M(cx, cy, cz, ry, rx, rz)); }
 
   var seed = 7;
   function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
-  var GREENS = [0x4f7a43, 0x3f6a3a, 0x5d8a4a, 0x47703f];
-  function tree(mg, x, z, s, pine) {
-    bx(mg, x - 0.22 * s, x + 0.22 * s, 0, 1.5 * s, z - 0.22 * s, z + 0.22 * s, 0x6b4f37);
-    var col = GREENS[Math.floor(rnd() * GREENS.length)];
-    if (pine) mg.add(new THREE.ConeGeometry(1.5 * s, 4.2 * s, 6), col, M(x, 1.2 * s + 2.1 * s, z, rnd() * 3));
-    else mg.add(new THREE.IcosahedronGeometry(1.7 * s, 0), col, M(x, 1.5 * s + 1.3 * s, z, rnd() * 3, rnd() * 0.5));
-  }
-  // a parked car: plain colored blocks, nose along +x before rotation
-  function car(mg, x, z, ry, color) {
-    var m = M(x, 0, z, ry);
-    function part(w, h, d, px, py, pz, c) { mg.add(new THREE.BoxGeometry(w, h, d), c, new THREE.Matrix4().multiplyMatrices(m, M(px, py, pz))); }
-    part(4.3, 0.75, 1.85, 0, 0.72, 0, color);
-    part(2.3, 0.62, 1.66, -0.25, 1.4, 0, color);
-    part(2.32, 0.42, 1.6, -0.25, 1.38, 0, 0x2c3440);
-    [[1.4, 0.93], [1.4, -0.93], [-1.4, 0.93], [-1.4, -0.93]].forEach(function (w) { part(0.7, 0.66, 0.24, w[0], 0.33, w[1], 0x1d2026); });
-  }
 
-  /* ---------- The shop: the south end unit of a long strip, lot, road, tree line ---------- */
-  function buildShop(mg) {
-    var F = -14; // building front, facing east
-    bx(mg, -28, F, 0, 5.2, -70, 6, C.brick);
-    bx(mg, -27.7, F - 0.3, 5.2, 5.26, -70, -8, C.roofStrip);
-    bx(mg, -27.7, F - 0.3, 5.2, 5.26, -8, 6, C.roofEnd);
-    // parapet edges plus the divider that sets the end unit apart
-    bx(mg, F - 0.3, F, 5.2, 5.8, -70, 6, C.parapet);
-    bx(mg, -28, -27.7, 5.2, 5.8, -70, 6, C.parapet);
-    bx(mg, -28, F, 5.2, 5.8, 5.7, 6, C.parapet);
-    bx(mg, -28, F, 5.2, 5.8, -70, -69.7, C.parapet);
-    bx(mg, -28, F, 5.2, 5.75, -8.15, -7.85, C.parapet);
-    [-22, -34, -46, -58].forEach(function (z) { bx(mg, -28, F, 5.2, 5.45, z - 0.1, z + 0.1, 0xd2cdc0); });
-    [[-20, -2, 1.9, 1.1, 1.5], [-24.5, 2.6, 1.4, 0.9, 1.4], [-19, -18, 1.8, 1, 1.5], [-23, -36, 1.4, 0.9, 1.4], [-20, -52, 1.8, 1, 1.5], [-24, -63, 1.4, 0.9, 1.4]].forEach(function (r) {
-      bx(mg, r[0] - r[2] / 2, r[0] + r[2] / 2, 5.26, 5.26 + r[3], r[1] - r[4] / 2, r[1] + r[4] / 2, C.roofBox);
-    });
-    // storefronts on the other units: glass, a door, a plain sign band with no lettering
-    var units = [[-70, -58], [-58, -46], [-46, -34], [-34, -22], [-22, -8]];
-    var bands = [0xd9ccb4, 0xcfd6dc, 0xe0d2c0, 0xd4cfc6, 0xcdd4cc];
-    units.forEach(function (u, i) {
-      bx(mg, F, F + 0.1, 0.3, 2.8, u[0] + 1.2, u[1] - 4, C.glass);
-      bx(mg, F, F + 0.12, 0, 2.5, u[1] - 3.4, u[1] - 1.6, 0x2a3340);
-      bx(mg, F, F + 0.08, 3.1, 4.6, u[0] + 1.5, u[1] - 1.5, bands[i]);
-    });
-    // the end unit: glass band, a door, and a dark sign band (the wordmark plane sits on it)
-    bx(mg, F, F + 0.1, 0.3, 2.8, -7.2, -1.4, C.glass);
-    bx(mg, F, F + 0.1, 0.3, 2.8, 2.2, 5.3, C.glass);
-    bx(mg, F, F + 0.14, 0, 2.6, -1.0, 1.8, 0x26303c);
-    bx(mg, F + 0.14, F + 0.2, 1.1, 1.5, 1.35, 1.5, 0xc9cdd2);
-    bx(mg, F, F + 0.1, 2.95, 5.05, -4.3, 4.3, 0x1a1f2b);
-    // ground: sidewalk, lots, aisle, small white-roof building, roads
-    bx(mg, F, -12, 0, 0.14, -72, 6, C.concrete);
-    bx(mg, -12, 4, 0, 0.05, -72, 12, C.asphalt);
-    bx(mg, -40, -12, 0, 0.05, 6, 12, C.asphalt);
-    bx(mg, -40, -28, 0, 0.05, -30, 6, C.asphalt);
-    bx(mg, 4, 6.5, 0, 0.05, 6, 12, C.asphalt);
-    bx(mg, 6.25, 6.5, 0, 0.16, -220, 6, C.concrete);
-    bx(mg, 6.25, 6.5, 0, 0.16, 12, 36, C.concrete);
-    bx(mg, 6.5, 29, 0, 0.04, -220, 220, C.road);
-    bx(mg, -70, 6.5, 0, 0.04, 36, 43, C.road);
-    bx(mg, -8, 0, 0, 4, 21, 29, 0xc9b8a2);
-    bx(mg, -7.8, -0.2, 4, 4.08, 21.2, 28.8, 0xe9e7e0);
-    bx(mg, -5, -2, 4.08, 4.8, 23.5, 26, C.roofBox);
-    // stall lines: one row nosed in to the building, one along the road
-    for (var k = 0; k <= 23; k++) {
-      var z = 3.6 - 3.2 * k;
-      bx(mg, -12, -6.6, 0.05, 0.07, z - 0.07, z + 0.07, C.paint);
-      if (k >= 1) bx(mg, -1.5, 3.9, 0.05, 0.07, z - 0.07, z + 0.07, C.paint);
-    }
-    // lane paint: two lanes each way and a center turn lane
-    for (var d = -220; d < 220; d += 9) {
-      bx(mg, 10.95, 11.15, 0.04, 0.06, d, d + 3, C.paint);
-      bx(mg, 24.45, 24.65, 0.04, 0.06, d, d + 3, C.paint);
-    }
-    [15.4, 15.75, 19.75, 20.1].forEach(function (x) { bx(mg, x, x + 0.15, 0.04, 0.06, -220, 220, C.yellow); });
-    bx(mg, 28.5, 28.65, 0.04, 0.06, -220, 220, C.paint);
-    bx(mg, 6.85, 7.0, 0.04, 0.06, -220, 5, C.paint);
-    bx(mg, 6.85, 7.0, 0.04, 0.06, 13, 35, C.paint);
-    bx(mg, 6.85, 7.0, 0.04, 0.06, 44, 220, C.paint);
-    // parked cars as plain blocks
-    var cars = [[-9.6, -1.2, 0, 0xb03a2e], [-9.6, -4.4, 0, 0xd9dcdf], [-9.6, -10.8, 0, 0x2e5d9a], [-9.6, -14, 0, 0x2d2f33],
-      [-9.6, -20.4, 0, 0x8e969e], [1.6, -4.4, Math.PI, 0xc9a227], [1.6, -10.8, Math.PI, 0x3e6b48], [1.6, -20.4, Math.PI, 0xe1e3e5]];
-    cars.forEach(function (c) { car(mg, c[0], c[1], c[2], c[3]); });
-    // a thick tree line across the road, a few trees behind the strip and on the grass strip
-    var i;
-    for (i = 0; i < 64; i++) tree(mg, 32 + rnd() * 5, -170 + i * 3.6 + rnd() * 2, 1.1 + rnd() * 0.7, rnd() < 0.3);
-    for (i = 0; i < 46; i++) tree(mg, 38 + rnd() * 10, -170 + i * 5 + rnd() * 3, 1.3 + rnd() * 0.8, rnd() < 0.4);
-    for (i = 0; i < 24; i++) tree(mg, -46 + rnd() * 12, -90 + i * 5 + rnd() * 3, 1.2 + rnd() * 0.7, rnd() < 0.3);
-    [-40, -30, -16, 22].forEach(function (z) { tree(mg, 5.25, z, 0.55, false); });
-    return cars;
-  }
-
-  /* ---------- The house street ---------- */
-  function buildHouse(mg) {
-    var x0 = HX, z0 = HZ;
-    bx(mg, x0 - 90, x0 + 90, 0, 0.04, z0 - 4, z0 + 4, C.road);
-    for (var d = -90; d < 90; d += 7) bx(mg, x0 + d, x0 + d + 2.6, 0.04, 0.06, z0 - 0.08, z0 + 0.08, C.yellow);
-    bx(mg, x0 - 90, x0 + 90, 0, 0.16, z0 - 4.3, z0 - 4, C.concrete);
-    bx(mg, x0 - 90, x0 + 90, 0, 0.12, z0 - 6.2, z0 - 4.3, C.concrete);
-    bx(mg, x0 - 90, x0 + 90, 0, 0.16, z0 + 4, z0 + 4.3, C.concrete);
-    function house(cx, wall, roof, door, w) {
-      var hw = w / 2;
-      bx(mg, cx - hw, cx + hw, 0, 3.6, z0 - 25, z0 - 16, wall);
-      var sh = new THREE.Shape(); sh.moveTo(-5.4, 0); sh.lineTo(5.4, 0); sh.lineTo(0, 3.1); sh.lineTo(-5.4, 0);
-      var g = new THREE.ExtrudeGeometry(sh, { depth: w + 1.2, bevelEnabled: false });
-      g.translate(0, 0, -(w + 1.2) / 2);
-      mg.add(g, roof, M(cx, 3.6, z0 - 20.5, Math.PI / 2));
-      bx(mg, cx - 1.8, cx + 1.8, 0, 0.35, z0 - 16, z0 - 14.2, C.concrete);
-      bx(mg, cx - 0.65, cx + 0.65, 0.35, 2.6, z0 - 16.08, z0 - 15.95, door);
-      bx(mg, cx - 3.6, cx - 1.6, 1.2, 2.6, z0 - 16.06, z0 - 15.95, 0x4c6378);
-      bx(mg, cx + 1.6, cx + 3.6, 1.2, 2.6, z0 - 16.06, z0 - 15.95, 0x4c6378);
-      bx(mg, cx - 0.8, cx + 0.8, 0, 0.08, z0 - 14.2, z0 - 6.2, C.concrete);
-    }
-    house(x0, 0xe3d6bf, 0x6a4d3a, 0x7a3b2e, 10);
-    house(x0 - 19, 0xb9c7cf, 0x4d5560, 0x2d4f7c, 9);
-    house(x0 + 19, 0xd8c9a8, 0x7b5a3c, 0x3e6b48, 9);
-    // mailbox and a few yard trees
-    bx(mg, x0 + 3.2, x0 + 3.35, 0, 1.1, z0 - 5.4, z0 - 5.25, 0x5b5f66);
-    bx(mg, x0 + 2.95, x0 + 3.6, 1.1, 1.5, z0 - 5.6, z0 - 5.05, 0x2d2f33);
-    tree(mg, x0 - 7.5, z0 - 11, 1.0, false); tree(mg, x0 + 8, z0 - 12, 1.15, false);
-    tree(mg, x0 - 27, z0 - 10, 1.2, true); tree(mg, x0 + 28, z0 - 9, 1.1, false);
-    for (var i = 0; i < 20; i++) tree(mg, x0 - 60 + i * 6 + rnd() * 2, z0 - 32 - rnd() * 6, 1.3 + rnd() * 0.8, rnd() < 0.4);
-    for (i = 0; i < 16; i++) { var tx = x0 - 50 + i * 6.5 + rnd() * 2, tz = z0 + 9 + rnd() * 5, ts = 1.2 + rnd() * 0.6, tp = rnd() < 0.3; if (tx < x0 - 8 || tx > x0 + 34) tree(mg, tx, tz, ts, tp); }
-  }
-
-  /* ---------- The van: charcoal cargo van, lighter grey trim and glass ---------- */
-  function buildVanBody() {
-    var mg = new Merger();
-    var sh = new THREE.Shape();
-    [[-3, 0.5], [3, 0.5], [3.05, 1.35], [2.5, 1.6], [1.75, 2.55], [1.4, 2.7], [-3, 2.7]].forEach(function (p, i) { if (i) sh.lineTo(p[0], p[1]); else sh.moveTo(p[0], p[1]); });
-    var g = new THREE.ExtrudeGeometry(sh, { depth: 2.1, bevelEnabled: false }); g.translate(0, 0, -1.05);
-    mg.add(g, C.van);
-    var ang = Math.atan2(0.95, -0.75);
-    bxR(mg, 2.14 + 0.03, 2.08 + 0.025, 0, 1.2, 0.05, 1.86, C.vanGlass, 0, 0, ang);
-    [1, -1].forEach(function (s) {
-      bx(mg, 1.35, 2.05, 1.62, 2.18, s * 1.05 - 0.02, s * 1.05 + 0.02, C.vanGlass);
-      bx(mg, 2.2, 2.45, 1.75, 2.0, s * 1.2 - 0.1, s * 1.2 + 0.1, 0x2d3137);
-      bx(mg, 3.0, 3.09, 1.0, 1.25, s * 0.75 - 0.22, s * 0.75 + 0.22, 0xf4ecc0);
-      bx(mg, -3.06, -3.0, 1.15, 1.85, s * 0.9 - 0.12, s * 0.9 + 0.12, 0xb8322a);
-      bx(mg, -3.04, -3.0, 1.95, 2.45, s * 0.48 - 0.38, s * 0.48 + 0.38, C.vanGlass);
-    });
-    bx(mg, 3.0, 3.22, 0.42, 0.86, -1.1, 1.1, C.vanTrim);
-    bx(mg, -3.22, -3.0, 0.42, 0.86, -1.1, 1.1, C.vanTrim);
-    bx(mg, 3.04, 3.08, 0.9, 1.25, -0.45, 0.45, 0x2d3137);
-    bx(mg, -3.0, 3.0, 0.42, 0.62, -1.08, 1.08, C.vanTrim);
-    bx(mg, -3.03, -3.0, 0.86, 2.6, -0.02, 0.02, 0x2a2e34);
-    return mg.build();
-  }
-  function buildWheel() {
-    var mg = new Merger();
-    mg.add(new THREE.CylinderGeometry(0.45, 0.45, 0.34, 10), 0x1d2026, M(0, 0, 0, 0, Math.PI / 2));
-    mg.add(new THREE.CylinderGeometry(0.24, 0.24, 0.36, 8), 0xb9bfc7, M(0, 0, 0, 0, Math.PI / 2));
-    bxR(mg, 0, 0, 0, 0.56, 0.1, 0.38, 0x6f767f);
-    return mg.build();
-  }
-
-  /* ---------- Canvas textures ---------- */
+  /* ---------- Canvas drawing ---------- */
   function rr(ctx, x, y, w, h, r) {
     ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
     ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
   }
   // Umbrella Automation wordmark: two lines sharing a left edge, never centered (brand guide).
-  // Stand-in lettering: a heavy system sans stretched wide, since the brand face (Eurostile Black) is live text only.
+  // Stand-in lettering: a heavy system sans stretched wide, since the brand face is live text only.
   function drawWordmark(ctx, x, y, h, maxW) {
-    var fs = h * 0.44, fam = '"Segoe UI Black","Arial Black","Helvetica Neue",Arial,sans-serif';
+    var fs = h * 0.47, fam = '"Segoe UI Black","Arial Black","Helvetica Neue",Arial,sans-serif';
     ctx.font = '900 ' + fs + 'px ' + fam; ctx.textBaseline = 'alphabetic';
     var w = Math.max(ctx.measureText('UMBRELLA').width, ctx.measureText('AUTOMATION').width);
-    var sx = Math.min(1.22, maxW / w);
+    var sx = Math.min(1.25, maxW / w);
     ctx.save(); ctx.translate(x, y); ctx.scale(sx, 1);
-    ctx.fillStyle = C.umbBlue; ctx.fillText('UMBRELLA', 0, fs * 0.98);
-    ctx.fillStyle = '#ffffff'; ctx.fillText('AUTOMATION', 0, fs * 2.08);
+    ctx.fillStyle = C.umbBlue; ctx.fillText('UMBRELLA', 0, fs * 0.96);
+    ctx.fillStyle = '#ffffff'; ctx.fillText('AUTOMATION', 0, fs * 2.04);
     ctx.restore();
   }
   function drawMark(ctx, x, y, s) {
@@ -419,281 +350,707 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
     ctx.fillStyle = C.accent; rr(ctx, 0, 0, 64, 64, 14); ctx.fill();
     ctx.translate(8, 8); ctx.scale(0.75, 0.75);
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; rr(ctx, 8, 20, 48, 34, 6); ctx.stroke();
-    ctx.lineCap = 'round'; ctx.stroke(new Path2D(MARK_PATHS.lid));
+    ctx.lineCap = 'round'; ctx.stroke(new Path2D(MARK_LID));
     ctx.lineCap = 'butt'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(8, 35); ctx.lineTo(56, 35); ctx.stroke();
     ctx.fillStyle = '#fff'; rr(ctx, 27, 31, 10, 8, 2); ctx.fill();
     ctx.restore();
   }
-  function canvasTex(w, h, draw, aniso) {
-    var c = document.createElement('canvas'); c.width = w; c.height = h;
-    draw(c.getContext('2d'), w, h);
-    var t = new THREE.CanvasTexture(c); t.anisotropy = aniso; return t;
-  }
+  function canvasEl(w, h, draw) { var c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return c; }
 
   /* ---------- The 3D cutscene ---------- */
   function play3D(container, opts) {
-    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    var shell = makeShell(container, opts, false);
-    var root = shell.root;
+    var shell = makeShell(container, opts, false), root = shell.root;
     shell.skipBtn.textContent = 'Skip to the end';
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setClearColor(0x000000, 0);
+    var base = opts.assetBase || 'delivery/';
+    var load = document.createElement('div'); load.className = 'dlv-load';
+    load.innerHTML = 'Loading the scene<i><b></b></i>'; root.appendChild(load);
+    var bar = load.querySelector('b');
+    var bars = [document.createElement('div'), document.createElement('div')];
+    bars[0].className = 'dlv-bar top'; bars[1].className = 'dlv-bar bot';
+    root.appendChild(bars[0]); root.appendChild(bars[1]);
+    var handle = { skip: null, stop: null }, scene3d = null, loading = true;
+    function toFallback(why) {
+      if (shell.done) return;
+      shell.finish('fallback', scene3d ? scene3d.teardown : null, true);
+      var fb = playFallback(container, opts, why);
+      handle.skip = fb.skip; handle.stop = fb.stop;
+      if (typeof opts.onMode === 'function') opts.onMode('fallback-' + why);
+    }
+    handle.skip = function () { if (loading) toFallback('skipped-load'); };
+    handle.stop = function () { shell.finish('stopped', scene3d ? scene3d.teardown : null); };
+    var timer = setTimeout(function () { if (loading) toFallback('load'); }, opts.loadTimeout || 6000);
+    shell.timers.push(timer);
+    bindSkip(shell, function () { handle.skip(); });
+    loadAssets(base, function (k) { bar.style.width = Math.round(k * 100) + '%'; }).then(function (A) {
+      if (shell.done || !loading) return;
+      loading = false; clearTimeout(timer);
+      // the one WebGL context, asked for directly so a browser that refuses it goes to the banner quietly
+      var canvas = document.createElement('canvas'), gl = null, attrs = { alpha: false, antialias: true, depth: true, stencil: true };
+      try { gl = canvas.getContext('webgl2', attrs) || canvas.getContext('webgl', attrs); } catch (e) { gl = null; }
+      if (!gl) { toFallback('no-3d'); return; }
+      try {
+        scene3d = runScene(shell, opts, A, canvas, gl);
+        if (load.parentNode) load.parentNode.removeChild(load);
+        handle.skip = scene3d.skip; handle.stop = scene3d.stop;
+        scene3d.onLost = function () { toFallback('context-lost'); };
+      } catch (e) {
+        if (window.console) console.warn('delivery scene failed', e);
+        toFallback('error');
+      }
+    }, function () { if (loading) { loading = false; toFallback('load'); } });
+    return { skip: function () { handle.skip(); }, stop: function () { handle.stop(); } };
+  }
+
+  function runScene(shell, opts, A, canvas, gl) {
+    var root = shell.root;
+    if (opts.freeze) root.classList.add('dlv-frozen'); // a frozen frame shows the end state of every transition
+    var coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    var forced = opts.quality === 'high' || opts.quality === 'medium' || opts.quality === 'low' ? opts.quality : null;
+    var tier = forced || (coarse ? 'medium' : 'high'), startTier = tier;
+    var TIERS = { high: { shadow: 2048, pr: 2 }, medium: { shadow: 1024, pr: 1.5 }, low: { shadow: 0, pr: 1 } };
+
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, context: gl, antialias: true });
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.9;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     root.insertBefore(renderer.domElement, root.firstChild);
     var aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-    var track = { geo: [], mat: [], tex: [] };
+    var track = { geo: [], mat: [], tex: [] }, shared = { geo: [], tex: [] };
     function G(g) { track.geo.push(g); return g; }
     function Mt(m) { track.mat.push(m); return m; }
     function Tx(t) { track.tex.push(t); return t; }
 
     var scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0xdde6ec, 75, 190);
-    var camera = new THREE.PerspectiveCamera(45, 1, 0.5, 420);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.58));
-    var sun = new THREE.DirectionalLight(0xfff3e0, 0.78); sun.position.set(34, 52, 22); scene.add(sun);
+    var camera = new THREE.PerspectiveCamera(45, 1, 0.3, 700);
 
-    var lambert = Mt(new THREE.MeshLambertMaterial({ vertexColors: true }));
-    var world = new Merger();
-    world.add(new THREE.PlaneGeometry(900, 900), C.grass, M(-60, 0, 80, 0, -Math.PI / 2));
-    var cars = buildShop(world);
-    buildHouse(world);
-    scene.add(new THREE.Mesh(G(world.build()), lambert));
+    // sky: image-based light and background from the one Poly Haven sky
+    var pmrem = new THREE.PMREMGenerator(renderer);
+    var envRT = pmrem.fromEquirectangular(A.sky); pmrem.dispose();
+    A.sky.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = envRT.texture; scene.background = A.sky;
+    scene.fog = new THREE.Fog(sc(0xb8c7d6), 110, 420);
+    var sun = new THREE.DirectionalLight(0xfff1dc, 1.9);
+    sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03;
+    scene.add(sun); scene.add(sun.target);
+    scene.add(new THREE.HemisphereLight(0xcfe0f2, 0x5b5348, 0.25));
 
-    // soft blob shadows (no shadow maps): one instanced mesh for the parked cars, one plane under the van
-    var blobTex = Tx(canvasTex(128, 128, function (ctx) {
-      var gr = ctx.createRadialGradient(64, 64, 6, 64, 64, 62);
-      gr.addColorStop(0, 'rgba(10,14,20,0.55)'); gr.addColorStop(0.6, 'rgba(10,14,20,0.32)'); gr.addColorStop(1, 'rgba(10,14,20,0)');
-      ctx.fillStyle = gr; ctx.fillRect(0, 0, 128, 128);
-    }, 1));
-    var blobMat = Mt(new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
-    var blobGeo = G(new THREE.PlaneGeometry(1, 1)); blobGeo.rotateX(-Math.PI / 2);
-    var blobs = new THREE.InstancedMesh(blobGeo, blobMat, cars.length);
-    cars.forEach(function (c, i) {
-      blobs.setMatrixAt(i, new THREE.Matrix4().compose(new THREE.Vector3(c[0], 0.09, c[1]), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, c[2], 0)), new THREE.Vector3(5.6, 1, 2.9)));
+    // ground materials: Poly Haven color and normal maps, repeated in world units
+    function surf(key, rough, extra) {
+      var t = A.tex[key], n = A.tex[key + 'N'];
+      [t, n].forEach(function (x) { x.wrapS = x.wrapT = THREE.RepeatWrapping; x.anisotropy = aniso; });
+      t.encoding = THREE.sRGBEncoding; shared.tex.push(t, n);
+      var m = new THREE.MeshStandardMaterial(Object.assign({ map: t, roughness: rough, metalness: 0, vertexColors: true }, extra || {}));
+      if (startTier === 'high') { m.normalMap = n; m.normalScale = new THREE.Vector2(0.8, 0.8); }
+      return Mt(m);
+    }
+    var roofTex = Tx(new THREE.CanvasTexture(canvasEl(256, 256, function (ctx) {
+      ctx.fillStyle = '#d9d5cc'; ctx.fillRect(0, 0, 256, 256);
+      for (var i = 0; i < 2600; i++) { var v = 180 + Math.floor(rnd() * 60); ctx.fillStyle = 'rgba(' + v + ',' + (v - 4) + ',' + (v - 12) + ',0.5)'; ctx.fillRect(rnd() * 256, rnd() * 256, 2, 2); }
+      ctx.strokeStyle = 'rgba(120,112,100,0.35)'; ctx.lineWidth = 2; for (var k = 0; k < 256; k += 64) { ctx.beginPath(); ctx.moveTo(0, k); ctx.lineTo(256, k); ctx.stroke(); }
+    })));
+    roofTex.wrapS = roofTex.wrapT = THREE.RepeatWrapping; roofTex.encoding = THREE.sRGBEncoding;
+    var MAT = {
+      asphalt: surf('asphalt', 0.92), concrete: surf('concrete', 0.85), grass: surf('grass', 1.0), brick: surf('brick', 0.9),
+      roof: Mt(new THREE.MeshStandardMaterial({ map: roofTex, roughness: 0.95, vertexColors: true })),
+      paint: Mt(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.65, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })),
+      solid: Mt(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6, metalness: 0.1 })),
+      metal: Mt(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.7 })),
+      glass: Mt(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.08, metalness: 0.4, envMapIntensity: 1.4 })),
+      leaf: Mt(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true })),
+      lamp: Mt(new THREE.MeshStandardMaterial({ color: 0xfff6e0, emissive: 0xfff1cc, emissiveIntensity: 0.6, roughness: 0.4 }))
+    };
+    var B = {}; Object.keys(MAT).forEach(function (k) { B[k] = new Builder(); });
+    var full = startTier === 'high';
+
+    /* --- the shop: south end unit of a long strip, lot, road, tree line --- */
+    var F = -14;
+    B.grass.box(-260, 120, -0.02, 0, -260, 120, 6);
+    B.brick.box(-28, F, 0, 5.2, -70, 6, 2.2);
+    B.brick.box(F - 0.35, F, 5.2, 5.85, -70, 6, 2.2, 0xd9b8a8);
+    B.brick.box(-28, -27.65, 5.2, 5.85, -70, 6, 2.2, 0xd9b8a8);
+    B.brick.box(-28, F, 5.2, 5.85, 5.65, 6, 2.2, 0xd9b8a8);
+    B.brick.box(-28, F, 5.2, 5.85, -70, -69.65, 2.2, 0xd9b8a8);
+    B.brick.box(-28, F, 5.2, 5.8, -8.2, -7.8, 2.2, 0xd9b8a8);
+    B.roof.box(-27.65, F - 0.35, 5.2, 5.27, -69.65, -8.2, 4);
+    B.roof.box(-27.65, F - 0.35, 5.2, 5.27, -7.8, 5.65, 4, 0x9a7a5c); // the end unit's darker tan roof reads as ours
+    [[-20, -2, 1.9, 1.1, 1.5], [-24.5, 2.6, 1.4, 0.9, 1.4], [-19, -18, 1.8, 1, 1.5], [-23, -36, 1.4, 0.9, 1.4], [-20, -52, 1.8, 1, 1.5], [-24, -63, 1.4, 0.9, 1.4]].forEach(function (r) {
+      B.metal.box(r[0] - r[2] / 2, r[0] + r[2] / 2, 5.27, 5.27 + r[3], r[1] - r[4] / 2, r[1] + r[4] / 2, 2, 0xa9adb2);
     });
-    scene.add(blobs);
+    // storefronts: glass, mullions, doors, plain sign bands with no lettering
+    var units = [[-70, -58], [-58, -46], [-46, -34], [-34, -22], [-22, -8]], bands = [0xd9ccb4, 0xcfd6dc, 0xe0d2c0, 0xd4cfc6, 0xcdd4cc];
+    units.forEach(function (u, i) {
+      B.glass.box(F, F + 0.08, 0.35, 2.8, u[0] + 1.2, u[1] - 4, 2, 0x5d7690);
+      for (var z = u[0] + 1.2; z <= u[1] - 4; z += 2.2) B.metal.box(F, F + 0.14, 0.3, 2.85, z - 0.05, z + 0.05, 2, 0x2f343b);
+      B.glass.box(F, F + 0.12, 0, 2.5, u[1] - 3.4, u[1] - 1.6, 2, 0x34404d);
+      B.solid.box(F, F + 0.1, 3.1, 4.6, u[0] + 1.5, u[1] - 1.5, 2, bands[i]);
+    });
+    B.glass.box(F, F + 0.08, 0.35, 2.8, -7.2, -1.4, 2, 0x5d7690);
+    B.glass.box(F, F + 0.08, 0.35, 2.8, 2.2, 5.3, 2, 0x5d7690);
+    [-5.8, -4.3, -2.8, 3.7].forEach(function (z) { B.metal.box(F, F + 0.14, 0.3, 2.85, z - 0.05, z + 0.05, 2, 0x2f343b); });
+    B.glass.box(F, F + 0.12, 0, 2.6, -1.0, 1.8, 2, 0x26303c);
+    B.metal.box(F + 0.12, F + 0.2, 1.1, 1.5, 1.35, 1.5, 2, 0xc9cdd2);
+    B.solid.box(F, F + 0.1, 2.95, 5.05, -4.3, 4.3, 2, 0x1a1f2b);
+    // ground: walk with a curb lip, lots, aisle, small white-roof building, roads, grass strip
+    B.concrete.box(F, -12, 0, 0.14, -72, 6, 3);
+    B.concrete.box(-12.15, -12, 0, 0.16, -72, 6, 3, 0xd8d8d8);
+    B.asphalt.box(-12, 4, 0, 0.03, -72, 12, 7);
+    B.asphalt.box(-40, -12, 0, 0.03, 6, 12, 7);
+    B.asphalt.box(-40, -28, 0, 0.03, -30, 6, 7);
+    B.asphalt.box(4, 6.5, 0, 0.03, 6, 12, 7);
+    B.concrete.box(4, 4.2, 0, 0.16, -220, 6, 3, 0xd8d8d8); B.concrete.box(4, 4.2, 0, 0.16, 12, 36, 3, 0xd8d8d8);
+    B.concrete.box(6.3, 6.5, 0, 0.16, -220, 6, 3, 0xd8d8d8); B.concrete.box(6.3, 6.5, 0, 0.16, 12, 36, 3, 0xd8d8d8);
+    B.asphalt.box(6.5, 29, 0, 0.02, -220, 220, 8);
+    B.asphalt.box(-70, 6.5, 0, 0.02, 36, 43, 8);
+    B.brick.box(-8, 0, 0, 4, 21, 29, 2.2, 0xe6ddd2);
+    B.roof.box(-7.8, -0.2, 4, 4.08, 21.2, 28.8, 4, 0xffffff);
+    B.metal.box(-5, -2, 4.08, 4.8, 23.5, 26, 2, 0xa9adb2);
+    // stall lines, lane paint, center turn lane, crosswalk bars at the exit
+    var pc = C.paint;
+    for (var k = 0; k <= 23; k++) {
+      var z = 3.6 - 3.2 * k;
+      B.paint.box(-12, -6.6, 0.03, 0.035, z - 0.06, z + 0.06, 4, pc);
+      if (k >= 1) B.paint.box(-1.5, 3.9, 0.03, 0.035, z - 0.06, z + 0.06, 4, pc);
+    }
+    for (var d = -220; d < 220; d += 9) { B.paint.box(10.95, 11.15, 0.02, 0.025, d, d + 3, 4, pc); B.paint.box(24.45, 24.65, 0.02, 0.025, d, d + 3, 4, pc); }
+    [15.4, 15.75, 19.75, 20.1].forEach(function (x) { B.paint.box(x, x + 0.15, 0.02, 0.025, -220, 220, 4, C.yellow); });
+    B.paint.box(28.5, 28.65, 0.02, 0.025, -220, 220, 4, pc);
+    // storm drains by the curb, bench and bike rack by the door, lamps along the lot
+    [[-11.6, -9], [-11.6, -30], [6.1, -12], [6.1, -50]].forEach(function (p) { B.metal.box(p[0] - 0.3, p[0] + 0.3, 0.03, 0.04, p[1] - 0.45, p[1] + 0.45, 1, 0x26292d); });
+    B.solid.box(-13.4, -12.9, 0.45, 0.52, 3.2, 5.2, 1, 0x6b4d36); B.metal.box(-13.35, -13.25, 0.14, 0.45, 3.3, 3.4, 1, 0x30343a); B.metal.box(-13.35, -13.25, 0.14, 0.45, 5.0, 5.1, 1, 0x30343a);
+    for (var r = 0; r < 4; r++) B.metal.geo(new THREE.TorusGeometry(0.4, 0.035, 6, 14, Math.PI), M(-12.7, 0.14, -2.6 - r * 0.55, Math.PI / 2), 0x8d939a);
+    function lamp(x, z) {
+      B.metal.geo(new THREE.CylinderGeometry(0.09, 0.13, 7.5, 8), M(x, 3.75, z), 0x4a4f56);
+      B.metal.box(x - 0.08, x + 0.08, 7.3, 7.42, z - 0.08, z + 1.4, 1, 0x4a4f56);
+      B.lamp.box(x - 0.22, x + 0.22, 7.1, 7.3, z + 1.0, z + 1.6, 1);    }
+    [[-1.5, -14], [-1.5, -40], [5.25, -6], [5.25, -30]].forEach(function (p) { lamp(p[0], p[1]); });
+    // bushes along the shop walk and the grass strip
+    function bush(x, z, s, col) { B.leaf.geo(new THREE.IcosahedronGeometry(0.75 * s, 1), M(x, 0.45 * s, z, rnd() * 3, 0, 0), col || [0x4f7a43, 0x3f6a3a, 0x5d8a4a][Math.floor(rnd() * 3)]); }
+    for (var b = 0; b < (full ? 10 : 5); b++) bush(4.9 + rnd() * 0.8, -60 + b * 6.5, 0.9 + rnd() * 0.4);
+    bush(-13.5, 6.6, 0.8); bush(-13.4, -7.6, 0.8);
 
-    // wordmark on the shop's sign band
-    var signTex = Tx(canvasTex(1024, 256, function (ctx, w, h) {
-      ctx.fillStyle = C.umbInk; ctx.fillRect(0, 0, w, h);
-      drawWordmark(ctx, 54, 22, h - 30, w - 108);
-    }, aniso));
-    var signMat = Mt(new THREE.MeshLambertMaterial({ map: signTex, emissive: 0x777777, emissiveMap: signTex }));
-    var sign = new THREE.Mesh(G(new THREE.PlaneGeometry(8.2, 2.05)), signMat);
-    sign.position.set(-13.86, 4.0, 0); sign.rotation.y = Math.PI / 2; scene.add(sign);
+    /* --- the house street --- */
+    var x0 = HX, z0 = HZ;
+    B.asphalt.box(x0 - 140, x0 + 140, 0, 0.02, z0 - 4, z0 + 4, 8);
+    for (var dd = -140; dd < 140; dd += 7) B.paint.box(x0 + dd, x0 + dd + 2.6, 0.02, 0.025, z0 - 0.07, z0 + 0.07, 4, C.yellow);
+    B.concrete.box(x0 - 140, x0 + 140, 0, 0.14, z0 - 4.25, z0 - 4, 3, 0xd8d8d8);
+    B.concrete.box(x0 - 140, x0 + 140, 0, 0.12, z0 - 6.2, z0 - 4.25, 3);
+    B.concrete.box(x0 - 140, x0 + 140, 0, 0.14, z0 + 4, z0 + 4.25, 3, 0xd8d8d8);
+    B.concrete.box(x0 - 140, x0 + 140, 0, 0.12, z0 + 4.25, z0 + 6.2, 3);
+    B.grass.box(x0 - 140, x0 + 140, 0, 0.1, z0 - 40, z0 - 6.2, 6);
+    B.grass.box(x0 - 140, x0 + 140, 0, 0.1, z0 + 6.2, z0 + 40, 6);
+    [[x0 + 30, z0 - 4.6], [x0 - 26, z0 - 4.6]].forEach(function (p) { B.metal.box(p[0] - 0.45, p[0] + 0.45, 0.02, 0.03, p[1] - 0.25, p[1] + 0.25, 1, 0x26292d); });
+    var WALKX = x0 + 0.0, DOORZ = z0 - 11.0; // the front walk and the door step of the delivery house (tuned to the model)
+    B.concrete.box(WALKX - 0.75, WALKX + 0.75, 0.1, 0.13, DOORZ + 0.8, z0 - 6.2, 2);
+    B.concrete.box(WALKX - 1.4, WALKX + 1.4, 0.1, 0.2, DOORZ - 0.4, DOORZ + 0.8, 2);
+    [x0 - 22, x0 + 22].forEach(function (hx) { B.concrete.box(hx + 1.5, hx + 4.5, 0.1, 0.13, z0 - 12, z0 - 6.2, 2); });
+    B.metal.box(x0 - 2.6, x0 - 2.48, 0.1, 1.15, z0 - 6.6, z0 - 6.48, 1, 0x5b5f66); B.solid.box(x0 - 2.8, x0 - 2.25, 1.15, 1.5, z0 - 6.85, z0 - 6.25, 1, 0x2d2f33);
+    [[x0 - 11, z0 + 5.6], [x0 + 13, z0 + 5.6], [x0 + 40, z0 - 5.4]].forEach(function (p) { lamp(p[0], p[1]); });
+    bush(x0 - 1.9, DOORZ - 0.1, 0.7); bush(x0 - 4.2, DOORZ + 0.3, 0.8); bush(x0 + 3.0, DOORZ - 0.3, 0.6); bush(x0 + 6.2, DOORZ + 0.2, 0.7);
 
-    // the van
-    var van = new THREE.Group(), body = new THREE.Group();
-    van.add(body); scene.add(van);
-    body.add(new THREE.Mesh(G(buildVanBody()), lambert));
-    var vanTex = Tx(canvasTex(1024, 352, function (ctx, w, h) {
-      ctx.fillStyle = '#3b4048'; ctx.fillRect(0, 0, w, h);
-      drawWordmark(ctx, 60, 58, 240, w - 120);
-    }, aniso));
-    var vanMat = Mt(new THREE.MeshLambertMaterial({ map: vanTex, emissive: 0x666666, emissiveMap: vanTex, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
-    var panelGeo = G(new THREE.PlaneGeometry(4.1, 1.41));
+    var world = new THREE.Group(); scene.add(world);
+    Object.keys(B).forEach(function (k) {
+      if (!B[k].p.length) return;
+      var mesh = new THREE.Mesh(G(B[k].build()), MAT[k]);
+      mesh.receiveShadow = true; mesh.castShadow = k !== 'paint' && k !== 'grass' && k !== 'asphalt';
+      world.add(mesh);
+    });
+
+    /* --- Kenney models: palette textures recolored on a canvas, static ones baked to one geometry --- */
+    function paletteTex(img, cells) { // cells: [[cx, cy, top, bottom]] in 32x128 cells of the 512x512 palette
+      var c = canvasEl(img.width, img.height, function (ctx) {
+        ctx.drawImage(img, 0, 0);
+        cells.forEach(function (q) {
+          var cw = img.width / 16, ch = img.height / 4, g = ctx.createLinearGradient(0, q[1] * ch, 0, (q[1] + 1) * ch);
+          g.addColorStop(0, q[2]); g.addColorStop(1, q[3]); ctx.fillStyle = g; ctx.fillRect(q[0] * cw, q[1] * ch, cw, ch);
+        });
+      });
+      var t = Tx(new THREE.CanvasTexture(c)); t.flipY = false; t.encoding = THREE.sRGBEncoding; t.anisotropy = aniso;
+      return t;
+    }
+    function gltfImage(g) { var img = null; g.scene.traverse(function (o) { if (!img && o.material && o.material.map) img = o.material.map.image; }); return img; }
+    function bake(obj) { // merge every mesh of a static model into one geometry in the model's space
+      var bd = new Builder(); obj.updateMatrixWorld(true);
+      obj.traverse(function (o) { if (o.isMesh) bd.geo(o.geometry.clone(), o.matrixWorld); });
+      return G(bd.build());
+    }
+    var kmat = function (tex, rough, metal) { return Mt(new THREE.MeshStandardMaterial({ map: tex, roughness: rough, metalness: metal || 0, envMapIntensity: 1 })); };
+    function instances(geo, mat, list, castShadow) { // list: [x, y, z, ry, s]
+      var im = new THREE.InstancedMesh(geo, mat, list.length);
+      list.forEach(function (p, i) { im.setMatrixAt(i, M(p[0], p[1], p[2], p[3], 0, 0, p[4])); });
+      im.castShadow = castShadow; im.receiveShadow = true; scene.add(im); return im;
+    }
+    // parked cars: three body styles, paint recolored per car
+    var carImg = gltfImage(A.gltf.sedan);
+    var PAINT = { sedan: [13, 1], suv: [7, 1], hatch: [7, 1] };
+    var parked = [['sedan', -9.6, -1.2, -Math.PI / 2, ['#b8382c', '#8f2a22']], ['suv', -9.6, -4.4, -Math.PI / 2, ['#d9dcdf', '#a9adb2']], ['hatch', -9.6, -10.8, -Math.PI / 2, ['#2e5d9a', '#234a7c']],
+      ['sedan', -9.6, -14, -Math.PI / 2, ['#2d2f33', '#202226']], ['suv', -9.6, -20.4, -Math.PI / 2, ['#8e969e', '#6d747b']], ['sedan', 1.6, -4.4, Math.PI / 2, ['#c9a227', '#a6841c']],
+      ['hatch', 1.6, -10.8, Math.PI / 2, ['#7c2f3a', '#5f222c']], ['suv', 1.6, -20.4, Math.PI / 2, ['#e1e3e5', '#b9bcc0']],
+      ['sedan', x0 - 30, z0 + 2, Math.PI / 2, ['#5a6470', '#47505a']], ['suv', x0 + 26, z0 - 2, -Math.PI / 2, ['#8a2e24', '#6b231c']]];
+    if (!full) parked = parked.filter(function (c, i) { return i % 3 !== 2; });
+    var carBlobs = [], carGeo = {};
+    parked.forEach(function (c) {
+      if (!carGeo[c[0]]) carGeo[c[0]] = bake(A.gltf[c[0]].scene);
+      var tex = paletteTex(carImg, [[PAINT[c[0]][0], PAINT[c[0]][1], c[4][0], c[4][1]], [PAINT[c[0]][0] - 1, PAINT[c[0]][1], c[4][0], c[4][1]]]);
+      var m = new THREE.Mesh(carGeo[c[0]], kmat(tex, 0.35, 0.2));
+      m.position.set(c[1], 0.03, c[2]); m.rotation.y = c[3]; m.scale.setScalar(1.75);
+      m.castShadow = true; m.receiveShadow = true; scene.add(m);
+      carBlobs.push([c[1], c[2], c[3], 2.0, 4.6]);
+    });
+    // trees: Kenney's suburban trees, instanced; the shop's tree line and the street's yard trees
+    var subImg = gltfImage(A.gltf.houseA);
+    var subTex = paletteTex(subImg, [[3, 3, '#64924f', '#3d6a39'], [2, 3, '#64924f', '#3d6a39'], [9, 2, '#86664a', '#5e4632'], [8, 2, '#86664a', '#5e4632']]);
+    var subMat = kmat(subTex, 0.9);
+    var treeL = [], treeS = [];
+    var nT = full ? 1 : 0.55;
+    for (var i = 0; i < 64 * nT; i++) treeL.push([32 + rnd() * 5, 0, -170 + i * 3.6 / nT + rnd() * 2, rnd() * 6, 9 + rnd() * 4]);
+    for (i = 0; i < 46 * nT; i++) treeS.push([38 + rnd() * 10, 0, -170 + i * 5 / nT + rnd() * 3, rnd() * 6, 12 + rnd() * 5]);
+    for (i = 0; i < 24 * nT; i++) treeL.push([-46 + rnd() * 12, 0, -90 + i * 5 / nT + rnd() * 3, rnd() * 6, 9 + rnd() * 4]);
+    [-40, -30, -16, 22].forEach(function (zz) { treeS.push([5.25, 0.16, zz, rnd() * 6, 7]); });
+    [[x0 - 8, z0 - 8.5], [x0 + 9, z0 - 9], [x0 - 31, z0 - 8], [x0 + 31, z0 - 8.5], [x0 - 14, z0 + 9], [x0 + 6, z0 + 10], [x0 + 22, z0 + 9]].forEach(function (p) { treeL.push([p[0], 0.1, p[1], rnd() * 6, 9 + rnd() * 3]); });
+    for (i = 0; i < 26 * nT; i++) treeS.push([x0 - 70 + i * 5.5 / nT + rnd() * 2, 0.1, z0 - 30 - rnd() * 8, rnd() * 6, 12 + rnd() * 5]);
+    var treeLGeo = bake(A.gltf.treeL.scene), treeSGeo = bake(A.gltf.treeS.scene);
+    instances(treeLGeo, subMat, treeL, true); instances(treeSGeo, subMat, treeS, true);
+    // the houses: Kenney suburban buildings, roofs and walls recolored per house
+    var HOUSES = [['houseA', x0, ['#6b4d3a', '#4f3829'], ['#e2cfa8', '#c9b48c']], ['houseC', x0 - 22, ['#4d5560', '#3a4048'], ['#a9bccb', '#8fa3b3']],
+      ['houseJ', x0 + 22, ['#7b5a3c', '#5c432d'], ['#cfae8c', '#b39272']], ['houseA', x0 - 44, ['#5a4a42', '#433730'], ['#c7cfb4', '#adb699']], ['houseC', x0 + 44, ['#6b4d3a', '#4f3829'], ['#d8c3a5', '#bea98a']]];
+    if (!full) HOUSES = HOUSES.slice(0, 3);
+    var HOUSE_S = 8.5;
+    HOUSES.forEach(function (h) {
+      var tex = paletteTex(subImg, [[1, 1, h[2][0], h[2][1]], [0, 1, h[2][0], h[2][1]], [7, 2, h[3][0], h[3][1]], [6, 2, h[3][0], h[3][1]],[3, 3, '#64924f', '#3d6a39'], [2, 3, '#64924f', '#3d6a39'], [9, 2, '#86664a', '#5e4632'], [8, 2, '#86664a', '#5e4632']]);
+      var m = new THREE.Mesh(bake(A.gltf[h[0]].scene), kmat(tex, 0.85));
+      m.position.set(h[1], 0.1, z0 - 15.4); m.scale.setScalar(HOUSE_S);
+      m.castShadow = m.receiveShadow = true; scene.add(m);
+    });
+
+    // the wordmark on the shop's sign band, lit a little so it reads from the high opening shot
+    var signTex = Tx(new THREE.CanvasTexture(canvasEl(1024, 256, function (ctx, w, hh) { ctx.fillStyle = C.umbInk; ctx.fillRect(0, 0, w, hh); drawWordmark(ctx, 54, 22, hh - 30, w - 108); })));
+    signTex.encoding = THREE.sRGBEncoding; signTex.anisotropy = aniso;
+    var sign = new THREE.Mesh(G(new THREE.PlaneGeometry(8.2, 2.05)), Mt(new THREE.MeshStandardMaterial({ map: signTex, roughness: 0.5, emissive: 0xffffff, emissiveMap: signTex, emissiveIntensity: 0.35 })));
+    sign.position.set(F + 0.11, 4.0, 0); sign.rotation.y = Math.PI / 2; scene.add(sign);
+
+    /* --- the van: Kenney cargo van, charcoal, wordmark decals, rear doors that open --- */
+    var vanImg = gltfImage(A.gltf.van);
+    var vanTex = paletteTex(vanImg, [[15, 1, '#50555d', '#3a3e45'], [14, 1, '#50555d', '#3a3e45'], [7, 2, '#5d626a', '#3f4349'], [6, 2, '#5d626a', '#3f4349']]);
+    var vanMat = kmat(vanTex, 0.36, 0.12);
+    var van = new THREE.Group(), body = new THREE.Group(); van.add(body); scene.add(van);
+    var vsrc = A.gltf.van.scene.clone(true), wheels = [];
+    vsrc.traverse(function (o) { if (o.isMesh) { o.material = vanMat; o.castShadow = true; o.receiveShadow = true; } });
+    var vb = new THREE.Box3().setFromObject(vsrc);
+    vsrc.children.slice().forEach(function (o) { if (/wheel/.test(o.name)) wheels.push(o); });
+    vsrc.scale.setScalar(VAN_S); body.add(vsrc);
+    var VB = { x0: vb.min.x * VAN_S, x1: vb.max.x * VAN_S, y0: vb.min.y * VAN_S, y1: vb.max.y * VAN_S, z0: vb.min.z * VAN_S, z1: vb.max.z * VAN_S };
+    var WR = 0.3 * VAN_S;
+    // the wordmark, as large as the cargo side allows: two lines sharing a left edge
+    var markCanvas = canvasEl(1024, 400, function (ctx, w, h) { ctx.clearRect(0, 0, w, h); drawWordmark(ctx, 20, 18, h - 40, w - 40); });
+    var markTex = Tx(new THREE.CanvasTexture(markCanvas)); markTex.encoding = THREE.sRGBEncoding; markTex.anisotropy = aniso;
+    var decalMat = Mt(new THREE.MeshStandardMaterial({ map: markTex, transparent: true, roughness: 0.35, metalness: 0.1, emissive: 0xffffff, emissiveMap: markTex, emissiveIntensity: 0.25, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }));
+    var DEC = { len: 2.75, h: 1.07, cz: -0.62, cy: 1.42 }; // tuned against the van's flat cargo side
+    var decGeo = G(new THREE.PlaneGeometry(DEC.len, DEC.h));
     [1, -1].forEach(function (s) {
-      var p = new THREE.Mesh(panelGeo, vanMat);
-      p.position.set(-0.75, 1.68, s * 1.056); if (s < 0) p.rotation.y = Math.PI;
+      var p = new THREE.Mesh(decGeo, decalMat);
+      p.position.set(s > 0 ? VB.x1 + 0.012 : VB.x0 - 0.012, DEC.cy, DEC.cz);
+      p.rotation.y = s > 0 ? Math.PI / 2 : -Math.PI / 2;
+      // the readable side runs nose-ward from the left edge, so the right-hand side mirrors the placement only
       body.add(p);
     });
-    var wheelGeo = G(buildWheel()), wheels = [];
-    [[2.0, 0.98], [2.0, -0.98], [-2.0, 0.98], [-2.0, -0.98]].forEach(function (w) {
-      var m = new THREE.Mesh(wheelGeo, lambert); m.position.set(w[0], 0.45, w[1]); van.add(m); wheels.push(m);
+    // rear doors: a dark hold and two charcoal leaves hinged at the outer edges
+    var RD = { w: (VB.x1 - VB.x0) * 0.7, y0: VB.y0 + 0.82, y1: VB.y1 - 0.3, z: VB.z0 - 0.015 };
+    var holdMat = Mt(new THREE.MeshStandardMaterial({ color: sc(0x15171a), roughness: 0.9 }));
+    var hold = new THREE.Mesh(G(new THREE.PlaneGeometry(RD.w, RD.y1 - RD.y0)), holdMat);
+    hold.position.set(0, (RD.y0 + RD.y1) / 2, RD.z); hold.rotation.y = Math.PI; body.add(hold);
+    var leafMat = Mt(new THREE.MeshStandardMaterial({ color: sc(0x44484f), roughness: 0.4, metalness: 0.12 }));
+    var leafGeo = G(new THREE.BoxGeometry(RD.w / 2, RD.y1 - RD.y0, 0.05)), leaves = [];
+    [1, -1].forEach(function (s) {
+      var hinge = new THREE.Group(); hinge.position.set(s * RD.w / 2, (RD.y0 + RD.y1) / 2, RD.z - 0.03);
+      var lf = new THREE.Mesh(leafGeo, leafMat); lf.position.x = -s * RD.w / 4; lf.castShadow = true; hinge.add(lf);
+      var hdl = new THREE.Mesh(G(new THREE.BoxGeometry(0.05, 0.22, 0.05)), Mt(new THREE.MeshStandardMaterial({ color: sc(0x9aa0a6), metalness: 0.8, roughness: 0.3 })));
+      hdl.position.set(-s * (RD.w / 2 - 0.12), 0, -0.04); hinge.add(hdl);
+      body.add(hinge); leaves.push({ g: hinge, s: s });
     });
-    var vanBlob = new THREE.Mesh(blobGeo, blobMat); vanBlob.scale.set(7.4, 1, 3.4); vanBlob.position.y = 0.1; van.add(vanBlob);
+    // lights: emissive lenses so they glow a little
+    var headMat = Mt(new THREE.MeshStandardMaterial({ color: 0xfff6d8, emissive: 0xfff2c8, emissiveIntensity: 1.2 }));
+    var tailMat = Mt(new THREE.MeshStandardMaterial({ color: sc(0xb3241c), emissive: sc(0xff2a1a), emissiveIntensity: 0.9 }));
+    var lensGeo = G(new THREE.PlaneGeometry(0.28, 0.16));
+    [1, -1].forEach(function (s) {
+      var hl = new THREE.Mesh(lensGeo, headMat); hl.position.set(s * (VB.x1 - 0.32), VB.y0 + 0.95, VB.z1 + 0.012); body.add(hl);
+      var tl = new THREE.Mesh(lensGeo, tailMat); tl.scale.set(0.6, 2.2, 1); tl.position.set(s * (VB.x1 - 0.13), VB.y0 + 1.15, VB.z0 - 0.02); tl.rotation.y = Math.PI; body.add(tl);
+    });
 
-    // the box with the Loadout mark on its face
-    var cardboard = function (mark, tape) {
-      return Tx(canvasTex(256, 256, function (ctx) {
+    /* --- the box: cardboard, the Loadout mark on two faces --- */
+    function cardboard(mark, tape) {
+      var t = Tx(new THREE.CanvasTexture(canvasEl(256, 256, function (ctx) {
         ctx.fillStyle = '#c69c6d'; ctx.fillRect(0, 0, 256, 256);
-        ctx.strokeStyle = '#9c7449'; ctx.lineWidth = 10; ctx.strokeRect(5, 5, 246, 246);
-        if (tape) { ctx.fillStyle = '#d9c19a'; ctx.fillRect(104, 0, 48, 256); }
-        if (mark) drawMark(ctx, 48, 48, 160);
-      }, aniso));
-    };
-    var plain = Mt(new THREE.MeshLambertMaterial({ map: cardboard(false, false) }));
-    var top = Mt(new THREE.MeshLambertMaterial({ map: cardboard(false, true) }));
-    var face = Mt(new THREE.MeshLambertMaterial({ map: cardboard(true, false), emissive: 0x333333, emissiveMap: track.tex[track.tex.length - 1] }));
-    var box = new THREE.Mesh(G(new THREE.BoxGeometry(1.15, 1.1, 1.15)), [face, plain, top, plain, face, plain]);
-    scene.add(box);
-    var boxBlob = new THREE.Mesh(blobGeo, blobMat); boxBlob.scale.set(1.9, 1, 1.9); scene.add(boxBlob);
+        for (var i = 0; i < 500; i++) { ctx.fillStyle = 'rgba(120,80,40,' + (rnd() * 0.12) + ')'; ctx.fillRect(rnd() * 256, rnd() * 256, 3, 1); }
+        ctx.strokeStyle = '#9c7449'; ctx.lineWidth = 8; ctx.strokeRect(4, 4, 248, 248);
+        if (tape) { ctx.fillStyle = '#dcc49c'; ctx.fillRect(104, 0, 48, 256); }
+        if (mark) drawMark(ctx, 58, 58, 140);
+      })));
+      t.encoding = THREE.sRGBEncoding; t.anisotropy = aniso; return t;
+    }
+    var BX = { w: 0.9, h: 0.6, d: 0.66 };
+    var bPlain = Mt(new THREE.MeshStandardMaterial({ map: cardboard(false, false), roughness: 0.85 }));
+    var bTop = Mt(new THREE.MeshStandardMaterial({ map: cardboard(false, true), roughness: 0.85 }));
+    var bFace = Mt(new THREE.MeshStandardMaterial({ map: cardboard(true, false), roughness: 0.85 }));
+    // faces: +x, -x, +y, -y, +z, -z; the mark sits on the two long faces
+    var box = new THREE.Mesh(G(new THREE.BoxGeometry(BX.w, BX.h, BX.d)), [bPlain, bPlain, bTop, bPlain, bFace, bFace]);
+    box.castShadow = true; box.receiveShadow = true; scene.add(box);
 
-    /* --- motion paths, all pure functions of t so a frozen frame is exact --- */
-    var P0 = new THREE.Vector2(-9.2, 2), PC = new THREE.Vector2(-3.5, 2), P2 = new THREE.Vector2(-5.5, -1.5);
-    function bez(s) { var a = (1 - s) * (1 - s), b = 2 * (1 - s) * s, c = s * s; return new THREE.Vector2(a * P0.x + b * PC.x + c * P2.x, a * P0.y + b * PC.y + c * P2.y); }
-    function bezD(s) { return new THREE.Vector2(2 * (1 - s) * (PC.x - P0.x) + 2 * s * (P2.x - PC.x), 2 * (1 - s) * (PC.y - P0.y) + 2 * s * (P2.y - PC.y)); }
+    /* --- the two people: Kenney mini characters, recolored to charcoal polos and blue jeans --- */
+    var people = [makePerson(A.gltf.manF, { torso: [0.88, 1.12, 0.9], head: 0.68, legs: 1.62, arms: 0.84, h: PERSON_H }),
+      makePerson(A.gltf.manD, { torso: [1.0, 1.06, 0.98], head: 0.66, legs: 1.55, arms: 0.86, h: PERSON_H * 0.97 })];
+    function makePerson(g, build) {
+      var model = THREE.SkeletonUtils.clone(g.scene), img = gltfImage(g);
+      var pix = canvasEl(img.width, img.height, function (ctx) { ctx.drawImage(img, 0, 0); }).getContext('2d').getImageData(0, 0, img.width, img.height);
+      function sample(u, v) { var x = Math.min(pix.width - 1, Math.max(0, Math.floor(u * pix.width))), y = Math.min(pix.height - 1, Math.max(0, Math.floor(v * pix.height))), i = (y * pix.width + x) * 4; return [pix.data[i], pix.data[i + 1], pix.data[i + 2]]; }
+      var bones = {}, bodyMesh = null, headMesh = null;
+      model.traverse(function (o) { if (o.isBone) bones[o.name] = o; if (o.isSkinnedMesh) { if (/head/.test(o.name)) headMesh = o; else bodyMesh = o; } });
+      // the face's own tone: the most used palette cell on the head
+      var hu = headMesh.geometry.attributes.uv, cnt = {}, skinKey = null, best = 0;
+      for (var i = 0; i < hu.count; i++) { var key = Math.floor(hu.getX(i) * 16) + ',' + Math.floor(hu.getY(i) * 4); cnt[key] = (cnt[key] || 0) + 1; if (cnt[key] > best) { best = cnt[key]; skinKey = i; } }
+      var skin = sample(hu.getX(skinKey), hu.getY(skinKey));
+      var geo = G(bodyMesh.geometry.clone()), pos = geo.attributes.position, uv = geo.attributes.uv, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight;
+      var names = bodyMesh.skeleton.bones.map(function (b) { return b.name; }), col = new Float32Array(pos.count * 3), cc = new THREE.Color();
+      for (i = 0; i < pos.count; i++) {
+        var ws = [sw.getX(i), sw.getY(i), sw.getZ(i), sw.getW(i)], js = [si.getX(i), si.getY(i), si.getZ(i), si.getW(i)], wi = 0, wv = -1;
+        for (var q = 0; q < 4; q++) if (ws[q] > wv) { wv = ws[q]; wi = js[q]; }
+        var bn = names[wi], y = pos.getY(i), ax = Math.abs(pos.getX(i)), rgb;
+        if (/arm/.test(bn)) rgb = ax < 0.2 ? (y > 0.355 ? [70, 74, 82] : [58, 62, 69]) : skin;                       // short polo sleeve, then the arm and hand
+        else if (/torso/.test(bn)) rgb = y < 0.19 ? [52, 84, 128] : (y > 0.345 ? [72, 76, 84] : [58, 62, 69]);     // jeans at the hips, polo body, collar
+        else if (/leg/.test(bn)) rgb = y < 0.03 ? [34, 34, 38] : [61, 98, 148];                                   // dark shoes, blue jeans
+        else rgb = sample(uv.getX(i), uv.getY(i));
+        var shade = 0.92 + 0.08 * (y / 0.36);
+        cc.setRGB(rgb[0] / 255 * shade, rgb[1] / 255 * shade, rgb[2] / 255 * shade).convertSRGBToLinear();
+        col[i * 3] = cc.r; col[i * 3 + 1] = cc.g; col[i * 3 + 2] = cc.b;
+      }
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      bodyMesh.geometry = geo;
+      bodyMesh.material = Mt(new THREE.MeshStandardMaterial({ vertexColors: true, skinning: true, roughness: 0.85 }));
+      headMesh.material = Mt(headMesh.material.clone()); headMesh.material.roughness = 0.8;
+      model.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false; } });
+      // proportions: longer legs, a smaller head, so the figure reads closer to an adult than a toy
+      bones['leg-left'].scale.set(1, build.legs, 1); bones['leg-right'].scale.set(1, build.legs, 1);
+      bones.torso.scale.set(build.torso[0], build.torso[1], build.torso[2]);
+      bones.head.scale.set(build.head / build.torso[0], build.head / build.torso[1], build.head / build.torso[2]);
+      ['arm-left', 'arm-right'].forEach(function (n) { bones[n].scale.set(build.arms / build.torso[0], build.arms / build.torso[1], build.arms / build.torso[2]); });
+      // the small company-blue mark on the left chest
+      var chest = new THREE.Mesh(G(new THREE.PlaneGeometry(0.05, 0.035)), Mt(new THREE.MeshStandardMaterial({ color: sc(0x1A9BE8), roughness: 0.6 })));
+      chest.position.set(0.075, 0.13, 0.127); bones.torso.add(chest);
+      var lift = 0.176 * (build.legs - 1), rawH = lift + 0.176 + 0.167 * build.torso[1] + 0.328 * build.head;
+      var s = build.h / rawH;
+      var holder = new THREE.Group(), inner = new THREE.Group();
+      inner.add(model); model.position.y = lift; inner.scale.setScalar(s); holder.add(inner); scene.add(holder);
+      var mixer = new THREE.AnimationMixer(model), acts = {};
+      function clip(name, keep) {
+        var c = THREE.AnimationClip.findByName(g.animations, name);
+        if (keep) c = new THREE.AnimationClip(name + '-part', c.duration, c.tracks.filter(function (t) { return keep.test(t.name); }));
+        var a = mixer.clipAction(c); a.play(); a.setEffectiveWeight(0); return a;
+      }
+      acts.walk = clip('walk', /leg|root|torso|head/); acts.walkArms = clip('walk', /arm/);
+      acts.idle = clip('idle'); acts.crouch = clip('crouch'); acts.yes = clip('emote-yes'); acts.hold = clip('holding-both');
+      return { holder: holder, s: s, bones: bones, mixer: mixer, acts: acts, model: model, lift: lift };
+    }
+    // stride matched to speed: leg length times the swing angle sampled from the walk clip
+    var walkClip = THREE.AnimationClip.findByName(A.gltf.manF.animations, 'walk'), legTrack = walkClip.tracks.filter(function (t) { return /leg-left\.quaternion/.test(t.name); })[0];
+    var maxAng = 0; for (var qi = 0; qi < legTrack.values.length; qi += 4) maxAng = Math.max(maxAng, 2 * Math.acos(Math.min(1, Math.abs(legTrack.values[qi + 3]))));
+    var CARRY_W = 0.55; // the walk blended toward standing: shorter steps under a load
+    var CYCLE_D = 4 * 0.176 * 1.6 * people[0].s * Math.sin(maxAng * CARRY_W) || 1.0; // meters per walk cycle (two steps)
+    var WALK_V = 1.25;
+
+    /* --- blob shadows for the low tier --- */
+    var blobTex = Tx(new THREE.CanvasTexture(canvasEl(128, 128, function (ctx) {
+      var gr = ctx.createRadialGradient(64, 64, 6, 64, 64, 62);
+      gr.addColorStop(0, 'rgba(10,14,20,0.55)'); gr.addColorStop(0.6, 'rgba(10,14,20,0.3)'); gr.addColorStop(1, 'rgba(10,14,20,0)');
+      ctx.fillStyle = gr; ctx.fillRect(0, 0, 128, 128);
+    })));
+    var blobMat = Mt(new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }));
+    var blobGeo = G(new THREE.PlaneGeometry(1, 1)); blobGeo.rotateX(-Math.PI / 2);
+    var blobs = new THREE.Group(); scene.add(blobs);
+    var carBlobMesh = new THREE.InstancedMesh(blobGeo, blobMat, carBlobs.length);
+    carBlobs.forEach(function (c, i) { carBlobMesh.setMatrixAt(i, new THREE.Matrix4().compose(new THREE.Vector3(c[0], 0.06, c[1]), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, c[2], 0)), new THREE.Vector3(c[3] * 1.3, 1, c[4] * 1.15))); });
+    blobs.add(carBlobMesh);
+    var vanBlob = new THREE.Mesh(blobGeo, blobMat); vanBlob.scale.set((VB.x1 - VB.x0) * 1.3, 1, (VB.z1 - VB.z0) * 1.12); vanBlob.position.set(0, 0.07, (VB.z0 + VB.z1) / 2); van.add(vanBlob);
+    var pBlobs = people.map(function (p) { var m = new THREE.Mesh(blobGeo, blobMat); m.scale.set(0.9, 1, 0.9); blobs.add(m); return m; });
+    var boxBlob = new THREE.Mesh(blobGeo, blobMat); boxBlob.scale.set(1.1, 1, 0.9); blobs.add(boxBlob);
+    var blobList = [blobs, vanBlob];
+
+    /* --- motion paths, all pure functions of scene time so a frozen frame is exact --- */
+    var V2 = THREE.Vector2, V = THREE.Vector3;
+    var VAN_LEN_REAR = -VB.z0; // model origin to the rear bumper
+    var P0 = new V2(-9.2, 2), PC = new V2(-3.5, 2), P2 = new V2(-5.5, -1.5);
+    function bez(s) { var a = (1 - s) * (1 - s), b = 2 * (1 - s) * s, c = s * s; return new V2(a * P0.x + b * PC.x + c * P2.x, a * P0.y + b * PC.y + c * P2.y); }
+    function bezD(s) { return new V2(2 * (1 - s) * (PC.x - P0.x) + 2 * s * (P2.x - PC.x), 2 * (1 - s) * (PC.y - P0.y) + 2 * s * (P2.y - PC.y)); }
     var Lr = 0; for (var q = 1; q <= 40; q++) Lr += bez(q / 40).distanceTo(bez((q - 1) / 40));
     var drive = new THREE.CatmullRomCurve3([[-5.5, -1.5], [-3.5, 2.5], [-0.5, 7], [3.5, 9], [9, 9], [14, 7.5], [18, 4], [21, -1], [22.25, -7], [22.25, -25], [22.25, -60], [22.25, -160]]
-      .map(function (p) { return new THREE.Vector3(p[0], 0, p[1]); }), false, 'centripetal');
+      .map(function (p) { return new V(p[0], 0, p[1]); }), false, 'centripetal');
     var Ld = drive.getLength();
-    function driveDist(tau) { return 5 * tau + 14 * tau * tau; }
+    // the house street: the van comes in westbound and stops with its back at the front walk
+    var CARRY_X = WALKX + 0.05, STOPX = CARRY_X - 1.05 - VAN_LEN_REAR, LANEZ = z0 - 1.95;
+    var V_ST = 13, BRAKE_D = V_ST * (T.STOP - T.BRAKE) / 2;
+    function houseX(t) { // van x on the house street
+      if (t >= T.STOP) return STOPX;
+      if (t >= T.BRAKE) { var u = (T.STOP - t) / (T.STOP - T.BRAKE); return STOPX + BRAKE_D * u * u; }
+      return STOPX + BRAKE_D + V_ST * (T.BRAKE - t);
+    }
     function vanPose(t) { // {x, z, fx, fz, dist}
-      var d, f, pt;
-      if (t < T_CUT) {
-        if (t < T_REV0) return { x: P0.x, z: P0.y, fx: -1, fz: 0, dist: 0 };
-        if (t < T_GO) {
-          var s = inOut((t - T_REV0) / (T_REV1 - T_REV0)), b = bez(s), bd = bezD(Math.max(s, 0.001)).normalize();
+      if (t < T.CUT1) {
+        if (t < T.REV0) return { x: P0.x, z: P0.y, fx: -1, fz: 0, dist: 0 };
+        if (t < T.GO) {
+          var s = inOut((t - T.REV0) / (T.REV1 - T.REV0)), b = bez(s), bd = bezD(Math.max(s, 0.001)).normalize();
           return { x: b.x, z: b.y, fx: -bd.x, fz: -bd.y, dist: -s * Lr };
         }
-        d = driveDist(t - T_GO); var u = Math.min(d / Ld, 1);
-        pt = drive.getPointAt(u); f = drive.getTangentAt(u);
+        var tau = t - T.GO, d = 3.5 * tau + 4.5 * tau * tau, u = Math.min(d / Ld, 1), pt = drive.getPointAt(u), f = drive.getTangentAt(u);
         return { x: pt.x, z: pt.z, fx: f.x, fz: f.z, dist: -Lr + d };
       }
-      var tau = t - T_CUT, k = out3(tau / 0.78);
-      var x = HX + lerp(VAN_IN, -3.5, k);
-      return { x: x, z: HZ - 2, fx: -1, fz: 0, dist: 500 + (HX + VAN_IN - x) };
-    }
-    function boxPose(t) { // null before it leaves the van
-      var tau = t - T_CUT, t0 = 0.62, t1 = 1.12;
-      if (tau < t0) return null;
-      var sx = HX - 3.5, sz = HZ - 3.3, ex = HX + 1.1, ez = HZ - 15.1, rest = 0.9;
-      if (tau < t1) {
-        var p = (tau - t0) / (t1 - t0), e = 1 - Math.pow(1 - p, 1.6);
-        return { x: lerp(sx, ex, e), y: lerp(1.9, rest, p) + 3.4 * Math.sin(Math.PI * p), z: lerp(sz, ez, e), rx: -Math.PI * 2 * (1 - out3(p)), sq: 1 };
-      }
-      var b = tau - t1, y = rest, sq = 1;
-      if (b < 0.22) { y = rest + 0.42 * Math.sin(Math.PI * b / 0.22); if (b < 0.05) sq = 1 - 0.18 * Math.sin(Math.PI * b / 0.05); }
-      else if (b < 0.34) y = rest + 0.1 * Math.sin(Math.PI * (b - 0.22) / 0.12);
-      return { x: ex, y: y, z: ez, rx: 0, sq: sq };
+      var x = houseX(t);
+      return { x: x, z: LANEZ, fx: -1, fz: 0, dist: 900 - x };
     }
 
-    /* --- camera: spherical blend around a moving look target, framing adapts to aspect --- */
-    var V = THREE.Vector3;
-    function sph(off) { var r = off.length(); return { r: r, az: Math.atan2(off.x, off.z), el: Math.asin(off.y / r) }; }
-    function fromSph(s) { return new V(Math.sin(s.az) * Math.cos(s.el) * s.r, Math.sin(s.el) * s.r, Math.cos(s.az) * Math.cos(s.el) * s.r); }
-    function angLerp(a, b, k) { var d = b - a; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return a + d * k; }
-    function camShot(t, vp) { // returns {pos, look, hfov}
-      if (t < T_CUT) {
-        var pa = inOut(t / 1.0);
-        var lookA = new V(lerp(-8.5, -6, pa), 1, lerp(1, 2.5, pa));
-        var sA = { r: lerp(44, 34, pa), az: 45 * D2R, el: 40 * D2R };
-        if (t < 1.0) return { look: lookA, pos: lookA.clone().add(fromSph(sA)), hfov: 64 };
-        var e = inOut((t - 1.0) / (T_CUT - 1.0));
-        var vl = new V(vp.x + vp.fx * 7, 1.2, vp.z + vp.fz * 7);
-        var look = lookA.clone().lerp(vl, e);
-        var sB = { r: 14, az: Math.atan2(-vp.fx, -vp.fz), el: 15 * D2R };
-        var s = { r: lerp(sA.r, sB.r, e), az: angLerp(sA.az, sB.az, e), el: lerp(sA.el, sB.el, e) };
-        return { look: look, pos: look.clone().add(fromSph(s)), hfov: lerp(64, 70, e) };
+    // the carry rig: pivot at the box center on the ground, people at either end of the box
+    var W_OFF = BX.w / 2 + 0.36;
+    var RIG = { startX: STOPX + VAN_LEN_REAR + 0.62, backX: STOPX + VAN_LEN_REAR + 1.05, z: LANEZ, setZ: DOORZ + 1.55 };
+    var CARRY_D = RIG.z - RIG.setZ;
+    function groundY(x, z) { return z < z0 - 4.25 ? 0.12 : 0.0; } // street level, then the walk and lawn behind the curb
+    function rigPose(s) { // {x, z, yaw, walk (cycle phase in s), walkW, back}
+      var r = { x: RIG.startX, z: RIG.z, yaw: 0, phase: 0, walkW: 0, dir: 1, crouch: 0, lift: 0, nod: 0, stepBack: 0 };
+      if (s < T.SLIDE1) { r.crouch = 0.35; r.lift = 0; return r; }
+      if (s < T.BACK1) { var k = smooth((s - T.SLIDE1) / (T.BACK1 - T.SLIDE1)); r.x = lerp(RIG.startX, RIG.backX, k); r.crouch = 0.35 * (1 - k); r.lift = k; r.walkW = CARRY_W; r.dir = -1; r.phase = (r.x - RIG.startX) / CYCLE_D; return r; }
+      r.x = RIG.backX; r.lift = 1;
+      if (s < T.TURN1) { var kt = smooth((s - T.BACK1) / (T.TURN1 - T.BACK1)); r.yaw = -Math.PI / 2 * kt; r.walkW = CARRY_W; r.phase = kt * 0.75; return r; }
+      r.yaw = -Math.PI / 2; r.x = RIG.backX;
+      var dist = s < T.CUT4 ? WALK_V * (s - T.TURN1) : CARRY_D - WALK_V * Math.max(0, T.SET0 - s);
+      r.z = RIG.z - Math.min(dist, CARRY_D); r.x = lerp(RIG.backX, CARRY_X, s < T.CUT4 ? 0 : 1);
+      r.walkW = s < T.SET0 ? CARRY_W : Math.max(0, CARRY_W * (1 - (s - T.SET0) / 0.12)); r.phase = 0.75 + dist / CYCLE_D;
+      if (s >= T.SET0) {
+        var ks = (s - T.SET0) / (T.SET1 - T.SET0);
+        r.crouch = Math.sin(Math.PI * clamp01(ks)) * 1.0; r.lift = 1 - smooth(ks * 1.6);
+        if (ks > 0.62) r.crouch = Math.max(0, 1 - (ks - 0.62) / 0.38) * 0.95;
+        if (s > T.SET1) { r.crouch = 0; r.lift = 0; r.stepBack = smooth((s - T.SET1) / 0.5) * 0.35; r.nod = clamp01((s - T.SET1) / 0.66); }
       }
-      var tau = t - T_CUT;
-      var C0 = new V(HX + 13, 5, HZ + 13), L0 = new V(HX - 1, 1.4, HZ - 6);
-      var C1 = new V(HX + 6.8, 4.2, HZ - 5.5), L1 = new V(HX + 0.9, 0.1, HZ - 13.4);
-      var C2 = new V(HX + 6.2, 4.0, HZ - 6.6);
-      var drift = new V(lerp(-1.2, 0, out3(tau / 0.7)), 0, 0);
-      if (tau < 0.7) return { pos: C0.clone().add(drift), look: L0, hfov: 66 };
-      if (tau < 1.6) { var k = inOut((tau - 0.7) / 0.9); return { pos: C0.clone().lerp(C1, k), look: L0.clone().lerp(L1, k), hfov: 66 }; }
-      return { pos: C1.clone().lerp(C2, out3((tau - 1.6) / 4)), look: L1, hfov: 66 };
+      return r;
+    }
+    function boxPose(s, r) { // in world space
+      if (s < T.SLIDE0) return null;
+      var hy = groundY(r.x, r.z), carryY = 0.66;
+      if (s < T.SLIDE1) { // slides out of the hold, toward the people
+        var k = smooth((s - T.SLIDE0) / (T.SLIDE1 - T.SLIDE0));
+        return { x: lerp(STOPX + VAN_LEN_REAR - 0.25, RIG.startX, k), y: VB.y0 + 0.62 + BX.h / 2 + 0.02 - (0.12) * k, z: RIG.z, yaw: 0 };
+      }
+      var low = BX.h / 2 + hy, hi = carryY + hy, slideEnd = VB.y0 + 0.62 + BX.h / 2 - 0.1;
+      var y = s < T.BACK1 ? lerp(slideEnd, hi, smooth((s - T.SLIDE1) / (T.BACK1 - T.SLIDE1))) : lerp(low, hi, r.lift);
+      return { x: r.x, y: y, z: r.z, yaw: r.yaw };
+    }
+
+    var tmpV = new V(), REST_L = new V(1, 0, 0), REST_R = new V(-1, 0, 0);
+    function armTo(bone, rest, dir) { bone.quaternion.setFromUnitVectors(rest, tmpV.copy(dir).normalize()); }
+    function posePerson(p, idx, s, r, bp) {
+      // idx 0 stands at +z of the rig (box on its right), idx 1 at -z (box on its left)
+      var side = idx === 0 ? 1 : -1, cy = Math.cos(r.yaw), sy = Math.sin(r.yaw), back = r.stepBack;
+      var lz = side * (W_OFF + 0.15 * back);
+      // after the set-down they step back along the rig's backward direction (+x local)
+      var wx = r.x + lz * sy + back * cy, wz = r.z + lz * cy - back * sy;
+      var visible = s >= T.CUT3;
+      p.holder.visible = visible; pBlobs[idx].visible = visible;
+      if (!visible) return;
+      p.holder.position.set(wx, groundY(wx, wz), wz);
+      p.holder.rotation.y = r.yaw - Math.PI / 2; // the model faces +z; the rig faces -x
+      var A_ = p.acts, walkW = r.walkW, crouchW = clamp01(r.crouch), nodW = idx === 1 ? Math.sin(Math.PI * clamp01(r.nod)) : 0;
+      var cyc = A_.walk.getClip().duration;
+      A_.walk.time = (((r.phase * r.dir) % 1) + 1) % 1 * cyc; A_.walk.setEffectiveWeight(walkW * (1 - crouchW));
+      A_.walkArms.time = A_.walk.time; A_.walkArms.setEffectiveWeight(walkW * (1 - crouchW));
+      A_.idle.time = (s * 0.6) % A_.idle.getClip().duration; A_.idle.setEffectiveWeight(Math.max(0, 1 - walkW - crouchW - nodW));
+      A_.crouch.time = Math.min(A_.crouch.getClip().duration * 0.999, A_.crouch.getClip().duration * crouchW); A_.crouch.setEffectiveWeight(crouchW);
+      A_.yes.time = clamp01(r.nod) * A_.yes.getClip().duration * 0.999; A_.yes.setEffectiveWeight(nodW);
+      A_.hold.setEffectiveWeight(0);
+      p.mixer.update(0);
+      if (bp && s < T.SET1 + 0.05) { // both hands on the box (code on top of the clips): inner hand on its side, outer hand on its near face
+        var inner = idx === 0 ? p.bones['arm-right'] : p.bones['arm-left'], outer = idx === 0 ? p.bones['arm-left'] : p.bones['arm-right'];
+        var down = 0.55 + 0.45 * crouchW;
+        armTo(inner, idx === 0 ? REST_R : REST_L, new V(idx === 0 ? -0.62 : 0.62, -down, 0.38));
+        armTo(outer, idx === 0 ? REST_L : REST_R, new V(idx === 0 ? -0.05 : 0.05, -down * 0.85, 0.78));
+        p.bones.torso.rotation.x = 0.06 * clamp01(r.lift + 0.5) - 0.25 * crouchW; // a slight lean back under the load
+      }
+    }
+
+    /* --- camera: shots, each a function of time; framing adapts to the frame's aspect --- */
+    function sph(s) { return new V(Math.sin(s.az) * Math.cos(s.el) * s.r, Math.sin(s.el) * s.r, Math.cos(s.az) * Math.cos(s.el) * s.r); }
+    function angLerp(a, b, k) { var d = b - a; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return a + d * k; }
+    function sway(t, amt) { return new V(Math.sin(t * 1.9) * amt + Math.sin(t * 4.3) * amt * 0.35, Math.sin(t * 2.7 + 1) * amt * 0.6, Math.cos(t * 1.6) * amt * 0.5); }
+    function camShot(t, vp) { // returns {pos, look, hfov, shot, focus, span}
+      if (t < T.CUT1) {
+        var lookA = new V(-7.5, 1, 1.5), sA = { r: 44, az: 45 * D2R, el: 40 * D2R };
+        if (t < 0.9) { var pa = smooth(t / 0.9); sA.r = lerp(46, 40, pa); return { look: lookA, pos: lookA.clone().add(sph(sA)), hfov: 64, shot: 1, focus: new V(-6, 0, -4), span: 30 }; }
+        // crane down to the van's right side and hold a framing where the wordmark reads
+        var e = smooth((t - 0.9) / 1.0), vl = new V(vp.x + vp.fx * 0.4, 1.3, vp.z + vp.fz * 0.4);
+        var sideAz = Math.atan2(-vp.fz, vp.fx); // the van's right side, facing the camera
+        var sB = { r: 9.5, az: sideAz + 22 * D2R, el: 9 * D2R };
+        var look = lookA.clone().lerp(vl, e);
+        var s = { r: lerp(sA.r, sB.r, e), az: angLerp(sA.az, sB.az, e), el: lerp(sA.el, sB.el, e) };
+        return { look: look, pos: look.clone().add(sph(s)), hfov: lerp(64, 58, e), shot: 1, focus: new V(vp.x, 0, vp.z), span: lerp(30, 14, e) };
+      }
+      if (t < T.CUT2) { // shot 2: low chase off the van's rear quarter, a little handheld sway, a slow push
+        var k2 = (t - T.CUT1) / (T.CUT2 - T.CUT1), vpos = new V(vp.x, 0, vp.z);
+        var pos2 = vpos.clone().add(new V(7.2 - 1.2 * k2, 1.25, -3.6)).add(sway(t, 0.07));
+        return { pos: pos2, look: vpos.clone().add(new V(-2.5, 1.0, 0)), hfov: lerp(66, 56, smooth(k2)), shot: 2, focus: vpos, span: 12 };
+      }
+      if (t < T.CUT3) { // shot 3: the van pulls in, seen from the yard behind and to the side
+        var k3 = (t - T.CUT2) / (T.CUT3 - T.CUT2);
+        return { pos: new V(STOPX - 7.5 + 0.6 * k3, 0.85, z0 - 5.4).add(sway(t, 0.03)), look: new V(vp.x + 0.5, 1.0, LANEZ + 0.4), hfov: 54 - 3 * k3, shot: 3, focus: new V(STOPX, 0, z0 - 3), span: 12 };
+      }
+      if (t < T.CUT4) { // shot 4: behind and to the side of the van's back, the doors open, the box comes out
+        var k4 = smooth((t - T.CUT3) / (T.CUT4 - T.CUT3));
+        var rear = STOPX + VAN_LEN_REAR;
+        return { pos: new V(rear + 5.4 - 0.6 * k4, 1.75, LANEZ + 3.6 - 0.4 * k4).add(sway(t, 0.02)), look: new V(rear + 0.6, 0.85, LANEZ - 1.4 * k4), hfov: 60, shot: 4, focus: new V(rear + 1, 0, LANEZ - 1), span: 8 };
+      }
+      var k5 = smooth((t - T.CUT4) / 2.5); // shot 5: at the door, a slow drift
+      return { pos: new V(CARRY_X + 5.6 - 0.5 * k5, 2.1, RIG.setZ + 4.4 - 0.4 * k5), look: new V(CARRY_X - 0.3, 0.8, DOORZ + 0.7), hfov: 56, shot: 5, focus: new V(CARRY_X, 0, RIG.setZ), span: 8 };
     }
     var aspect = 1;
     function placeCamera(cs) {
       // portrait frames trade some width for size so the van stays readable; cap the vertical fov, then back off
-      var hf = aspect < 1 ? cs.hfov * 0.72 : cs.hfov, cap = aspect < 1 ? 80 : 72;
+      var hf = aspect < 1 ? cs.hfov * 0.74 : cs.hfov, cap = aspect < 1 ? 78 : 70;
       var need = 2 * Math.atan(Math.tan(hf * D2R / 2) / aspect) / D2R;
-      var vf = Math.max(38, Math.min(cap, need)), k = 1;
+      var vf = Math.max(34, Math.min(cap, need)), k = 1;
       if (need > cap) k = Math.tan(need * D2R / 2) / Math.tan(cap * D2R / 2);
       camera.fov = vf; camera.aspect = aspect; camera.updateProjectionMatrix();
       camera.position.copy(cs.look).add(cs.pos.clone().sub(cs.look).multiplyScalar(k));
       camera.lookAt(cs.look);
     }
-
-    /* --- one frame of state at time t --- */
-    var WR = 0.45, h = 1 / 60;
-    function apply(t) {
-      var vp = vanPose(t), a = vanPose(t - h), b = vanPose(t + h);
-      van.position.set(vp.x, 0, vp.z);
-      van.rotation.y = Math.atan2(-vp.fz, vp.fx);
-      var v0 = (vp.dist - a.dist) / h, v1 = (b.dist - vp.dist) / h, acc = (v1 - v0) / h;
-      var yaw0 = Math.atan2(-a.fz, a.fx), yaw1 = Math.atan2(-b.fz, b.fx), dy = yaw1 - yaw0;
-      if (dy > Math.PI) dy -= 2 * Math.PI; if (dy < -Math.PI) dy += 2 * Math.PI;
-      var spd = Math.abs((v0 + v1) / 2);
-      // suspension: nose lifts under throttle, dips under braking, leans out of turns, small road bob
-      body.rotation.z = Math.max(-0.07, Math.min(0.07, acc * 0.0016 * (v1 < 0 ? -1 : 1)));
-      body.rotation.x = Math.max(-0.06, Math.min(0.06, (dy / (2 * h)) * Math.min(spd, 30) * 0.004));
-      body.position.y = Math.sin(t * 19) * 0.025 * Math.min(spd / 8, 1);
-      wheels.forEach(function (w) { w.rotation.z = -vp.dist / WR; });
-      var bp = boxPose(t);
-      box.visible = boxBlob.visible = !!bp;
-      if (bp) {
-        box.position.set(bp.x, bp.y, bp.z); box.rotation.set(bp.rx, 0, 0); box.scale.set(1 + (1 - bp.sq) * 0.6, bp.sq, 1 + (1 - bp.sq) * 0.6);
-        boxBlob.position.set(bp.x, 0.4, bp.z); var lift = clamp01((bp.y - 0.9) / 4); boxBlob.scale.set(1.9 - lift, 1, 1.9 - lift);
-      }
-      placeCamera(camShot(t, vp));
-      // banner lands at T_BANNER with a small overshoot and a short shake of the scene under it
-      var bn = shell.banner, p = (t - T_BANNER) / (T_LAND - T_BANNER);
-      if (p <= 0) { bn.style.opacity = '0'; bn.style.transform = 'scale(1.9)'; }
-      else {
-        var e = outBack(p);
-        bn.style.opacity = String(Math.min(1, p * 3));
-        bn.style.transform = 'scale(' + (1.9 - 0.9 * e).toFixed(4) + ') rotate(' + (-3 - 6 * (1 - out3(p))).toFixed(3) + 'deg)';
-      }
-      var sh = t - T_LAND, cv = renderer.domElement;
-      cv.style.transform = (sh > 0 && sh < 0.28) ? 'translate(' + (Math.sin(sh * 70) * 5 * (1 - sh / 0.28)).toFixed(2) + 'px,' + (Math.cos(sh * 55) * 4 * (1 - sh / 0.28)).toFixed(2) + 'px)' : '';
-      root.style.opacity = t > T_HOLD ? String(1 - clamp01((t - T_HOLD) / T_FADE)) : '1';
+    var sunV = new V(SUN[0], SUN[1], SUN[2]).normalize();
+    function fitShadow(focus, span) {
+      sun.target.position.copy(focus); sun.position.copy(focus).addScaledVector(sunV, 90);
+      var c = sun.shadow.camera;
+      if (c.right !== span) { c.left = -span; c.right = span; c.top = span; c.bottom = -span; c.near = 20; c.far = 200; c.updateProjectionMatrix(); }
     }
 
+    /* --- one frame of state at time t --- */
+    var h = 1 / 60;
+    function sceneTime(t) { return t < T.SLOW ? t : T.SLOW + (t - T.SLOW) * SLOWK; }
+    function apply(t) {
+      var s = sceneTime(t);
+      var vp = vanPose(s), a = vanPose(s - h), b = vanPose(s + h);
+      van.position.set(vp.x, 0.02, vp.z);
+      van.rotation.y = Math.atan2(vp.fx, vp.fz);
+      var v0 = (vp.dist - a.dist) / h, v1 = (b.dist - vp.dist) / h, acc = (v1 - v0) / h;
+      var spd = Math.abs((v0 + v1) / 2);
+      var yaw0 = Math.atan2(a.fx, a.fz), yaw1 = Math.atan2(b.fx, b.fz), dy = yaw1 - yaw0;
+      if (dy > Math.PI) dy -= 2 * Math.PI; if (dy < -Math.PI) dy += 2 * Math.PI;
+      // suspension: nose lifts under throttle, dips under braking, leans out of turns, a little road bob
+      body.rotation.x = Math.max(-0.05, Math.min(0.05, -acc * 0.0012 * (v1 < 0 ? -1 : 1)));
+      body.rotation.z = Math.max(-0.05, Math.min(0.05, (dy / (2 * h)) * Math.min(spd, 30) * 0.004));
+      body.position.y = Math.sin(s * 19) * 0.02 * Math.min(spd / 8, 1);
+      wheels.forEach(function (w) { w.rotation.x = vp.dist / WR; });
+      var dk = smooth((s - T.DOOR0) / (T.DOOR1 - T.DOOR0));
+      leaves.forEach(function (l) { l.g.rotation.y = -l.s * dk * 1.9; });
+      var r = rigPose(s), bp = boxPose(s, r);
+      box.visible = !!bp && t >= T.CUT3; boxBlob.visible = box.visible;
+      if (bp) { box.position.set(bp.x, bp.y, bp.z); box.rotation.set(0, bp.yaw + Math.PI / 2, 0); boxBlob.position.set(bp.x, groundY(bp.x, bp.z) + 0.05, bp.z); }
+      people.forEach(function (p, i) { posePerson(p, i, s, r, bp); pBlobs[i].position.set(p.holder.position.x, p.holder.position.y + 0.05, p.holder.position.z); });
+      var cs = camShot(s, vp);      fitShadow(cs.focus, cs.span);
+      placeCamera(cs);
+      // letterbox bars during the drive and the delivery, gone for the banner
+      root.classList.toggle('dlv-bars-on', t >= T.CUT1 && t < T.BANNER);
+      root.classList.toggle('dlv-end', t >= T.BANNER - 0.05);
+      // the banner lands hard: a big scale punch, then a short shake
+      var bn = shell.banner, p = (t - T.BANNER) / (T.LAND - T.BANNER);
+      if (p <= 0) { bn.style.opacity = '0'; bn.style.transform = 'translateY(-50%) scale(2.4)'; }
+      else {
+        var e = out3(p), sh = t - T.LAND, jx = 0, jy = 0;
+        if (sh > 0 && sh < 0.3) { var f = 1 - sh / 0.3; jx = Math.sin(sh * 80) * 7 * f; jy = Math.cos(sh * 63) * 5 * f; }
+        bn.style.opacity = String(Math.min(1, p * 4));
+        bn.style.transform = 'translate(' + jx.toFixed(2) + 'px,calc(-50% + ' + jy.toFixed(2) + 'px)) scale(' + (p >= 1 ? 1 : 2.4 - 1.4 * e).toFixed(4) + ') rotate(-2deg)';
+      }
+      root.style.opacity = t > T.HOLD ? String(1 - clamp01((t - T.HOLD) / T.FADE)) : '1';
+    }
+
+    /* --- quality tiers --- */
+    function setTier(name) {
+      tier = name; var q = TIERS[name];
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, q.pr));
+      var on = q.shadow > 0;
+      if (renderer.shadowMap.enabled !== on) {
+        renderer.shadowMap.enabled = on;
+        scene.traverse(function (o) { if (o.material) [].concat(o.material).forEach(function (m) { m.needsUpdate = true; }); });
+      }
+      sun.castShadow = on;
+      if (on && sun.shadow.mapSize.x !== q.shadow) { sun.shadow.mapSize.set(q.shadow, q.shadow); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
+      blobList.forEach(function (b) { b.visible = !on; });
+      root.setAttribute('data-quality', name);
+      resize();
+    }
     function resize() {
       var w = Math.max(1, root.clientWidth), hh = Math.max(1, root.clientHeight);
       aspect = w / hh; renderer.setSize(w, hh, false);
     }
-    resize();
+    setTier(tier);
     var ro = window.ResizeObserver ? new ResizeObserver(function () { resize(); if (frozen) { apply(startT); renderer.render(scene, camera); } }) : null;
     if (ro) ro.observe(root); else shell.on(window, 'resize', resize);
 
     var speed = opts.speed > 0 ? opts.speed : 1, startT = opts.t > 0 ? +opts.t : 0, frozen = !!opts.freeze;
-    var raf = 0, t0 = performance.now(), frames = 0, statT0 = 0;
+    var raf = 0, t0 = performance.now(), frames = 0, statT0 = 0, lastNow = 0, probe = [], roll = [], dropped = false, ft = [];
+    var api = {};
     function teardown() {
       cancelAnimationFrame(raf);
       if (ro) ro.disconnect();
-      window.__dlvInfo = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, frames: frames, fps: statT0 ? Math.round(frames / ((performance.now() - statT0) / 1000)) : 0 };
+      window.__dlvInfo = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, frames: frames, tier: tier, startTier: startTier, frameMs: ft.length ? +(ft.reduce(function (a, b) { return a + b; }, 0) / ft.length).toFixed(1) : 0 };
+      people.forEach(function (p) { p.mixer.stopAllAction(); p.mixer.uncacheRoot(p.model); });
       track.geo.forEach(function (g) { g.dispose(); });
       track.mat.forEach(function (m) { m.dispose(); });
       track.tex.forEach(function (x) { x.dispose(); });
+      // cached loader objects stay in memory for a replay; only their GPU copies go
+      Object.keys(A.gltf).forEach(function (k) { A.gltf[k].scene.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) [].concat(o.material).forEach(function (m) { if (m.map) m.map.dispose(); m.dispose(); }); }); });
+      shared.tex.forEach(function (x) { x.dispose(); }); A.sky.dispose(); envRT.dispose();
+      if (sun.shadow.map) sun.shadow.map.dispose();
+      scene.environment = null; scene.background = null;
       var gl = renderer.getContext();
       renderer.dispose(); if (gl && !gl.isContextLost()) renderer.forceContextLoss();
       scene = camera = null;
     }
     var lastT = startT, onBanner = false;
-    function setLabel(t) { // "Skip to the end" during the drive, "Done" once the banner is up
-      var b = t >= T_BANNER;
+    function setLabel(t) {
+      var b = t >= T.BANNER;
       if (b !== onBanner) { onBanner = b; shell.skipBtn.textContent = b ? 'Done' : 'Skip to the end'; }
     }
     function skip() {
       if (shell.done || shell.skipping) return;
       if (frozen) { shell.finish('skip', teardown); return; }
-      if (lastT < T_BANNER) { // first skip during the drive: jump to the landed banner, which then holds as usual
-        startT = lastT = T_LAND + 0.3; t0 = performance.now(); setLabel(startT); return;
-      }
+      if (lastT < T.BANNER) { startT = lastT = T.LAND + 0.3; t0 = performance.now(); setLabel(startT); return; }
       shell.skipping = true; cancelAnimationFrame(raf);
       root.style.transition = 'opacity .18s ease-out'; root.style.opacity = '0';
       shell.timers.push(setTimeout(function () { shell.finish('skip', teardown); }, 190));
     }
     function stop() { shell.finish('stopped', teardown); }
-    bindSkip(shell, skip);
-    var handle = { skip: skip, stop: stop };
-    // if the GPU drops the context mid-scene, swap to the still banner instead of leaving a blank frame
-    shell.on(renderer.domElement, 'webglcontextlost', function (e) {
-      e.preventDefault();
-      if (shell.done) return;
-      shell.finish('context-lost', teardown, true);
-      var fb = playFallback(container, opts, 'context-lost');
-      handle.skip = fb.skip; handle.stop = fb.stop;
-      if (typeof opts.onMode === 'function') opts.onMode('fallback-context-lost');
-    });
+    shell.on(renderer.domElement, 'webglcontextlost', function (e) { e.preventDefault(); if (!shell.done && api.onLost) api.onLost(); });
 
     function loop(now) {
       if (shell.done) return;
       var t = lastT = startT + (now - t0) / 1000 * speed;
       apply(t); setLabel(t); renderer.render(scene, camera);
+      if (lastNow) {
+        var dt = now - lastNow; ft.push(dt); if (ft.length > 600) ft.shift();
+        // speed probe in the first 300 ms, then one more drop if frames run long mid-scene
+        if (!forced && now - statT0 < 300) probe.push(dt);
+        else if (!forced && probe.length) {
+          probe.sort(function (a, b) { return a - b; }); var med = probe[Math.floor(probe.length / 2)]; probe = [];
+          if (med > 90 && tier !== 'low') setTier('low'); else if (med > 45 && tier === 'high') setTier('medium'); else if (med > 45 && tier === 'medium') setTier('low');
+        } else if (!forced && !dropped) {
+          roll.push(dt); if (roll.length > 30) roll.shift();
+          if (roll.length === 30 && roll.reduce(function (a, b) { return a + b; }, 0) / 30 > 55 && tier !== 'low') { dropped = true; setTier(tier === 'high' ? 'medium' : 'low'); }
+        }
+      }
+      lastNow = now;
       if (!statT0) statT0 = now; frames++;
-      if (t >= T_HOLD + T_FADE) { shell.finish('done', teardown); return; }
+      if (t >= T.HOLD + T.FADE) { shell.finish('done', teardown); return; }
       raf = requestAnimationFrame(loop);
     }
     if (frozen) {
       apply(startT); setLabel(startT); renderer.render(scene, camera);
-      window.__dlvInfoLive = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles };
+      window.__dlvInfoLive = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, tier: tier };
       window.__deliveryReady = true;
-    } else raf = requestAnimationFrame(loop);
-    return { skip: function () { handle.skip(); }, stop: function () { handle.stop(); } };
+    } else { t0 = performance.now(); raf = requestAnimationFrame(loop); window.__deliveryReady = true; }
+    api.skip = skip; api.stop = stop; api.teardown = teardown;
+    api.measure = function () { return { tier: tier, frameMs: ft.length ? ft.reduce(function (a, b) { return a + b; }, 0) / ft.length : 0, n: ft.length }; };
+    window.__dlvScene = api;
+    return api;
   }
 
   window.playDelivery = playDelivery;
@@ -706,16 +1063,18 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
   var stage = document.getElementById('stage'), status = document.getElementById('status');
   var SIZES = { phone: [390, 844], land: [844, 390], desk: [1280, 720] };
   var size = 'desk', speed = 1, cur = null;
+  var words = /^(onsite|complete|reached)$/.test(q.get('words')) ? q.get('words') : 'onsite';
+  var look = q.get('look') === 'gold' ? 'gold' : 'brand';
+  var quality = /^(high|medium|low)$/.test(q.get('q')) ? q.get('q') : 'auto';
   var freeze = q.get('freeze') === '1';
   if (freeze) document.body.classList.add('freeze');
 
   function fit() {
     if (freeze) return;
-    var s = SIZES[size], availW = document.documentElement.clientWidth - 32, availH = window.innerHeight - 190 - (note.hidden ? 0 : note.offsetHeight + 14);
+    var s = SIZES[size], availW = document.documentElement.clientWidth - 32, availH = window.innerHeight - 250 - (note.hidden ? 0 : note.offsetHeight + 14);
     var k = Math.min(1, availW / s[0], Math.max(0.3, availH / s[1]));
     stage.style.width = Math.round(s[0] * k) + 'px'; stage.style.height = Math.round(s[1] * k) + 'px';
   }
-  // Motion choice for this visit: "auto" follows the device, "on"/"off" come from ?motion= or the notice button.
   var motion = q.get('motion') === 'on' || q.get('motion') === 'off' ? q.get('motion') : 'auto';
   var devReduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var note = document.getElementById('motionNote'), noteText = document.getElementById('motionText'), noteBtn = document.getElementById('btnMotion');
@@ -725,12 +1084,15 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
     'error': 'Showing the still banner (3D is not available in this browser).',
     'context-lost': 'Showing the still banner (3D is not available in this browser).',
     'requested': 'Showing the still banner (Banner only).',
-    'motion-off': 'Showing the still banner (motion is off for this link).'
+    'motion-off': 'Showing the still banner (motion is off for this link).',
+    'load': 'Showing the still banner (the scene did not load).',
+    'skipped-load': 'Showing the still banner (skipped while the scene was loading).',
+    'file': 'Showing the still banner (the 3D scene needs the published address, not a local file).'
   };
   var DONE_TEXT = { done: 'Finished.', skip: 'Skipped.', dismissed: 'Skipped.' };
   function showMode(m) { status.textContent = MODE_TEXT[m.replace('fallback-', '')] || 'Showing the still banner.'; }
   function updateNote() {
-    note.hidden = !devReduce || freeze; // only when the device asks for reduced motion
+    note.hidden = !devReduce || freeze;
     if (note.hidden) return;
     var on = motion === 'on';
     noteText.textContent = on ? 'Playing with motion because you asked. Reduced motion is on for this device.'
@@ -738,23 +1100,21 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
     noteBtn.textContent = on ? 'Show the still banner' : 'Play the animation anyway';
     noteBtn.className = on ? 'quiet' : '';
   }
+  var lastFallback = false;
   function start(fallback) {
+    lastFallback = !!fallback;
     if (cur) { var old = cur; cur = null; old.stop(); }
     status.textContent = 'Playing' + (speed !== 1 ? ' at ' + speed + 'x' : '') + '.';
     var me = playDelivery(stage, {
-      job: q.get('job'), client: q.get('client'), speed: speed, fallback: fallback, motion: motion,
-      t: parseFloat(q.get('t')) || 0, freeze: freeze,
-      onDone: function (r) { if (cur === me) { cur = null; status.textContent = (DONE_TEXT[r.reason] || 'Finished.') + ' Press Play again to watch it again.'; } },
+      job: q.get('job'), client: q.get('client'), words: words, look: look, quality: quality === 'auto' ? null : quality,
+      speed: speed, fallback: fallback, motion: motion, t: parseFloat(q.get('t')) || 0, freeze: freeze,      onDone: function (r) { if (cur === me) { cur = null; status.textContent = (DONE_TEXT[r.reason] || 'Finished.') + ' Press Play again to watch it again.'; } },
       onMode: function (m) { if (cur === me) showMode(m); }
     });
     cur = me;
     var r = stage.querySelector('.dlv-root'), m = r && r.getAttribute('data-mode');
     if (m) showMode(m);
   }
-  noteBtn.addEventListener('click', function () {
-    motion = motion === 'on' ? 'auto' : 'on';
-    updateNote(); start(false);
-  });
+  noteBtn.addEventListener('click', function () { motion = motion === 'on' ? 'auto' : 'on'; updateNote(); start(false); });
   function press(groupAttr, val) {
     document.querySelectorAll('[data-' + groupAttr + ']').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-' + groupAttr) === val)); });
   }
@@ -766,6 +1126,17 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
   document.querySelectorAll('[data-speed]').forEach(function (b) {
     b.addEventListener('click', function () { speed = parseFloat(b.getAttribute('data-speed')); press('speed', b.getAttribute('data-speed')); start(false); });
   });
+  // words and look restart the current mode, so a still banner can be compared in place
+  document.querySelectorAll('[data-words]').forEach(function (b) {
+    b.addEventListener('click', function () { words = b.getAttribute('data-words'); press('words', words); start(lastFallback); });
+  });
+  document.querySelectorAll('[data-look]').forEach(function (b) {
+    b.addEventListener('click', function () { look = b.getAttribute('data-look'); press('look', look); start(lastFallback); });
+  });
+  document.querySelectorAll('[data-q]').forEach(function (b) {
+    b.addEventListener('click', function () { quality = b.getAttribute('data-q'); press('q', quality); start(false); });
+  });
+  press('words', words); press('look', look); press('q', quality);
   window.addEventListener('resize', fit);
   updateNote();
   fit();

@@ -1,0 +1,93 @@
+Loadout delivery cutscene: asset credits
+=========================================
+
+Every file in this folder is CC0 (public domain dedication) or was made
+for this project. No credit is required by any of them; this list exists
+so anyone can check where each file came from. Downloaded 2026-11-11 from
+the makers' own sites only.
+
+-------------------------------------------------------------------------
+Maker:    Kenney (www.kenney.nl)
+Pack:     Car Kit (version 3.1)
+Page:     https://kenney.nl/assets/car-kit
+License:  "License: (Creative Commons Zero, CC0)
+          http://creativecommons.org/publicdomain/zero/1.0/
+          You can use this content for personal, educational, and
+          commercial purposes." (License.txt in the pack)
+Files:    models/car/van.glb (the delivery van, recolored charcoal in code)
+          models/car/sedan.glb, models/car/suv.glb,
+          models/car/hatchback-sports.glb (parked cars, recolored in code)
+          models/car/Textures/colormap.png
+Changes:  the GLB files had an empty KHR_texture_transform tag (texCoord 0
+          only) removed from their JSON so the loader stops warning; the
+          geometry and images are untouched.
+
+-------------------------------------------------------------------------
+Maker:    Kenney (www.kenney.nl)
+Pack:     Mini Characters (version 2.0)
+Page:     https://kenney.nl/assets/mini-characters
+License:  "License: (Creative Commons Zero, CC0)
+          http://creativecommons.org/publicdomain/zero/1.0/
+          You can use this content for personal, educational, and
+          commercial purposes." (License.txt in the pack)
+Files:    models/people/character-male-f.glb
+          models/people/character-male-d.glb
+          models/people/Textures/colormap.png
+Changes:  same empty tag removed. In the scene the two figures are
+          recolored in code to charcoal polo shirts and blue jeans, and
+          their legs, heads and arms are rescaled by bone.
+
+-------------------------------------------------------------------------
+Maker:    Kenney (www.kenney.nl)
+Pack:     City Kit (Suburban) (version 2.0)
+Page:     https://kenney.nl/assets/city-kit-suburban
+License:  "License: (Creative Commons Zero, CC0)
+          http://creativecommons.org/publicdomain/zero/1.0/
+          You can use this content for personal, educational, and
+          commercial purposes." (License.txt in the pack)
+Files:    models/suburb/building-type-a.glb, building-type-c.glb,
+          building-type-j.glb (houses; roofs and walls recolored in code)
+          models/suburb/tree-large.glb, models/suburb/tree-small.glb
+          models/suburb/Textures/colormap.png
+Changes:  same empty tag removed.
+
+-------------------------------------------------------------------------
+Maker:    Poly Haven (polyhaven.com), sky by Greg Zaal (original) and
+          Jarod Guest (sky edits)
+Asset:    Kloofendal 48d Partly Cloudy (Pure Sky), 1k HDR
+Page:     https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky
+File URL: https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr
+License:  "Our assets are all licensed as CC0, which is effectively
+          Public Domain" (https://polyhaven.com/license)
+Files:    sky/kloofendal_48d_partly_cloudy_puresky_1k.hdr (unchanged)
+
+-------------------------------------------------------------------------
+Maker:    Poly Haven (polyhaven.com), textures by Rob Tuytel
+Assets:   Asphalt 02, Red Brick 03, Concrete Floor 02 (1k JPG,
+          color and OpenGL normal maps)
+Pages:    https://polyhaven.com/a/asphalt_02
+          https://polyhaven.com/a/red_brick_03
+          https://polyhaven.com/a/concrete_floor_02
+License:  "Our assets are all licensed as CC0, which is effectively
+          Public Domain" (https://polyhaven.com/license)
+Files:    textures/asphalt_02_diff_1k.jpg, textures/asphalt_02_nor_gl_1k.jpg
+          textures/red_brick_03_diff_1k.jpg, textures/red_brick_03_nor_gl_1k.jpg
+          textures/concrete_floor_02_diff_1k.jpg,
+          textures/concrete_floor_02_nor_gl_1k.jpg
+Changes:  re-saved as JPG at quality 78 to 80 to fit the size budget; the
+          concrete color map was brightened and desaturated so it reads as
+          a sidewalk.
+
+-------------------------------------------------------------------------
+Maker:    Poly Haven (polyhaven.com), texture by Charlotte Baglioni
+Asset:    Leafy Grass (1k JPG, color and OpenGL normal maps)
+Page:     https://polyhaven.com/a/leafy_grass
+License:  "Our assets are all licensed as CC0, which is effectively
+          Public Domain" (https://polyhaven.com/license)
+Files:    textures/leafy_grass_diff_1k.jpg, textures/leafy_grass_nor_gl_1k.jpg
+Changes:  re-saved as JPG; the color map was shifted slightly greener.
+
+-------------------------------------------------------------------------
+Made for this project (not downloaded): the shop building, lot and road
+layout, the box with the Loadout mark, the van's wordmark decal and rear
+doors, street lamps, bench, bike rack, drains, bushes, and the banner.
