@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="version" content="0.1.0">
-<title>Loadout delivery preview v0.1.0</title>
+<meta name="version" content="0.1.1">
+<title>Loadout delivery preview v0.1.1</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="window.__threeFailed=true"></script>
 <style>
@@ -25,10 +25,16 @@ main{min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:
 .controls button{min-height:44px;min-width:44px;padding:0 16px;background:var(--pv-btn);color:var(--pv-text);border:1px solid var(--pv-edge);border-radius:8px;font:inherit;font-weight:600;cursor:pointer}
 .controls button[aria-pressed="true"]{background:var(--pv-btn-on);border-color:var(--pv-btn-on);color:#fff}
 .controls button:focus-visible{outline:3px solid var(--pv-focus);outline-offset:2px;position:relative;z-index:1}
+.note{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 16px;max-width:min(100%,720px);padding:12px 16px;background:#18202d;border:1px solid var(--pv-edge);border-radius:8px;text-align:center}
+.note[hidden]{display:none}
+.note p{margin:0;flex:1 1 280px;min-width:0}
+.note button{min-height:44px;padding:0 18px;background:var(--pv-btn-on);color:#fff;border:1px solid var(--pv-btn-on);border-radius:8px;font:inherit;font-weight:600;cursor:pointer}
+.note button.quiet{background:var(--pv-btn);border-color:var(--pv-edge);color:var(--pv-text)}
+.note button:focus-visible{outline:3px solid var(--pv-focus);outline-offset:2px}
 #status{margin:0;color:var(--pv-muted);font-size:14px;min-height:20px;text-align:center}
 .ver{color:var(--pv-muted);font-size:13px;margin:0}
 body.freeze main{padding:0;gap:0}
-body.freeze .controls,body.freeze #status,body.freeze .ver{display:none}
+body.freeze .controls,body.freeze #status,body.freeze .ver,body.freeze .note{display:none}
 body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!important;border:0;border-radius:0}
 </style>
 </head>
@@ -36,6 +42,10 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
 <main>
   <h1 class="sr">Loadout delivery cutscene preview</h1>
   <div id="stage"></div>
+  <div id="motionNote" class="note" hidden>
+    <p id="motionText"></p>
+    <button type="button" id="btnMotion"></button>
+  </div>
   <div class="controls">
     <button type="button" id="btnPlay">Play again</button>
     <button type="button" id="btnBanner">Banner only</button>
@@ -50,11 +60,12 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
     </div>
   </div>
   <p id="status" aria-live="polite"></p>
-  <p class="ver">Preview v0.1.0. Tap the scene, or press Esc, Enter or Space, to skip.</p>
+  <p class="ver">Preview v0.1.1. Tap the scene, or press Esc, Enter or Space, to skip to the banner. Do it again to close.</p>
 </main>
 
 <script>
-/* ===== Delivery cutscene: playDelivery(container, { job, client, onDone }) -> { skip() } ===== */
+/* ===== Delivery cutscene: playDelivery(container, { job, client, motion, onDone, onMode }) -> { skip(), stop() } =====
+   skip() is the person's skip (first during the drive jumps to the banner, then ends); stop() ends at once. */
 (function () {
   'use strict';
 
@@ -62,6 +73,7 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
   var T_REV0 = 0.2, T_REV1 = 0.85, T_GO = 0.9, T_CUT = 2.4, T_BANNER = 4.0, T_LAND = 4.38;
   var T_HOLD = T_LAND + 4.0, T_FADE = 0.45;
   var HX = -150, HZ = 250; // where the house street sits, far outside the shop's fog range
+  var VAN_IN = 11; // van x (from HX) at the cut to the house: about a third of it already in frame
   var D2R = Math.PI / 180;
 
   // Colors: Ledger tokens from index.html, Umbrella brand blue, and the scene's own muted ground set.
@@ -135,11 +147,16 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
   // play3D creates the one real renderer and throws if WebGL is missing, which lands in the fallback.
   function canWebGL() { return !!window.WebGLRenderingContext; }
 
+  // opts.motion: "auto" honors the device's reduced-motion setting, "on" plays the scene anyway
+  // (only on an explicit request by the person), "off" always shows the still banner.
   function playDelivery(container, opts) {
     opts = opts || {};
-    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (opts.fallback || reduce || window.__threeFailed || typeof THREE === 'undefined' || !canWebGL()) {
-      return playFallback(container, opts, reduce ? 'reduced-motion' : (opts.fallback ? 'requested' : 'no-3d'));
+    var motion = opts.motion === 'on' || opts.motion === 'off' ? opts.motion : 'auto';
+    var devReduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var still = motion === 'off' || (motion === 'auto' && devReduce);
+    var no3d = window.__threeFailed || typeof THREE === 'undefined' || !canWebGL();
+    if (opts.fallback || still || no3d) {
+      return playFallback(container, opts, no3d ? 'no-3d' : opts.fallback ? 'requested' : motion === 'off' ? 'motion-off' : 'reduced-motion');
     }
     try { return play3D(container, opts); } catch (e) {
       if (window.console) console.warn('delivery 3D failed, showing banner', e);
@@ -190,9 +207,9 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
     shell.skipBtn.textContent = 'Done';
     function end() { shell.finish('dismissed'); }
     bindSkip(shell, end);
-    if (!opts.freeze) shell.timers.push(setTimeout(function () { shell.finish('timeout'); }, 4000));
+    if (!opts.freeze) shell.timers.push(setTimeout(function () { shell.finish('done'); }, 4000));
     window.__deliveryReady = true;
-    return { skip: end };
+    return { skip: end, stop: function () { shell.finish('stopped'); } };
   }
 
   /* ---------- Geometry merging: one vertex-colored mesh per static set keeps draw calls low ---------- */
@@ -418,7 +435,7 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
     var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     var shell = makeShell(container, opts, false);
     var root = shell.root;
-    shell.skipBtn.textContent = 'Skip';
+    shell.skipBtn.textContent = 'Skip to the end';
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0x000000, 0);
     root.insertBefore(renderer.domElement, root.firstChild);
@@ -523,8 +540,8 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
         return { x: pt.x, z: pt.z, fx: f.x, fz: f.z, dist: -Lr + d };
       }
       var tau = t - T_CUT, k = out3(tau / 0.78);
-      var x = HX + lerp(14, -3.5, k);
-      return { x: x, z: HZ - 2, fx: -1, fz: 0, dist: 500 + (HX + 14 - x) };
+      var x = HX + lerp(VAN_IN, -3.5, k);
+      return { x: x, z: HZ - 2, fx: -1, fz: 0, dist: 500 + (HX + VAN_IN - x) };
     }
     function boxPose(t) { // null before it leaves the van
       var tau = t - T_CUT, t0 = 0.62, t1 = 1.12;
@@ -635,37 +652,48 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
       renderer.dispose(); if (gl && !gl.isContextLost()) renderer.forceContextLoss();
       scene = camera = null;
     }
+    var lastT = startT, onBanner = false;
+    function setLabel(t) { // "Skip to the end" during the drive, "Done" once the banner is up
+      var b = t >= T_BANNER;
+      if (b !== onBanner) { onBanner = b; shell.skipBtn.textContent = b ? 'Done' : 'Skip to the end'; }
+    }
     function skip() {
       if (shell.done || shell.skipping) return;
       if (frozen) { shell.finish('skip', teardown); return; }
+      if (lastT < T_BANNER) { // first skip during the drive: jump to the landed banner, which then holds as usual
+        startT = lastT = T_LAND + 0.3; t0 = performance.now(); setLabel(startT); return;
+      }
       shell.skipping = true; cancelAnimationFrame(raf);
       root.style.transition = 'opacity .18s ease-out'; root.style.opacity = '0';
       shell.timers.push(setTimeout(function () { shell.finish('skip', teardown); }, 190));
     }
+    function stop() { shell.finish('stopped', teardown); }
     bindSkip(shell, skip);
-    var handle = { skip: skip };
+    var handle = { skip: skip, stop: stop };
     // if the GPU drops the context mid-scene, swap to the still banner instead of leaving a blank frame
     shell.on(renderer.domElement, 'webglcontextlost', function (e) {
       e.preventDefault();
       if (shell.done) return;
       shell.finish('context-lost', teardown, true);
-      handle.skip = playFallback(container, opts, 'context-lost').skip;
+      var fb = playFallback(container, opts, 'context-lost');
+      handle.skip = fb.skip; handle.stop = fb.stop;
+      if (typeof opts.onMode === 'function') opts.onMode('fallback-context-lost');
     });
 
     function loop(now) {
       if (shell.done) return;
-      var t = startT + (now - t0) / 1000 * speed;
-      apply(t); renderer.render(scene, camera);
+      var t = lastT = startT + (now - t0) / 1000 * speed;
+      apply(t); setLabel(t); renderer.render(scene, camera);
       if (!statT0) statT0 = now; frames++;
       if (t >= T_HOLD + T_FADE) { shell.finish('done', teardown); return; }
       raf = requestAnimationFrame(loop);
     }
     if (frozen) {
-      apply(startT); renderer.render(scene, camera);
+      apply(startT); setLabel(startT); renderer.render(scene, camera);
       window.__dlvInfoLive = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles };
       window.__deliveryReady = true;
     } else raf = requestAnimationFrame(loop);
-    return { skip: function () { handle.skip(); } };
+    return { skip: function () { handle.skip(); }, stop: function () { handle.stop(); } };
   }
 
   window.playDelivery = playDelivery;
@@ -683,22 +711,50 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
 
   function fit() {
     if (freeze) return;
-    var s = SIZES[size], availW = document.documentElement.clientWidth - 32, availH = window.innerHeight - 190;
+    var s = SIZES[size], availW = document.documentElement.clientWidth - 32, availH = window.innerHeight - 190 - (note.hidden ? 0 : note.offsetHeight + 14);
     var k = Math.min(1, availW / s[0], Math.max(0.3, availH / s[1]));
     stage.style.width = Math.round(s[0] * k) + 'px'; stage.style.height = Math.round(s[1] * k) + 'px';
   }
+  // Motion choice for this visit: "auto" follows the device, "on"/"off" come from ?motion= or the notice button.
+  var motion = q.get('motion') === 'on' || q.get('motion') === 'off' ? q.get('motion') : 'auto';
+  var devReduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var note = document.getElementById('motionNote'), noteText = document.getElementById('motionText'), noteBtn = document.getElementById('btnMotion');
+  var MODE_TEXT = {
+    'reduced-motion': 'Showing the still banner (reduced motion).',
+    'no-3d': 'Showing the still banner (3D is not available in this browser).',
+    'error': 'Showing the still banner (3D is not available in this browser).',
+    'context-lost': 'Showing the still banner (3D is not available in this browser).',
+    'requested': 'Showing the still banner (Banner only).',
+    'motion-off': 'Showing the still banner (motion is off for this link).'
+  };
+  var DONE_TEXT = { done: 'Finished.', skip: 'Skipped.', dismissed: 'Skipped.' };
+  function showMode(m) { status.textContent = MODE_TEXT[m.replace('fallback-', '')] || 'Showing the still banner.'; }
+  function updateNote() {
+    note.hidden = !devReduce || freeze; // only when the device asks for reduced motion
+    if (note.hidden) return;
+    var on = motion === 'on';
+    noteText.textContent = on ? 'Playing with motion because you asked. Reduced motion is on for this device.'
+      : 'This device asks for reduced motion, so the still banner is shown. In the app that setting is respected.';
+    noteBtn.textContent = on ? 'Show the still banner' : 'Play the animation anyway';
+    noteBtn.className = on ? 'quiet' : '';
+  }
   function start(fallback) {
-    if (cur) { var old = cur; cur = null; old.skip(); }
-    status.textContent = fallback ? 'Showing the banner only (the reduced-motion and no-3D version).' : 'Playing at ' + speed + 'x.';
+    if (cur) { var old = cur; cur = null; old.stop(); }
+    status.textContent = 'Playing' + (speed !== 1 ? ' at ' + speed + 'x' : '') + '.';
     var me = playDelivery(stage, {
-      job: q.get('job'), client: q.get('client'), speed: speed, fallback: fallback,
+      job: q.get('job'), client: q.get('client'), speed: speed, fallback: fallback, motion: motion,
       t: parseFloat(q.get('t')) || 0, freeze: freeze,
-      onDone: function (r) { if (cur === me) { cur = null; status.textContent = 'Finished (' + r.reason + '). Press Play again to watch it again.'; } }
+      onDone: function (r) { if (cur === me) { cur = null; status.textContent = (DONE_TEXT[r.reason] || 'Finished.') + ' Press Play again to watch it again.'; } },
+      onMode: function (m) { if (cur === me) showMode(m); }
     });
     cur = me;
     var r = stage.querySelector('.dlv-root'), m = r && r.getAttribute('data-mode');
-    if (!fallback && m) status.textContent = 'Showing the still banner (' + m.replace('fallback-', '').replace('-', ' ') + ').';
+    if (m) showMode(m);
   }
+  noteBtn.addEventListener('click', function () {
+    motion = motion === 'on' ? 'auto' : 'on';
+    updateNote(); start(false);
+  });
   function press(groupAttr, val) {
     document.querySelectorAll('[data-' + groupAttr + ']').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-' + groupAttr) === val)); });
   }
@@ -711,6 +767,7 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
     b.addEventListener('click', function () { speed = parseFloat(b.getAttribute('data-speed')); press('speed', b.getAttribute('data-speed')); start(false); });
   });
   window.addEventListener('resize', fit);
+  updateNote();
   fit();
   start(q.get('fallback') === '1');
 })();
