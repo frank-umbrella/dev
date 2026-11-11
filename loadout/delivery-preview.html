@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="version" content="0.2.0">
-<title>Loadout delivery preview v0.2.0</title>
+<meta name="version" content="0.3.0">
+<title>Loadout delivery preview v0.3.0</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="window.__threeFailed=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" onerror="window.__threeFailed=true"></script>
@@ -83,8 +83,8 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
     </div>
   </div>
   <p id="status" aria-live="polite"></p>
-  <p class="ver">Preview v0.2.0. Tap the scene, or press Esc, Enter or Space, to skip to the banner. Do it again to close. The 3D scene loads its models from the published address, so a copy opened from a local file shows the still banner.</p>
-  <p class="credits">Models, sky and textures are free CC0 assets from Kenney and Poly Haven. <a href="delivery/credits.txt">Credits</a></p>
+  <p class="ver">Preview v0.3.0. Tap the scene, or press Esc, Enter or Space, to skip to the banner. Do it again to close. The 3D scene loads its models from the published address, so a copy opened from a local file shows the still banner.</p>
+  <p class="credits">Models, sky and textures are free CC0 assets from Kenney, Quaternius and Poly Haven. <a href="delivery/credits.txt">Credits</a></p>
 </main>
 
 <script>
@@ -94,15 +94,18 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
   'use strict';
 
   // Timeline in seconds. Shot 1 the shop, 2 the drive, 3 arrival, 4 at the van's back, 5 at the door, then the banner.
+  // Shot 4: the two walk up to the open doors, lean in, pull the box out, lift it, turn to its ends and set off.
+  // Shot 5: the last steps to the door, the set-down, a step back, a turn toward the street and a nod.
   var T = { REV0: 0.25, REV1: 1.05, GO: 1.1, CUT1: 2.6, CUT2: 4.0, BRAKE: 3.85, STOP: 4.55, CUT3: 4.6,
-    DOOR0: 4.6, DOOR1: 4.9, SLIDE0: 4.8, SLIDE1: 5.15, BACK1: 5.4, TURN1: 5.7, CUT4: 6.0, SET0: 6.3, SET1: 6.65,
-    SLOW: 6.65, BANNER: 6.8, LAND: 7.05 };
+    DOOR0: 4.6, DOOR1: 4.95, IN0: 4.6, IN1: 5.35, GRAB0: 5.35, GRAB1: 5.65, PULL1: 6.25, LIFT0: 5.85, LIFT1: 6.2,
+    TURN1: 6.85, CUT4: 7.55, SET0: 8.8, SET1: 9.35, REL1: 9.45, UP1: 9.65, BACK0: 9.55, BACK1: 9.9, FACE0: 9.9, FACE1: 10.3,
+    NOD0: 10.35, NOD1: 10.8, SLOW: 10.45, BANNER: 10.75, LAND: 11.0 };
   T.HOLD = T.LAND + 3.4; T.FADE = 0.45;
   var SLOWK = 0.3; // world speed after the box is down
   var HX = -150, HZ = 250; // the house street, far outside the shop's fog range
   var D2R = Math.PI / 180;
   var SUN = [0.553, 0.743, 0.377]; // the sun's direction in the sky image (brightest texel), so cast shadows match the sky
-  var VAN_S = 1.8, PERSON_H = 1.74;
+  var VAN_S = 1.8;
 
   var C = { accent: '#1e6fd9', umbBlue: '#1A9BE8', umbInk: '#1a1f2b', charcoal: '#3a3e45', paint: 0xe9ecef, yellow: 0xe2b93b };
 
@@ -255,7 +258,7 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
 
   /* ---------- Assets: loaded once per page, parsed objects cached between replays ---------- */
   var MODELS = { van: 'models/car/van.glb', sedan: 'models/car/sedan.glb', suv: 'models/car/suv.glb', hatch: 'models/car/hatchback-sports.glb',
-    manD: 'models/people/character-male-d.glb', manF: 'models/people/character-male-f.glb',
+    crewA: 'models/people/crew-a.glb', crewB: 'models/people/crew-b.glb',
     houseA: 'models/suburb/building-type-a.glb', houseC: 'models/suburb/building-type-c.glb', houseJ: 'models/suburb/building-type-j.glb',
     treeL: 'models/suburb/tree-large.glb', treeS: 'models/suburb/tree-small.glb' };
   var TEXTURES = { asphalt: 'asphalt_02', brick: 'red_brick_03', concrete: 'concrete_floor_02', grass: 'leafy_grass' };
@@ -687,7 +690,7 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
       })));
       t.encoding = THREE.sRGBEncoding; t.anisotropy = aniso; return t;
     }
-    var BX = { w: 0.9, h: 0.6, d: 0.66 };
+    var BX = { w: 1.0, h: 0.48, d: 0.55 }; // a two-person box: w runs along the line between the two carriers
     var bPlain = Mt(new THREE.MeshStandardMaterial({ map: cardboard(false, false), roughness: 0.85 }));
     var bTop = Mt(new THREE.MeshStandardMaterial({ map: cardboard(false, true), roughness: 0.85 }));
     var bFace = Mt(new THREE.MeshStandardMaterial({ map: cardboard(true, false), roughness: 0.85 }));
@@ -695,66 +698,98 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
     var box = new THREE.Mesh(G(new THREE.BoxGeometry(BX.w, BX.h, BX.d)), [bPlain, bPlain, bTop, bPlain, bFace, bFace]);
     box.castShadow = true; box.receiveShadow = true; scene.add(box);
 
-    /* --- the two people: Kenney mini characters, recolored to charcoal polos and blue jeans --- */
-    var people = [makePerson(A.gltf.manF, { torso: [0.88, 1.12, 0.9], head: 0.68, legs: 1.62, arms: 0.84, h: PERSON_H }),
-      makePerson(A.gltf.manD, { torso: [1.0, 1.06, 0.98], head: 0.66, legs: 1.55, arms: 0.86, h: PERSON_H * 0.97 })];
-    function makePerson(g, build) {
-      var model = THREE.SkeletonUtils.clone(g.scene), img = gltfImage(g);
-      var pix = canvasEl(img.width, img.height, function (ctx) { ctx.drawImage(img, 0, 0); }).getContext('2d').getImageData(0, 0, img.width, img.height);
-      function sample(u, v) { var x = Math.min(pix.width - 1, Math.max(0, Math.floor(u * pix.width))), y = Math.min(pix.height - 1, Math.max(0, Math.floor(v * pix.height))), i = (y * pix.width + x) * 4; return [pix.data[i], pix.data[i + 1], pix.data[i + 2]]; }
-      var bones = {}, bodyMesh = null, headMesh = null;
-      model.traverse(function (o) { if (o.isBone) bones[o.name] = o; if (o.isSkinnedMesh) { if (/head/.test(o.name)) headMesh = o; else bodyMesh = o; } });
-      // the face's own tone: the most used palette cell on the head
-      var hu = headMesh.geometry.attributes.uv, cnt = {}, skinKey = null, best = 0;
-      for (var i = 0; i < hu.count; i++) { var key = Math.floor(hu.getX(i) * 16) + ',' + Math.floor(hu.getY(i) * 4); cnt[key] = (cnt[key] || 0) + 1; if (cnt[key] > best) { best = cnt[key]; skinKey = i; } }
-      var skin = sample(hu.getX(skinKey), hu.getY(skinKey));
-      var geo = G(bodyMesh.geometry.clone()), pos = geo.attributes.position, uv = geo.attributes.uv, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight;
-      var names = bodyMesh.skeleton.bones.map(function (b) { return b.name; }), col = new Float32Array(pos.count * 3), cc = new THREE.Color();
-      for (i = 0; i < pos.count; i++) {
-        var ws = [sw.getX(i), sw.getY(i), sw.getZ(i), sw.getW(i)], js = [si.getX(i), si.getY(i), si.getZ(i), si.getW(i)], wi = 0, wv = -1;
-        for (var q = 0; q < 4; q++) if (ws[q] > wv) { wv = ws[q]; wi = js[q]; }
-        var bn = names[wi], y = pos.getY(i), ax = Math.abs(pos.getX(i)), rgb;
-        if (/arm/.test(bn)) rgb = ax < 0.2 ? (y > 0.355 ? [70, 74, 82] : [58, 62, 69]) : skin;                       // short polo sleeve, then the arm and hand
-        else if (/torso/.test(bn)) rgb = y < 0.19 ? [52, 84, 128] : (y > 0.345 ? [72, 76, 84] : [58, 62, 69]);     // jeans at the hips, polo body, collar
-        else if (/leg/.test(bn)) rgb = y < 0.03 ? [34, 34, 38] : [61, 98, 148];                                   // dark shoes, blue jeans
-        else rgb = sample(uv.getX(i), uv.getY(i));
-        var shade = 0.92 + 0.08 * (y / 0.36);
-        cc.setRGB(rgb[0] / 255 * shade, rgb[1] / 255 * shade, rgb[2] / 255 * shade).convertSRGBToLinear();
-        col[i * 3] = cc.r; col[i * 3 + 1] = cc.g; col[i * 3 + 2] = cc.b;
-      }
-      geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-      bodyMesh.geometry = geo;
-      bodyMesh.material = Mt(new THREE.MeshStandardMaterial({ vertexColors: true, skinning: true, roughness: 0.85 }));
-      headMesh.material = Mt(headMesh.material.clone()); headMesh.material.roughness = 0.8;
-      model.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false; } });
-      // proportions: longer legs, a smaller head, so the figure reads closer to an adult than a toy
-      bones['leg-left'].scale.set(1, build.legs, 1); bones['leg-right'].scale.set(1, build.legs, 1);
-      bones.torso.scale.set(build.torso[0], build.torso[1], build.torso[2]);
-      bones.head.scale.set(build.head / build.torso[0], build.head / build.torso[1], build.head / build.torso[2]);
-      ['arm-left', 'arm-right'].forEach(function (n) { bones[n].scale.set(build.arms / build.torso[0], build.arms / build.torso[1], build.arms / build.torso[2]); });
-      // the small company-blue mark on the left chest
-      var chest = new THREE.Mesh(G(new THREE.PlaneGeometry(0.05, 0.035)), Mt(new THREE.MeshStandardMaterial({ color: sc(0x1A9BE8), roughness: 0.6 })));
-      chest.position.set(0.075, 0.13, 0.127); bones.torso.add(chest);
-      var lift = 0.176 * (build.legs - 1), rawH = lift + 0.176 + 0.167 * build.torso[1] + 0.328 * build.head;
-      var s = build.h / rawH;
-      var holder = new THREE.Group(), inner = new THREE.Group();
-      inner.add(model); model.position.y = lift; inner.scale.setScalar(s); holder.add(inner); scene.add(holder);
+    /* --- the two people: Quaternius modular men (one shared body, two heads), recolored to charcoal polos and blue jeans --- */
+    var CLIPS = A.gltf.crewA.animations; // the second file ships without clips; both share one skeleton, so the clips bind by bone name
+    var MODEL_H = 1.86; // top of the hair in the model's own units
+    var CREW = [
+      { g: A.gltf.crewA, h: 1.80, hair: '#3a2a1f', skin: null, jeans: '#30496e' },
+      { g: A.gltf.crewB, h: 1.75, hair: '#1d1a17', skin: '#b98d68', jeans: '#2a4064' }
+    ];
+    var POLO = '#3b3f46', POLO_EDGE = '#555b64', SHOE = '#26272a', SOLE = '#3b3c3f';
+    var people = CREW.map(makePerson);
+    function makePerson(c, idx) {
+      var model = THREE.SkeletonUtils.clone(c.g.scene), bones = {}, shirt = null, skinned = null;
+      model.traverse(function (o) {
+        if (o.isBone) bones[o.name] = o;
+        if (!o.isMesh) return;
+        skinned = skinned || o;
+        var src = o.material, name = src.name, col = src.color.clone(), rough = 0.85;
+        if (name === 'LightBrown') { col = sc(POLO); rough = 0.92; shirt = o; }                 // the T-shirt mesh becomes the polo
+        else if (name === 'LightBlue') { col = sc(c.jeans); rough = 0.9; }                       // jeans
+        else if (name === 'Red_Dark') { col = sc(SHOE); rough = 0.6; }                            // shoe uppers
+        else if (name === 'White') { col = sc(SOLE); rough = 0.7; }                               // soles
+        else if (name === 'Hair') { col = sc(c.hair); rough = 0.75; }
+        else if (name === 'Skin' && c.skin) col = sc(c.skin);
+        o.material = Mt(new THREE.MeshStandardMaterial({ color: col, roughness: rough, metalness: 0, skinning: true, vertexColors: !!src.vertexColors }));
+        o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false;
+      });
+      // polo details in the bind pose (model space), then parented to the chest bone so they follow it
+      var rest = []; model.traverse(function (o) { if (o.isBone) rest.push([o, o.position.clone(), o.quaternion.clone()]); });
+      skinned.skeleton.pose(); model.updateMatrixWorld(true);
+      var sp = shirt.geometry.attributes.position, top = -1, i;
+      for (i = 0; i < sp.count; i++) if (Math.abs(sp.getX(i)) < 0.14) top = Math.max(top, sp.getY(i));
+      var ring = { x: 0, z: 0, r: 0, n: 0 };
+      for (i = 0; i < sp.count; i++) if (sp.getY(i) > top - 0.025 && Math.abs(sp.getX(i)) < 0.14) { ring.x += sp.getX(i); ring.z += sp.getZ(i); ring.n++; }
+      ring.x /= ring.n; ring.z /= ring.n;
+      for (i = 0; i < sp.count; i++) if (sp.getY(i) > top - 0.025 && Math.abs(sp.getX(i)) < 0.14) ring.r = Math.max(ring.r, Math.hypot(sp.getX(i) - ring.x, sp.getZ(i) - ring.z));
+      function front(x, y) { var z = -1; for (var k = 0; k < sp.count; k++) if (Math.abs(sp.getX(k) - x) < 0.03 && Math.abs(sp.getY(k) - y) < 0.035) z = Math.max(z, sp.getZ(k)); return z; }
+      var chest = bones.Chest, inv = new THREE.Matrix4().copy(chest.matrixWorld).invert(), cq = new THREE.Quaternion();
+      chest.getWorldQuaternion(cq); cq.invert();
+      function attach(mesh, x, y, z) { mesh.position.set(x, y, z).applyMatrix4(inv); mesh.quaternion.copy(cq).multiply(mesh.quaternion); chest.add(mesh); mesh.castShadow = true; return mesh; }
+      var edgeMat = Mt(new THREE.MeshStandardMaterial({ color: sc(POLO_EDGE), roughness: 0.9, side: THREE.DoubleSide }));
+      var collar = new THREE.Mesh(G(new THREE.CylinderGeometry(ring.r * 0.86, ring.r * 1.12, 0.05, 18, 1, true)), edgeMat);
+      collar.rotation.x = -0.18; attach(collar, ring.x, top - 0.012, ring.z);
+      var fz = front(0, top - 0.07);
+      var placket = new THREE.Mesh(G(new THREE.PlaneGeometry(0.03, 0.09)), Mt(new THREE.MeshStandardMaterial({ color: sc(0x2c2f35), roughness: 0.9 })));
+      attach(placket, 0, top - 0.075, fz + 0.004);
+      var btnMat = Mt(new THREE.MeshStandardMaterial({ color: sc(0xb9bec6), roughness: 0.5 })), btnGeo = G(new THREE.PlaneGeometry(0.011, 0.011));
+      [top - 0.055, top - 0.095].forEach(function (y) { attach(new THREE.Mesh(btnGeo, btnMat), 0, y, front(0, y) + 0.007); });
+      // the small company-blue mark on the left chest (the figure's left is +x in the model)
+      var my = top - 0.13, mz = front(0.085, my);
+      attach(new THREE.Mesh(G(new THREE.PlaneGeometry(0.045, 0.03)), Mt(new THREE.MeshStandardMaterial({ color: sc(0x1A9BE8), roughness: 0.6 }))), 0.085, my, mz + 0.005);
+      var s = c.h / MODEL_H, holder = new THREE.Group(), inner = new THREE.Group();
+      model.position.z = -0.072; // the armature's root sits 7 cm in front of the file origin
+      inner.add(model); inner.scale.setScalar(s); holder.add(inner); scene.add(holder);
       var mixer = new THREE.AnimationMixer(model), acts = {};
-      function clip(name, keep) {
-        var c = THREE.AnimationClip.findByName(g.animations, name);
-        if (keep) c = new THREE.AnimationClip(name + '-part', c.duration, c.tracks.filter(function (t) { return keep.test(t.name); }));
-        var a = mixer.clipAction(c); a.play(); a.setEffectiveWeight(0); return a;
-      }
-      acts.walk = clip('walk', /leg|root|torso|head/); acts.walkArms = clip('walk', /arm/);
-      acts.idle = clip('idle'); acts.crouch = clip('crouch'); acts.yes = clip('emote-yes'); acts.hold = clip('holding-both');
-      return { holder: holder, s: s, bones: bones, mixer: mixer, acts: acts, model: model, lift: lift };
+      function clip(name) { var a = mixer.clipAction(THREE.AnimationClip.findByName(CLIPS, name)); a.play(); a.setEffectiveWeight(0); return a; }
+      acts.walk = clip('Walk'); acts.idle = clip('Idle_Neutral');
+      // bones the code poses on top of the clips. The mixer only writes a value when it changes, so these are set
+      // from the clips here every frame (same blend as the mixer) before the code adds to them.
+      var touched = ['Body', 'Hips', 'Head', 'UpperLeg.L', 'LowerLeg.L', 'UpperLeg.R', 'LowerLeg.R', 'Foot.L', 'Foot.R', 'UpperArm.L', 'LowerArm.L', 'Wrist.L', 'UpperArm.R', 'LowerArm.R', 'Wrist.R'].map(function (n) {
+        var b = bones[n.replace('.', '')] || bones[n], r = rest.filter(function (x) { return x[0] === b; })[0], t = { b: b, p: r[1], q: r[2], foot: /^Foot/.test(n) ? n.slice(-1) : null };
+        ['walk', 'idle'].forEach(function (k) {
+          var c = acts[k].getClip();
+          c.tracks.forEach(function (tr) { if (tr.name === b.name + '.position') t[k + 'P'] = tr.createInterpolant(); if (tr.name === b.name + '.quaternion') t[k + 'Q'] = tr.createInterpolant(); });
+        });
+        return t;
+      });
+      function B(n) { return bones[n.replace('.', '')] || bones[n]; }
+      var p = { holder: holder, model: model, s: s, mixer: mixer, acts: acts, touched: touched,
+        body: B('Body'), hips: B('Hips'), head: B('Head'),
+        leg: { L: [B('UpperLeg.L'), B('LowerLeg.L'), B('Foot.L')], R: [B('UpperLeg.R'), B('LowerLeg.R'), B('Foot.R')] },
+        arm: { L: [B('UpperArm.L'), B('LowerArm.L'), B('Wrist.L')], R: [B('UpperArm.R'), B('LowerArm.R'), B('Wrist.R')] } };
+      // in the bind pose: where the shin ends (the foot bone is not its child), and which wrist axis the palm faces
+      p.shin = {}; p.palm = {};
+      ['L', 'R'].forEach(function (k) {
+        var lo = p.leg[k][1], ft = p.leg[k][2], w = new THREE.Vector3();
+        p.shin[k] = lo.worldToLocal(ft.getWorldPosition(w));
+        var wq = new THREE.Quaternion(); p.arm[k][2].getWorldQuaternion(wq);
+        p.palm[k] = new THREE.Vector3(0, -1, 0).applyQuaternion(wq.invert());
+      });
+      rest.forEach(function (r) { r[0].position.copy(r[1]); r[0].quaternion.copy(r[2]); });
+      return p;
     }
-    // stride matched to speed: leg length times the swing angle sampled from the walk clip
-    var walkClip = THREE.AnimationClip.findByName(A.gltf.manF.animations, 'walk'), legTrack = walkClip.tracks.filter(function (t) { return /leg-left\.quaternion/.test(t.name); })[0];
-    var maxAng = 0; for (var qi = 0; qi < legTrack.values.length; qi += 4) maxAng = Math.max(maxAng, 2 * Math.acos(Math.min(1, Math.abs(legTrack.values[qi + 3]))));
-    var CARRY_W = 0.55; // the walk blended toward standing: shorter steps under a load
-    var CYCLE_D = 4 * 0.176 * 1.6 * people[0].s * Math.sin(maxAng * CARRY_W) || 1.0; // meters per walk cycle (two steps)
-    var WALK_V = 1.25;
+    // walk speed of the clip: how fast a planted foot moves back under the body, in model units per second
+    var walkClip = THREE.AnimationClip.findByName(CLIPS, 'Walk'), WALK_DUR = walkClip.duration;
+    var footTrack = walkClip.tracks.filter(function (t) { return /^FootL\.position$/.test(t.name); })[0];
+    var CLIP_V = (function () {
+      var n = 96, ys = [], zs = [], it = footTrack.createInterpolant(), lo = 1e9, c = 0, i;
+      for (i = 0; i < n; i++) { var v = it.evaluate(WALK_DUR * i / n); ys.push(v[1]); zs.push(v[2]); if (v[1] < lo) { lo = v[1]; c = i; } }
+      var a = c, b = c, md = function (k) { return ((k % n) + n) % n; };
+      while (ys[md(a - 1)] < lo + 0.012 && c - a < n / 2) a--;
+      while (ys[md(b + 1)] < lo + 0.012 && b - c < n / 2) b++;
+      return b > a ? (zs[md(a)] - zs[md(b)]) / (WALK_DUR * (b - a) / n) : 1.3;
+    })();
 
     /* --- blob shadows for the low tier --- */
     var blobTex = Tx(new THREE.CanvasTexture(canvasEl(128, 128, function (ctx) {
@@ -784,7 +819,7 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
       .map(function (p) { return new V(p[0], 0, p[1]); }), false, 'centripetal');
     var Ld = drive.getLength();
     // the house street: the van comes in westbound and stops with its back at the front walk
-    var CARRY_X = WALKX + 0.05, STOPX = CARRY_X - 1.05 - VAN_LEN_REAR, LANEZ = z0 - 1.95;
+    var CARRY_X = WALKX, STOPX = CARRY_X - 1.37 - VAN_LEN_REAR, LANEZ = z0 - 1.95; // 1.37: the box's last move out from the van, see the carry
     var V_ST = 13, BRAKE_D = V_ST * (T.STOP - T.BRAKE) / 2;
     function houseX(t) { // van x on the house street
       if (t >= T.STOP) return STOPX;
@@ -805,70 +840,198 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
       return { x: x, z: LANEZ, fx: -1, fz: 0, dist: 900 - x };
     }
 
-    // the carry rig: pivot at the box center on the ground, people at either end of the box
-    var W_OFF = BX.w / 2 + 0.36;
-    var RIG = { startX: STOPX + VAN_LEN_REAR + 0.62, backX: STOPX + VAN_LEN_REAR + 1.05, z: LANEZ, setZ: DOORZ + 1.55 };
-    var CARRY_D = RIG.z - RIG.setZ;
-    function groundY(x, z) { return z < z0 - 4.25 ? 0.12 : 0.0; } // street level, then the walk and lawn behind the curb
-    function rigPose(s) { // {x, z, yaw, walk (cycle phase in s), walkW, back}
-      var r = { x: RIG.startX, z: RIG.z, yaw: 0, phase: 0, walkW: 0, dir: 1, crouch: 0, lift: 0, nod: 0, stepBack: 0 };
-      if (s < T.SLIDE1) { r.crouch = 0.35; r.lift = 0; return r; }
-      if (s < T.BACK1) { var k = smooth((s - T.SLIDE1) / (T.BACK1 - T.SLIDE1)); r.x = lerp(RIG.startX, RIG.backX, k); r.crouch = 0.35 * (1 - k); r.lift = k; r.walkW = CARRY_W; r.dir = -1; r.phase = (r.x - RIG.startX) / CYCLE_D; return r; }
-      r.x = RIG.backX; r.lift = 1;
-      if (s < T.TURN1) { var kt = smooth((s - T.BACK1) / (T.TURN1 - T.BACK1)); r.yaw = -Math.PI / 2 * kt; r.walkW = CARRY_W; r.phase = kt * 0.75; return r; }
-      r.yaw = -Math.PI / 2; r.x = RIG.backX;
-      var dist = s < T.CUT4 ? WALK_V * (s - T.TURN1) : CARRY_D - WALK_V * Math.max(0, T.SET0 - s);
-      r.z = RIG.z - Math.min(dist, CARRY_D); r.x = lerp(RIG.backX, CARRY_X, s < T.CUT4 ? 0 : 1);
-      r.walkW = s < T.SET0 ? CARRY_W : Math.max(0, CARRY_W * (1 - (s - T.SET0) / 0.12)); r.phase = 0.75 + dist / CYCLE_D;
-      if (s >= T.SET0) {
-        var ks = (s - T.SET0) / (T.SET1 - T.SET0);
-        r.crouch = Math.sin(Math.PI * clamp01(ks)) * 1.0; r.lift = 1 - smooth(ks * 1.6);
-        if (ks > 0.62) r.crouch = Math.max(0, 1 - (ks - 0.62) / 0.38) * 0.95;
-        if (s > T.SET1) { r.crouch = 0; r.lift = 0; r.stepBack = smooth((s - T.SET1) / 0.5) * 0.35; r.nod = clamp01((s - T.SET1) / 0.66); }
+    // the carry: the box lies across the hold; the two pull it out, lift it, back round in an arc to its ends and walk it up to the door.
+    // Person 0 ends up behind the box walking forward, person 1 in front of it walking backward (z falls toward the house).
+    var REAR = STOPX + VAN_LEN_REAR, LX = CARRY_X, GAP = 0.3, END = BX.w / 2 + GAP, ARC = END - 0.38;
+    var FLOOR = RD.y0, CARRY_Y = 1.0, BOX_SET = DOORZ + 1.45, CARRY_LEN = LANEZ - BOX_SET, CARRY_V = 1.0;
+    var STEP = { x0: WALKX - 1.4, x1: WALKX + 1.4, z0: DOORZ - 0.4, z1: DOORZ + 0.8 };
+    function groundY(x, z) {
+      if (x > STEP.x0 && x < STEP.x1 && z > STEP.z0 && z < STEP.z1) return 0.2;
+      if (z < z0 - 6.2 && Math.abs(x - WALKX) < 0.75) return 0.13;
+      return z < z0 - 4.25 ? 0.12 : 0.0;
+    }
+    function carryDist(s) { // meters walked toward the door, with a gentle start and stop; the cut to the door skips the middle
+      var a = 0.3, tau;
+      if (s < T.TURN1) return 0;
+      if (s < T.CUT4) { tau = s - T.TURN1; return tau < a ? CARRY_V * tau * tau / (2 * a) : CARRY_V * (tau - a / 2); }
+      tau = T.SET0 - s; if (tau <= 0) return CARRY_LEN;
+      return CARRY_LEN - (tau < a ? CARRY_V * tau * tau / (2 * a) : CARRY_V * (tau - a / 2));
+    }
+    function boxPose(s) { // the box center in world space, or null before the cut to the van's back
+      if (s < T.CUT3) return null;
+      var x, y, z = LANEZ, low = FLOOR + BX.h / 2;
+      if (s < T.GRAB1) { x = REAR - 0.1; y = low; } // waiting at the door edge, its back half already showing
+      else if (s < T.PULL1) { x = REAR - 0.1 + 0.6 * smooth((s - T.GRAB1) / (T.PULL1 - T.GRAB1)); y = lerp(low, CARRY_Y, smooth((s - T.LIFT0) / (T.LIFT1 - T.LIFT0))); }
+      else if (s < T.TURN1) { x = lerp(REAR + 0.5, LX, smooth((s - T.PULL1) / (T.TURN1 - T.PULL1))); y = CARRY_Y; }
+      else { x = LX; y = CARRY_Y; z = LANEZ - carryDist(s); }
+      if (s >= T.SET0) { z = BOX_SET; var k = smooth((s - T.SET0 - 0.05) / (T.SET1 - T.SET0 - 0.1)); y = lerp(CARRY_Y + groundY(x, z), groundY(x, z) + BX.h / 2 + 0.003, k); }
+      else if (s >= T.TURN1) y += Math.max(groundY(x, z - END), groundY(x, z + END)); // level, carried over the curb at the higher end's height
+      return { x: x, y: y, z: z };
+    }
+    // one person at scene time s: where they stand, which way they face, and what the body does
+    var FACE_VAN = Math.atan2(-1, 0), FACE_ST = Math.atan2(1, 0);
+    function personPose(i, s) {
+      var sg = i === 0 ? 1 : -1, r = { x: 0, z: 0, yaw: FACE_VAN, crouch: 0, lean: 0, hold: 0, grip: 0, nod: 0 };
+      var faceLine = i === 0 ? Math.atan2(0, -1) : Math.atan2(0, 1); // person 0 faces the door, person 1 faces the street
+      if (s < T.IN1) { var ki = smooth((s - T.IN0) / (T.IN1 - T.IN0)); r.x = lerp(REAR + 1.15, REAR + 0.35, ki); r.z = LANEZ + sg * 0.38; return r; }
+      if (s < T.PULL1) { // lean in, take hold, pull the box out walking backward and lift it as it clears the floor
+        var kp = smooth((s - T.GRAB1) / (T.PULL1 - T.GRAB1)), kg = smooth((s - T.GRAB0) / (T.GRAB1 - T.GRAB0)), kl = smooth((s - T.LIFT0) / (T.LIFT1 - T.LIFT0));
+        r.x = REAR + 0.35 + 0.6 * kp; r.z = LANEZ + sg * 0.38;
+        r.hold = kg; r.lean = 0.26 * kg * (1 - kl) + 0.1 * kl; r.crouch = 0.12 * kg * (1 - kl);
+        return r;
       }
+      var bp = boxPose(s);
+      if (s < T.TURN1) { // back round a quarter circle to the box's ends, the way a car reverses into a turn, so the feet follow the path
+        var kt = smooth((s - T.PULL1) / (T.TURN1 - T.PULL1)), ph = kt * Math.PI / 2;
+        r.x = REAR + 0.95 + ARC * Math.sin(ph); r.z = LANEZ + sg * (0.38 + ARC - ARC * Math.cos(ph));
+        r.yaw = Math.atan2(-Math.cos(ph), -sg * Math.sin(ph)); r.hold = 1; r.grip = kt; r.lean = 0.1 * (1 - kt) + 0.06 * kt; return r;
+      }
+      r.yaw = faceLine; r.x = LX; r.z = bp.z + sg * END; r.hold = 1; r.grip = 1; r.lean = 0.06;
+      if (s < T.SET0) return r;
+      var kd = smooth((s - T.SET0) / (T.SET1 - 0.1 - T.SET0)) * (1 - smooth((s - T.REL1 + 0.05) / (T.UP1 - T.REL1 + 0.05)));
+      r.crouch = 0.4 * kd; r.lean = 0.06 + 0.42 * kd; r.hold = 1 - smooth((s - T.SET1) / (T.REL1 - T.SET1));
+      r.z += sg * 0.32 * smooth((s - T.BACK0) / (T.BACK1 - T.BACK0));
+      r.yaw = angLerp(faceLine, FACE_ST, smooth((s - T.FACE0) / (T.FACE1 - T.FACE0)));
+      if (i === 1) r.nod = clamp01((s - T.NOD0) / (T.NOD1 - T.NOD0)); // the one by the door nods: done
       return r;
     }
-    function boxPose(s, r) { // in world space
-      if (s < T.SLIDE0) return null;
-      var hy = groundY(r.x, r.z), carryY = 0.66;
-      if (s < T.SLIDE1) { // slides out of the hold, toward the people
-        var k = smooth((s - T.SLIDE0) / (T.SLIDE1 - T.SLIDE0));
-        return { x: lerp(STOPX + VAN_LEN_REAR - 0.25, RIG.startX, k), y: VB.y0 + 0.62 + BX.h / 2 + 0.02 - (0.12) * k, z: RIG.z, yaw: 0 };
-      }
-      var low = BX.h / 2 + hy, hi = carryY + hy, slideEnd = VB.y0 + 0.62 + BX.h / 2 - 0.1;
-      var y = s < T.BACK1 ? lerp(slideEnd, hi, smooth((s - T.SLIDE1) / (T.BACK1 - T.SLIDE1))) : lerp(low, hi, r.lift);
-      return { x: r.x, y: y, z: r.z, yaw: r.yaw };
-    }
+    // walk phase from the distance each person actually covers along the way they face, so planted feet do not slide
+    var PH_DT = 1 / 240, PH_T0 = T.CUT3, phase = [[], []], speedTab = [[], []];
+    (function () {
+      var sEnd = T.SLOW + (T.HOLD + T.FADE - T.SLOW) * SLOWK + 0.1;
+      [0, 1].forEach(function (i) {
+        var prev = personPose(i, PH_T0), acc = 0, cyc = CLIP_V * WALK_DUR * people[i].s;
+        for (var k = 0, s = PH_T0; s <= sEnd; k++, s = PH_T0 + k * PH_DT) {
+          var cur = personPose(i, s), dx = cur.x - prev.x, dz = cur.z - prev.z, jump = Math.hypot(dx, dz) > 0.5;
+          var step = jump ? 0 : dx * Math.sin(cur.yaw) + dz * Math.cos(cur.yaw); // turning on the spot is handled by its own two steps
+          acc += step / cyc; phase[i].push(acc);
+          speedTab[i].push(s > T.BACK0 && s < T.FACE1 ? 0 : jump ? (speedTab[i].length ? speedTab[i][speedTab[i].length - 1] : 0) : Math.abs(step) / PH_DT);
+          prev = cur;
+        }
+        // walk weight follows the speed averaged over a quarter second, so a brief pause between two moves does not snap the legs
+        var raw = speedTab[i], half = Math.round(0.12 / PH_DT), sm = [];
+        for (k = 0; k < raw.length; k++) {
+          var a = Math.max(0, k - half), b = Math.min(raw.length - 1, k + half), sum = 0;
+          for (var m = a; m <= b; m++) sum += raw[m];
+          sm.push(sum / (b - a + 1));
+        }
+        speedTab[i] = sm;
+      });
+    })();
+    function tab(arr, s) { var f = (s - PH_T0) / PH_DT, k = Math.max(0, Math.min(arr.length - 2, Math.floor(f))); return lerp(arr[k], arr[k + 1], clamp01(f - k)); }
 
-    var tmpV = new V(), REST_L = new V(1, 0, 0), REST_R = new V(-1, 0, 0);
-    function armTo(bone, rest, dir) { bone.quaternion.setFromUnitVectors(rest, tmpV.copy(dir).normalize()); }
-    function posePerson(p, idx, s, r, bp) {
-      // idx 0 stands at +z of the rig (box on its right), idx 1 at -z (box on its left)
-      var side = idx === 0 ? 1 : -1, cy = Math.cos(r.yaw), sy = Math.sin(r.yaw), back = r.stepBack;
-      var lz = side * (W_OFF + 0.15 * back);
-      // after the set-down they step back along the rig's backward direction (+x local)
-      var wx = r.x + lz * sy + back * cy, wz = r.z + lz * cy - back * sy;
-      var visible = s >= T.CUT3;
+    // two-bone reach in world space: a (upper), b (lower), end = point fixed in b's space; pole picks the bend plane
+    var vA = new V(), vB = new V(), vE = new V(), vT = new V(), vD = new V(), vP = new V(), qW = new THREE.Quaternion(), qP = new THREE.Quaternion(), qD = new THREE.Quaternion();
+    function rotateWorld(bone, q) { // apply a world-space rotation to a bone, keeping its parent
+      bone.parent.getWorldQuaternion(qP); bone.getWorldQuaternion(qW);
+      bone.quaternion.copy(qP.invert()).multiply(q).multiply(qW); bone.updateMatrixWorld(true);
+    }
+    function aim(bone, from, to) { qD.setFromUnitVectors(from.normalize(), to.normalize()); rotateWorld(bone, qD); }
+    function twoBone(a, b, endLocal, target, pole) {
+      a.getWorldPosition(vA); b.getWorldPosition(vB); vE.copy(endLocal); b.localToWorld(vE);
+      var l1 = vA.distanceTo(vB), l2 = vB.distanceTo(vE);
+      vD.copy(target).sub(vA); var d = Math.max(Math.abs(l1 - l2) + 1e-4, Math.min(l1 + l2 - 1e-4, vD.length())); vD.normalize();
+      vP.copy(pole).addScaledVector(vD, -pole.dot(vD)).normalize();
+      var ca = (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), sa = Math.sqrt(Math.max(0, 1 - ca * ca));
+      var elbow = vA.clone().addScaledVector(vD, l1 * ca).addScaledVector(vP, l1 * sa);
+      aim(a, vB.clone().sub(vA), elbow.clone().sub(vA));
+      b.getWorldPosition(vB); vE.copy(endLocal); b.localToWorld(vE);
+      vT.copy(vA).addScaledVector(vD, d);
+      aim(b, vE.clone().sub(vB), vT.clone().sub(vB));
+    }
+    var UP = new V(0, 1, 0), mL = new THREE.Matrix4(), mW = new THREE.Matrix4(), Y_AX = new V(0, 1, 0);
+    function orientHand(w, palmLocal, fingers, palm) { // wrist turned so the fingers and the palm point where asked
+      var a = Y_AX.clone(), bl = palmLocal.clone().addScaledVector(a, -palmLocal.dot(a)).normalize(), cl = a.clone().cross(bl);
+      var A2 = fingers.clone().normalize(), B2 = palm.clone().addScaledVector(A2, -palm.dot(A2)).normalize(), C2 = A2.clone().cross(B2);
+      mL.makeBasis(a, bl, cl); mW.makeBasis(A2, B2, C2);
+      var q = new THREE.Quaternion().setFromRotationMatrix(mW.multiply(mL.transpose()));
+      w.parent.getWorldQuaternion(qP); w.quaternion.copy(qP.invert()).multiply(q); w.updateMatrixWorld(true);
+    }
+    // where each hand goes on the box (world), its finger direction and palm normal
+    var boxU = new V(0, 0, -1), boxV = new V(1, 0, 0); // the box's long axis runs toward the house; its depth runs along x
+    function grips(i, r, bp) {
+      var e = i === 0 ? -1 : 1; // person 0 holds the street end (-u), person 1 the house end (+u)
+      var c = new V(bp.x, bp.y, bp.z), out = {};
+      var fwd = new V(Math.sin(r.yaw), 0, Math.cos(r.yaw)), left = UP.clone().cross(fwd);
+      ['L', 'R'].forEach(function (k) {
+        var sideW = (k === 'L' ? left : left.clone().negate());
+        // table grip (facing the box's long side at the van): the outer hand on the end face, the inner hand on the near long face
+        var outer = sideW.dot(boxU) * e > 0, gT, nT;
+        if (outer) { gT = c.clone().addScaledVector(boxU, e * (BX.w / 2 + 0.025)).addScaledVector(UP, -0.04).addScaledVector(boxV, 0.04); nT = boxU.clone().multiplyScalar(-e); }
+        else { gT = c.clone().addScaledVector(boxV, BX.d / 2 + 0.025).addScaledVector(boxU, e * (BX.w / 2 - 0.2)).addScaledVector(UP, -0.06); nT = boxV.clone().negate(); }
+        // end grip (facing along the box): one hand on each long face, near this person's end, a little below the middle
+        var sv = sideW.dot(boxV) > 0 ? 1 : -1;
+        var gE = c.clone().addScaledVector(boxV, sv * (BX.d / 2 + 0.025)).addScaledVector(boxU, e * (BX.w / 2 - 0.12)).addScaledVector(UP, -0.06), nE = boxV.clone().multiplyScalar(-sv);
+        var g = gT.lerp(gE, r.grip), n = nT.lerp(nE, r.grip).normalize();
+        var fingers = UP.clone().multiplyScalar(-0.85).addScaledVector(n, 0.35).addScaledVector(fwd, 0.25).normalize();
+        out[k] = { pos: g, palm: n, fingers: fingers, side: sideW };
+      });
+      return out;
+    }
+    var PALM_IN = 0.085; // wrist to the middle of the palm, in model units
+    function posePerson(p, idx, s) {
+      var r = personPose(idx, s), visible = s >= T.CUT3;
       p.holder.visible = visible; pBlobs[idx].visible = visible;
       if (!visible) return;
-      p.holder.position.set(wx, groundY(wx, wz), wz);
-      p.holder.rotation.y = r.yaw - Math.PI / 2; // the model faces +z; the rig faces -x
-      var A_ = p.acts, walkW = r.walkW, crouchW = clamp01(r.crouch), nodW = idx === 1 ? Math.sin(Math.PI * clamp01(r.nod)) : 0;
-      var cyc = A_.walk.getClip().duration;
-      A_.walk.time = (((r.phase * r.dir) % 1) + 1) % 1 * cyc; A_.walk.setEffectiveWeight(walkW * (1 - crouchW));
-      A_.walkArms.time = A_.walk.time; A_.walkArms.setEffectiveWeight(walkW * (1 - crouchW));
-      A_.idle.time = (s * 0.6) % A_.idle.getClip().duration; A_.idle.setEffectiveWeight(Math.max(0, 1 - walkW - crouchW - nodW));
-      A_.crouch.time = Math.min(A_.crouch.getClip().duration * 0.999, A_.crouch.getClip().duration * crouchW); A_.crouch.setEffectiveWeight(crouchW);
-      A_.yes.time = clamp01(r.nod) * A_.yes.getClip().duration * 0.999; A_.yes.setEffectiveWeight(nodW);
-      A_.hold.setEffectiveWeight(0);
+      var gy = groundY(r.x, r.z), sp = tab(speedTab[idx], s), ph = tab(phase[idx], s);
+      p.holder.position.set(r.x, gy, r.z); p.holder.rotation.y = r.yaw;
+      var stepWin = s > T.BACK0 && s < T.FACE1, walkW = stepWin ? 0 : smooth(sp / 0.12), A_ = p.acts; // the last short moves are single steps, below
+      A_.walk.time = ((ph % 1) + 1) % 1 * WALK_DUR; A_.walk.setEffectiveWeight(walkW);
+      A_.idle.time = (s * 0.6) % A_.idle.getClip().duration; A_.idle.setEffectiveWeight(1 - walkW);
       p.mixer.update(0);
-      if (bp && s < T.SET1 + 0.05) { // both hands on the box (code on top of the clips): inner hand on its side, outer hand on its near face
-        var inner = idx === 0 ? p.bones['arm-right'] : p.bones['arm-left'], outer = idx === 0 ? p.bones['arm-left'] : p.bones['arm-right'];
-        var down = 0.55 + 0.45 * crouchW;
-        armTo(inner, idx === 0 ? REST_R : REST_L, new V(idx === 0 ? -0.62 : 0.62, -down, 0.38));
-        armTo(outer, idx === 0 ? REST_L : REST_R, new V(idx === 0 ? -0.05 : 0.05, -down * 0.85, 0.78));
-        p.bones.torso.rotation.x = 0.06 * clamp01(r.lift + 0.5) - 0.25 * crouchW; // a slight lean back under the load
+      var tw = A_.walk.time, ti = A_.idle.time;
+      var fw = {};
+      p.touched.forEach(function (t) {
+        var wp = t.walkP ? new V().fromArray(t.walkP.evaluate(tw)) : t.p.clone(), ip = t.idleP ? new V().fromArray(t.idleP.evaluate(ti)) : t.p.clone();
+        var wq = t.walkQ ? new THREE.Quaternion().fromArray(t.walkQ.evaluate(tw)) : t.q.clone(), iq = t.idleQ ? new THREE.Quaternion().fromArray(t.idleQ.evaluate(ti)) : t.q.clone();
+        if (t.foot) { fw[t.foot] = { t: t, wp: wp, ip: ip, wq: wq, iq: iq }; return; }
+        t.b.position.copy(ip).lerp(wp, walkW); t.b.quaternion.copy(iq).slerp(wq, walkW);
+      });
+      // feet: when starting or stopping, one foot moves (lifted a little) and then the other, rather than both sliding into place
+      var dL = Math.hypot(fw.L.wp.x - fw.L.ip.x, fw.L.wp.z - fw.L.ip.z), dR = Math.hypot(fw.R.wp.x - fw.R.ip.x, fw.R.wp.z - fw.R.ip.z), still = 1 - walkW;
+      ['L', 'R'].forEach(function (k) {
+        var f = fw[k], first = (dL >= dR) === (k === 'L'), kk = smooth(first ? 2 * still : 2 * still - 1);
+        f.t.b.position.copy(f.wp).lerp(f.ip, kk); f.t.b.position.y += Math.sin(Math.PI * kk) * Math.min(0.07, (k === 'L' ? dL : dR) * 0.5);
+        f.t.b.quaternion.copy(f.wq).slerp(f.iq, kk);
+      });
+      p.holder.updateMatrixWorld(true);
+      if (stepWin) { // the step back and the turn to the street: each foot stays put, then steps to its new place, one after the other
+        var a0 = personPose(idx, T.BACK0), a1 = personPose(idx, T.FACE1), y0 = a0.yaw, y1 = a1.yaw, u = (s - T.BACK0) / (T.FACE1 - T.BACK0), pin = {};
+        [a0, a1].forEach(function (a, j) {
+          p.holder.position.set(a.x, groundY(a.x, a.z), a.z); p.holder.rotation.y = a.yaw; p.holder.updateMatrixWorld(true);
+          ['L', 'R'].forEach(function (k) { pin[k + j] = p.leg[k][2].getWorldPosition(new V()); });
+        });
+        p.holder.position.set(r.x, gy, r.z); p.holder.rotation.y = r.yaw; p.holder.updateMatrixWorld(true);
+        var lead = angLerp(y0, y1, 1) > y0 ? 'L' : 'R'; // turning left, the left foot goes first
+        ['L', 'R'].forEach(function (k) {
+          var kk = smooth(k === lead ? 2 * u : 2 * u - 1), ft = p.leg[k][2], w = pin[k + 0].clone().lerp(pin[k + 1], kk);
+          w.y += Math.sin(Math.PI * kk) * 0.08;
+          ft.position.copy(ft.parent.worldToLocal(w));
+          ft.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(UP, angLerp(y0, y1, kk) - r.yaw));
+          ft.updateMatrixWorld(true);
+        });
       }
+      var fwd = new V(Math.sin(r.yaw), 0, Math.cos(r.yaw)), left = UP.clone().cross(fwd);
+      // legs are always solved to the feet: the hips may drop (crouch) and the upper body lean, the feet stay where they are
+      var fl = {}; ['L', 'R'].forEach(function (k) { fl[k] = p.leg[k][2].getWorldPosition(new V()); });
+      if (r.crouch > 0.001) { p.body.position.y -= r.crouch / p.s; p.body.updateMatrixWorld(true); }
+      if (r.lean > 0.001) rotateWorld(p.hips, new THREE.Quaternion().setFromAxisAngle(left, r.lean));
+      ['L', 'R'].forEach(function (k) {
+        var pole = fwd.clone().addScaledVector(k === 'L' ? left : left.clone().negate(), 0.12);
+        twoBone(p.leg[k][0], p.leg[k][1], p.shin[k], fl[k], pole);
+      });
+      if (r.hold > 0.001) {
+        var bp = boxPose(s), gr = grips(idx, r, bp);
+        ['L', 'R'].forEach(function (k) {
+          var g = gr[k], arm = p.arm[k], wrist = arm[2];
+          var tgt = g.pos.clone().addScaledVector(g.fingers, -PALM_IN * p.s);
+          var pole = g.side.clone().multiplyScalar(0.7).addScaledVector(UP, -0.6).addScaledVector(fwd, -0.3);
+          var held = wrist.getWorldPosition(new V()).lerp(tgt, r.hold);
+          twoBone(arm[0], arm[1], arm[2].position.clone(), held, pole);
+          if (r.hold > 0.5) orientHand(wrist, p.palm[k], g.fingers, g.palm);
+        });
+      }
+      if (r.nod > 0) rotateWorld(p.head, new THREE.Quaternion().setFromAxisAngle(left, 0.32 * Math.sin(Math.PI * r.nod) * Math.sin(Math.PI * r.nod)));
     }
 
     /* --- camera: shots, each a function of time; framing adapts to the frame's aspect --- */
@@ -896,18 +1059,17 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
         var k3 = (t - T.CUT2) / (T.CUT3 - T.CUT2);
         return { pos: new V(STOPX - 7.5 + 0.6 * k3, 0.85, z0 - 5.4).add(sway(t, 0.03)), look: new V(vp.x + 0.5, 1.0, LANEZ + 0.4), hfov: 54 - 3 * k3, shot: 3, focus: new V(STOPX, 0, z0 - 3), span: 12 };
       }
-      if (t < T.CUT4) { // shot 4: behind and to the side of the van's back, the doors open, the box comes out
-        var k4 = smooth((t - T.CUT3) / (T.CUT4 - T.CUT3));
-        var rear = STOPX + VAN_LEN_REAR;
-        return { pos: new V(rear + 5.4 - 0.6 * k4, 1.75, LANEZ + 3.6 - 0.4 * k4).add(sway(t, 0.02)), look: new V(rear + 0.6, 0.85, LANEZ - 1.4 * k4), hfov: 60, shot: 4, focus: new V(rear + 1, 0, LANEZ - 1), span: 8 };
+      if (t < T.CUT4) { // shot 4: behind the van and off its street-side corner, at eye height: the doors, both people and the box read
+        var k4 = smooth((t - T.CUT3) / (T.CUT4 - T.CUT3)), kw = smooth((t - T.TURN1) / (T.CUT4 - T.TURN1));
+        return { pos: new V(REAR + 5.6 - 0.4 * k4, 1.8, LANEZ + 3.9 - 1.0 * kw).add(sway(t, 0.02)), look: new V(REAR + 0.75, 0.95, LANEZ - 0.3 - 0.7 * kw), hfov: 58, tight: 0.56, shot: 4, focus: new V(REAR + 0.7, 0, LANEZ - 0.5), span: 7 };
       }
-      var k5 = smooth((t - T.CUT4) / 2.5); // shot 5: at the door, a slow drift
-      return { pos: new V(CARRY_X + 5.6 - 0.5 * k5, 2.1, RIG.setZ + 4.4 - 0.4 * k5), look: new V(CARRY_X - 0.3, 0.8, DOORZ + 0.7), hfov: 56, shot: 5, focus: new V(CARRY_X, 0, RIG.setZ), span: 8 };
+      var k5 = smooth((t - T.CUT4) / (T.FACE1 - T.CUT4)); // shot 5: at the door from the lawn, a slow push in
+      return { pos: new V(LX + 4.3 - 0.6 * k5, 1.6, BOX_SET + 3.0 - 0.6 * k5), look: new V(LX - 0.2, 0.95, BOX_SET - 0.2), hfov: 56, tight: 0.64, shot: 5, focus: new V(LX, 0, BOX_SET), span: 7 };
     }
     var aspect = 1;
     function placeCamera(cs) {
       // portrait frames trade some width for size so the van stays readable; cap the vertical fov, then back off
-      var hf = aspect < 1 ? cs.hfov * 0.74 : cs.hfov, cap = aspect < 1 ? 78 : 70;
+      var hf = aspect < 1 ? cs.hfov * (cs.tight || 0.74) : cs.hfov, cap = aspect < 1 ? 78 : 70; // the two shots of the people go tighter still
       var need = 2 * Math.atan(Math.tan(hf * D2R / 2) / aspect) / D2R;
       var vf = Math.max(34, Math.min(cap, need)), k = 1;
       if (need > cap) k = Math.tan(need * D2R / 2) / Math.tan(cap * D2R / 2);
@@ -940,11 +1102,11 @@ body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!imp
       body.position.y = Math.sin(s * 19) * 0.02 * Math.min(spd / 8, 1);
       wheels.forEach(function (w) { w.rotation.x = vp.dist / WR; });
       var dk = smooth((s - T.DOOR0) / (T.DOOR1 - T.DOOR0));
-      leaves.forEach(function (l) { l.g.rotation.y = -l.s * dk * 1.9; });
-      var r = rigPose(s), bp = boxPose(s, r);
-      box.visible = !!bp && t >= T.CUT3; boxBlob.visible = box.visible;
-      if (bp) { box.position.set(bp.x, bp.y, bp.z); box.rotation.set(0, bp.yaw + Math.PI / 2, 0); boxBlob.position.set(bp.x, groundY(bp.x, bp.z) + 0.05, bp.z); }
-      people.forEach(function (p, i) { posePerson(p, i, s, r, bp); pBlobs[i].position.set(p.holder.position.x, p.holder.position.y + 0.05, p.holder.position.z); });
+      leaves.forEach(function (l) { l.g.rotation.y = -l.s * dk * 1.75; }); // a little past square, so the two can step in between them
+      var bp = boxPose(s);
+      box.visible = !!bp; boxBlob.visible = box.visible;
+      if (bp) { box.position.set(bp.x, bp.y, bp.z); box.rotation.set(0, Math.PI / 2, 0); boxBlob.position.set(bp.x, groundY(bp.x, bp.z) + 0.05, bp.z); }
+      people.forEach(function (p, i) { posePerson(p, i, s); pBlobs[i].position.set(p.holder.position.x, p.holder.position.y + 0.05, p.holder.position.z); });
       var cs = camShot(s, vp);      fitShadow(cs.focus, cs.span);
       placeCamera(cs);
       // letterbox bars during the drive and the delivery, gone for the banner

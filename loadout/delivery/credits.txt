@@ -4,7 +4,8 @@ Loadout delivery cutscene: asset credits
 Every file in this folder is CC0 (public domain dedication) or was made
 for this project. No credit is required by any of them; this list exists
 so anyone can check where each file came from. Downloaded 2026-11-11 from
-the makers' own sites only.
+the makers' own sites only (for Quaternius, the download links on the
+maker's own pack pages).
 
 -------------------------------------------------------------------------
 Maker:    Kenney (www.kenney.nl)
@@ -23,19 +24,35 @@ Changes:  the GLB files had an empty KHR_texture_transform tag (texCoord 0
           geometry and images are untouched.
 
 -------------------------------------------------------------------------
-Maker:    Kenney (www.kenney.nl)
-Pack:     Mini Characters (version 2.0)
-Page:     https://kenney.nl/assets/mini-characters
-License:  "License: (Creative Commons Zero, CC0)
-          http://creativecommons.org/publicdomain/zero/1.0/
-          You can use this content for personal, educational, and
-          commercial purposes." (License.txt in the pack)
-Files:    models/people/character-male-f.glb
-          models/people/character-male-d.glb
-          models/people/Textures/colormap.png
-Changes:  same empty tag removed. In the scene the two figures are
-          recolored in code to charcoal polo shirts and blue jeans, and
-          their legs, heads and arms are rescaled by bone.
+Maker:    Quaternius (quaternius.com)
+Pack:     Ultimate Modular Men (February 2022), "Ultimate Modular Males by
+          @Quaternius" in the pack's own License.txt
+Page:     https://quaternius.com/packs/ultimatemodularcharacters.html
+Download: by the owner, 2026-11-11, through the download link on that page
+          (the maker's Google Drive folder)
+License:  "License:
+          CC0 1.0 Universal (CC0 1.0)
+          Public Domain Dedication
+          https://creativecommons.org/publicdomain/zero/1.0/"
+          (License.txt in the pack)
+Files:    models/people/crew-a.glb, models/people/crew-b.glb (the two
+          delivery people), made from the pack's glTF characters
+          Individual Characters/glTF/Casual_2.gltf (body, legs and feet,
+          used for both), Suit.gltf (the head of the first person) and
+          Adventurer.gltf (the head of the second person)
+Changes:  repacked as binary glTF by a small script. Unused animations were
+          removed: of the 24 clips only Walk and Idle_Neutral are kept, and
+          only in crew-a.glb; crew-b.glb has the same skeleton and is
+          animated with those clips by bone name. Unused parts were removed:
+          the other heads, outfits, the backpack and the weapon props, the
+          texture coordinates (no material in the pack uses a texture), and
+          every accessor and byte range only those used. The skeleton, rest
+          pose, skin weights and the kept clips are byte for byte the
+          pack's own. In the scene the shirt, jeans, shoes, hair and one
+          skin tone are recolored in code (charcoal polo shirts and blue
+          jeans); a collar, a button placket and a small blue chest mark
+          are added as plain shapes; arms, legs and the nod are posed by
+          code on top of the clips.
 
 -------------------------------------------------------------------------
 Maker:    Kenney (www.kenney.nl)
