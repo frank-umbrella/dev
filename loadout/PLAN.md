@@ -859,6 +859,7 @@ Build T0 first. T1 and T2 are worker work and need the plan tier known.
 | 0.6.0 | loadout-worker: T1 Zapier intake (if Premium) or T2 API intake and note push (if Unlimited and approved); nightly CSV export to the project's Storage bucket, listed under Console > Backups (0.6.1); carrier tracking poll if wanted. Settings shows the tier and last sync. |
 | 0.8.0 | Simple mode (section 18): Home with the doors (Pick up, Deliver, Pull, Audit), Job and Pull sheet words, Shelf (Stock and Units), Office (More and the Console), the Pick up step and Confirm a delivery screens, Audit a shelf, one strip and one next step per job card, the wall board as a six-card grid, every old address kept as an alias. Built 2026-11-05, not committed. |
 | 0.9.0 | Section 20: the focused Pull screen (`#pull/<jobId>`) in pick order, the Pull door split into pullable and waiting on orders, Bring back from a van with the Close job van rule, Receive a shipment as the fourth door (serial or MAC on shipment receive), Arrived for carrier drops, the non-zero progress line, the QR on the printed pull sheet, the board's phone layout (20.3), the leftover-words sweep, `loadout_settings/worker` in the data dictionary, and the tech rules run in the emulator (14 of 14). Built 2026-11-11, not committed, rules not deployed. |
+| 0.10.0 | Section 21.4 Photo from a UPC (the sheet after every UPC save, Find a photo, Review photos after an import, the demo fixtures; needs loadout-worker 0.3.0 deployed), 22.1 New job made plain (two choices, three hand-built steps, "Here is what the file says"; the same writes as 0.9.1), 22.2 More for techs (`officeWord()`), 23 the Job report, 24 the account block in the header and the Account sheet. Built 2026-11-11, not committed, no rules change. |
 | 0.9.1 | Section 21.1 Shelf filters (Category from the product's own category, Type, Brand, Location, Consumables only; chips, the phone Filter sheet, session only) and 21.3 history as one vertical timeline everywhere; the home-screen strip, card, and Office > This phone on phones and tablets only; an odd last door spans both columns on Home; leftover "Stock" words. 21.2 stays an idea. Built 2026-11-11, not committed. |
 
 Each version is a release: bump the version everywhere, README changelog entry
@@ -1827,6 +1828,22 @@ UPC goes onto a product, look the photo up and ask.**
 - Demo mode answers from fixtures with drawn placeholder pictures marked
   Demo and makes no network call.
 
+Built in 0.10.0: `openUpcPhoto` (one sheet, states looking, found, not found,
+busy, unreachable, offline, not allowed), `offerUpcPhoto` called from
+`doSaveProduct` whenever a UPC is newly saved (so Set UPC, Link, the panel
+field, New product, and Edit product all ask), Find a photo on the panel of
+any product with a UPC, and Review photos for N products in the import done
+box with Skip the rest. Photos come through `fetch()` with the ID token and
+show from blob URLs revoked on close; a chosen one goes through `doSetPhoto`
+(same 1200 px JPEG, same path, same Storage rules), which now also writes
+`photoSource` (`camera` or `upc`). One field beyond this section:
+`upcLookupUpc`, the UPC an answer was about, because "the same UPC" cannot
+be told otherwise. The mismatch test compares the product's brand and model
+words (its name's when it has neither) of four or more characters with the
+lookup's title, brand, and model. Rules unchanged: admin and warehouse
+already write any product field. Not done here: the plain drawn icon per
+category from 21.2, and any bulk lookup outside the import queue.
+
 ## 22. New job, made plain (user, 2026-11-11; build in 0.10.0)
 
 The user: "New job, import a Portal CSV" confuses employees, most of all
@@ -1879,6 +1896,21 @@ Portal is, what a CSV is, and where to get one.
   saved column map, same re-import behavior, Add lines to an existing job
   uses the same two choices.
 
+Built in 0.10.0: the sheet rebuilt around the same `I` state and
+`createTicket()`; a picked product carries its id into `handLines()`, which
+otherwise matches typed text as before, so a demo write for the same input
+names the same collections, ids, and fields as 0.9.1. Choices made in the
+build: the stepper moves an each product by 1 and wire by 50 ft; the hand
+path asks no proposal number (a made-up one, as 0.9.1 with the field blank)
+and no address; the file path asks for both; a client with no open jobs
+goes straight to a typed job name. Create job lands on `#pull/<id>` for
+warehouse and admin and `#job/<id>` otherwise; an update to an existing job
+stays on the job page. The "Accepted proposals arrive here" line shows for
+the admin when the Portal tier is t1 or t2. Scan opens a small scanner sheet
+over New job (camera where there is one, a typed code always), not the Scan
+tab. The sheet asks before X, Cancel, Escape, or the handle throw typed work
+away (a guard on `closeModal`).
+
 ### 22.2 The last tab's name by role (user, 2026-11-11; build in 0.10.0)
 
 The user asked whether Office should be called Settings, or whether it is
@@ -1890,6 +1922,16 @@ for admin, warehouse and accounting. One helper returns the word for the
 signed-in role so no string hard-codes it; hashes stay `#office/...` for
 everyone. The storyboard says "Office (More for techs)" once and uses
 Office after that.
+
+Built in 0.10.0: `officeWord()` beside the account block code; the nav and
+tab bar labels are `data-ow` spans it fills, and the Office screen heading,
+crumbs, Back to, the Orders and tracking crumb, the Labels toasts, the
+reprint hint on Scan, the This phone strings, and the Movements report hint
+use it. The sign-in screen names no tab ("This phone, under the last tab"),
+since no role is known there. Still saying Office on purpose: the ship-to
+choice and Tracking's Office column (the place, not the tab), and the
+admin-only explanations (People's role tooltip, Settings' Show costs, the
+data dictionary's notes on admin sections).
 
 ## 23. A report for one job (user, 2026-11-11; build in 0.10.0)
 
@@ -1916,6 +1958,19 @@ on the job page, which accounting cannot open and which does not export.
   other report. No date range: a job is whole.
 - Open to admin and accounting, like the rest of Reports.
 
+Built in 0.10.0: `REPORTS` gains `job` beside Delivered, drawn by
+`jobReportHTML` in the same frame without the date range. Pulled is the
+line's `qtyStaged` (everything taken off a shelf or a PO for it), Staged
+is what is in the bay now, Picked up the larger of picked up and
+delivered, Brought back the sum of the line's "Brought back" moves, Still
+to order `uncoveredFor()`. Unit cost is the PO line's when there is one,
+else the product's last cost. Units and box cuts are sub-rows (a
+`subRows` option on `tableHTML`, plus a `foot` totals row); a cut written
+without its line id goes to the job's line for the same product. The job
+search remembers the last job for the session (sessionStorage). Rules:
+lines and units are read by every role on the domain, accounting
+included, so nothing changed.
+
 ## 24. Who is signed in, in the header (user, 2026-11-11; build in 0.10.0)
 
 Today the footer says "Signed in as <email>, Role: Admin" and the header
@@ -1935,6 +1990,23 @@ the name, under the sync pill, and out of the footer.
 - **Footer**: version only. The "Signed in as" and "Role" lines go.
 - Demo mode shows the demo role there the same way; the board has no
   header and is unchanged.
+- **The mark goes Home** (owner, 2026-11-11, added during the build): the
+  Loadout mark and name at the top left are one real link, `<a href="#home">`
+  with `aria-label="Loadout, go to Home"`, 44 px tall on the phone, with the
+  focus ring. From any screen it lands on `#home` (accounting on Office,
+  Reports and the board role on the board, as `#home` already does); on
+  Home it scrolls to the top. A relative hash, so the demo keeps its query
+  string. It does not change the header's height or push the account block.
+
+Built in 0.10.0: `#acctBtn` holds the sync pill, the name, and the role;
+`openAccount()` is the sheet (the role's sentence comes from `ROLE_WHAT`),
+and Sign out (Leave the demo in demo mode) is its confirm button. The
+footer keeps only the version; its sync text went with the rest, since the
+pill above says the same. Demo shows "Demo, Warehouse" under the pill.
+The mark is `#brandHome`; a click while already on `#home` (no hashchange)
+scrolls to the top. Measured: 61 px header and 48 px shrunk at 360, 375,
+and 456 px for all four roles, the same as 0.9.1; on a desktop the header
+is 61 px, 3 px taller than 0.9.1's 58 px (the 44 px account block and mark).
 
 ## 25. Brand and category as pick lists (user, 2026-11-11; build as 0.11.0)
 
@@ -2006,3 +2078,36 @@ Opus tokens of builds plus Fable's own work used 59% of a 5-hour window and
 the week. Still awaiting a go-ahead. Build as `delivery-preview.html`
 first; in the app the 3D library loads only when the animation plays and
 falls back to the banner alone when offline or on a slow phone.
+
+### 26.2 The opening shot: the shop, from a high angle (user, 2026-11-11)
+
+The user wants the scene to open on the company's own office from a high
+angle, with the van leaving from it. Fable looked at the aerial view the
+user linked and describes the place for the modeler below. The scene is
+drawn from scratch as low-poly shapes; no map imagery, photo, address,
+street name or coordinate goes into the file or the repo (it is public).
+
+- **The building.** The south end unit of a long single-story strip of
+  shops. Flat roofs with a low parapet: the strip's roof is off-white, the
+  end unit's is a darker tan-brown, so it reads as "ours". A few roof units
+  (small grey boxes). The front faces east: brick, a band of storefront
+  glass, a door. The Umbrella Automation wordmark sits on a sign band over
+  the door (two lines sharing a left edge).
+- **The lot.** A paved lot along the whole front, one row of stalls nosed
+  in to the building and a second row along the road, a grass strip with a
+  curb between the lot and the road. A drive aisle runs along the south
+  wall of the building to a second lot behind. A handful of parked cars as
+  plain colored blocks.
+- **The road.** A wide north-south road east of the lot: two lanes each
+  way and a center turn lane, with a thick tree line on the far side. A
+  smaller cross street to the south, past a separate small building with a
+  white roof.
+- **The shot.** Camera starts high to the south-east looking down at about
+  40 degrees (the angle of the user's link), the charcoal van backs out of
+  a stall by the door, pulls to the lot's exit and turns onto the road;
+  the camera swings down behind it as it drives off, cut to the house, the
+  box with the Loadout mark drops at the door, the banner lands.
+- **Estimate with the office scene:** 330k to 550k Opus tokens, about 18
+  to 30% of one 5-hour window and 2.5 to 4% of the week; a revision round
+  adds 5 to 8% of a window. Length grows to about 5 seconds, still
+  skippable with a tap.

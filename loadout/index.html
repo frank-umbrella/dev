@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.9.1</title>
+<title>Loadout v0.10.0</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.9.1">
+<meta name="loadout-version" content="0.10.0">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -87,7 +87,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 /* ---------- app chrome ---------- */
 .top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:var(--s1) var(--s3);padding:var(--s1) var(--s4);background:var(--m-topbar);color:var(--m-toptext);border-bottom:1px solid var(--m-line);flex-wrap:wrap;min-height:58px}
-.brand{display:flex;align-items:center;gap:var(--s1);font-weight:700;font-size:19px;letter-spacing:.01em}
+.brand{display:flex;align-items:center;gap:var(--s1);font-weight:700;font-size:19px;letter-spacing:.01em;color:inherit;text-decoration:none;border-radius:var(--m-radius);min-height:44px;padding:0 4px;margin-left:-4px}
 .brand svg{width:26px;height:26px;flex:none;color:var(--m-brandmark)}
 .brand .v{font:500 11px var(--m-mono);color:var(--m-topmuted);border:1px solid var(--m-line);border-radius:4px;padding:1px 5px;letter-spacing:0}
 .nav{display:flex;gap:2px;flex-wrap:wrap}
@@ -100,8 +100,17 @@ button,input,select,textarea{font:inherit;color:inherit}
 .sync.off i{background:var(--m-danger)}
 .sync.busy i{background:var(--m-warn)}
 .sync.demo i{background:var(--m-muted)}
-.who{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--m-topmuted)}
-.who span{border:1px solid var(--m-line);border-radius:999px;padding:3px 10px;overflow-wrap:anywhere}
+/* 0.10.0 (PLAN 24): the account block. One button, right side: the sync pill
+   and the name on the first line, the role under them in the muted color.
+   The hover border is the only chrome, so it reads as part of the header. */
+.acct{margin-left:auto;display:inline-flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:2px;min-height:44px;min-width:44px;max-width:100%;padding:0 8px;background:none;border:1px solid transparent;border-radius:var(--m-radius);color:var(--m-toptext);font:inherit;text-align:right;cursor:pointer}
+.acct:hover{border-color:var(--m-line2)}
+.acct1{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:100%}
+.acct .sync{margin-left:0}
+.acctName{font-size:13px;font-weight:600;color:var(--m-toptext);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22ch}
+.acctRole{font-size:12px;line-height:1.2;color:var(--m-topmuted);white-space:nowrap}
+.acctsheet dl{margin:0}
+.acctsheet .rolewhat{margin:6px 0 0;font-size:14px;color:var(--m-text)}
 .locchip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:2px 4px 2px 10px;border-radius:999px;border:1px solid var(--m-line);color:var(--m-text);background:var(--m-card2);max-width:100%}
 .locchip b{font-weight:600;overflow-wrap:anywhere}
 .locchip button{border:0;background:none;color:var(--m-muted);cursor:pointer;min-width:28px;min-height:28px;border-radius:50%;font-size:16px;line-height:1}
@@ -511,14 +520,103 @@ button.chip:hover{border-color:var(--m-muted)}
 input.filehide{display:none}
 .drop.over{border-color:var(--m-accent);background:color-mix(in srgb,var(--m-accent) 8%,var(--m-card))}
 .drop p{margin:0;color:var(--m-muted);font-size:13px}
-.step{display:flex;align-items:center;gap:8px;margin:20px 0 8px;font-size:14px;font-weight:700}
-.step:first-child{margin-top:4px}
-.step b{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--m-accent);color:var(--m-onaccent);font-size:12px;flex:none}
-.hline{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) 84px auto;gap:6px 8px;align-items:end;padding:8px 0;border-bottom:1px dashed var(--m-line)}
-.hline .lab{margin-top:0}
-.hline .x{min-width:38px;padding:0 8px}
-.hline .mch{grid-column:1/-1}
-@media (max-width:640px){.hline{grid-template-columns:minmax(0,1fr) 84px}.hline .hp{grid-column:1/-1}}
+/* ---------- 0.10.0 New job (PLAN 22.1) ----------
+   Two large choices, each a radio with a sentence: the selected one takes
+   the accent border and the nav tint, the same "you are here" the nav uses.
+   One line per product with a 44px stepper; the shelf sentence under the
+   name carries the state in words, its color only repeats it. */
+.ntlead{margin:0 0 var(--s2);font-size:15px;color:var(--m-text);max-width:64ch}
+.ncards{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s1)}
+@media (min-width:560px){.ncards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ncard{display:flex;gap:10px;align-items:flex-start;padding:var(--s2);border:1px solid var(--m-control-line);border-radius:var(--m-radius);background:var(--m-card);cursor:pointer;min-height:44px;min-width:0}
+.ncard input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--m-accent)}
+.ncard b{display:block;font-size:15px}
+.ncard span span{display:block;font-size:13px;color:var(--m-muted);margin-top:2px}
+.ncard.on{border-color:var(--m-accent);box-shadow:inset 0 0 0 1px var(--m-accent);background:var(--m-navon)}
+.ncard.on span span{color:var(--m-text)}
+.ncard:has(input:focus-visible){outline:2px solid var(--m-accent);outline-offset:2px}
+.ntstep{margin:var(--s3) 0 0;font-size:16px;font-weight:700}
+.ntstep:focus{outline:none}
+.ntstep:focus-visible{outline:2px solid var(--m-accent);outline-offset:2px}
+.ntsn{display:block;font-size:12px;font-weight:600;color:var(--m-muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:2px}
+.ntsh{margin:var(--s3) 0 var(--s1);font-size:15px}
+.ntsays{margin:0 0 var(--s1)}
+.ntol{margin:6px 0 0;padding-left:1.4em}
+.ntol li{margin:2px 0}
+.srow{display:flex;gap:var(--s1);align-items:stretch;min-width:0}
+.srow .fld{flex:1 1 auto;min-width:0}
+.srow .btn{flex:none}
+.hitlist{list-style:none;margin:6px 0 0;padding:0;border:1px solid var(--m-line);border-radius:var(--m-radius);overflow:hidden}
+.hitlist li+li{border-top:1px solid var(--m-line)}
+.hit{display:flex;justify-content:space-between;align-items:center;gap:var(--s2);width:100%;min-height:44px;padding:8px 12px;background:var(--m-card);border:0;text-align:left;font:inherit;color:var(--m-text);cursor:pointer}
+.hit:hover{background:var(--m-card2)}
+.hit:focus-visible{outline-offset:-2px}
+.hit .hn{min-width:0;overflow-wrap:anywhere}
+.hit .hs{flex:none;color:var(--m-muted);font-size:13px}
+.ntlines{margin-top:var(--s1);border-top:1px solid var(--m-line)}
+.ntl{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px var(--s2);align-items:center;padding:10px 0;border-bottom:1px solid var(--m-line)}
+.ntl1{min-width:0}
+.ntl1 b{display:block;overflow-wrap:anywhere}
+.ntsl{display:block;font-size:13px;color:var(--m-muted)}
+.ntsl.ok{color:var(--m-ok-text)}
+.ntsl.warn{color:var(--m-warn-text)}
+.ntroom{grid-column:1/-1;max-width:320px}
+.ntroom .lab{margin-top:0}
+.qstep{display:inline-flex;align-items:center;gap:4px}
+.qstep .btn{min-width:44px;min-height:44px;padding:0;font-size:18px;font-weight:600}
+.qstep .fld{width:84px;min-height:44px;text-align:right}
+.qstep .qu{min-width:1.3em;font-size:13px;color:var(--m-muted)}
+.ntrm{min-height:44px}
+@media (max-width:560px){.ntl{grid-template-columns:minmax(0,1fr) auto}.ntl1{grid-column:1/-1}}
+.ntempty{color:var(--m-muted);margin:var(--s2) 0}
+.nttype{margin-top:var(--s2)}
+.nttype .textbtn{min-height:44px}
+.nttot{font-size:17px;font-weight:700;margin:var(--s2) 0 var(--s1)}
+.ntcheck,.ntfile{list-style:none;margin:var(--s1) 0 0;padding:0;border-top:1px solid var(--m-line)}
+.ntcheck li,.ntfile li{display:grid;grid-template-columns:5.5em minmax(0,1fr);gap:4px var(--s2);padding:8px 0;border-bottom:1px solid var(--m-line);align-items:baseline}
+.ntcheck li>b,.ntfile li>b{text-align:right;font-variant-numeric:tabular-nums}
+.ntcheck .ntsl{margin-top:2px}
+.ntfile .nm{min-width:0;overflow-wrap:anywhere}
+.ntfile .mkw{grid-column:2;display:flex;flex-wrap:wrap;align-items:center;gap:4px var(--s2)}
+.mk{display:inline-flex;align-items:center;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid var(--m-control-line);color:var(--m-pilltext);background:var(--m-card2)}
+.mk.ok{color:var(--m-ok-text);border-color:var(--m-ok-text)}
+.mk.new{color:var(--m-info-text);border-style:dashed;border-color:var(--m-info-text)}
+.ntadd{font-size:13px;min-height:36px}
+.mscan .mcam{height:220px}
+/* ---------- 0.10.0 Photo for this UPC (PLAN 21.4) ----------
+   Thumbnails are a radio group: the chosen one takes the accent ring, and
+   the radio itself stays visible, so the choice never rests on color. */
+.uphead{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s2);flex-wrap:wrap;margin-bottom:var(--s1)}
+.upstate{margin:var(--s1) 0}
+.upstate.bad{color:var(--m-bad-text)}
+.upnames{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s1) var(--s3)}
+@media (min-width:520px){.upnames{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.upnames .lab{margin:0 0 2px}
+.upnames b{display:block;overflow-wrap:anywhere}
+.upnames .z{display:block;font-size:13px}
+.upwarn{margin:var(--s2) 0 0;padding:8px 12px;border:1px solid var(--m-warn-text);border-radius:var(--m-radius);background:color-mix(in srgb,var(--m-warn) 10%,var(--m-card));color:var(--m-warn-text);font-weight:600}
+/* four across even on a 360px phone, so the current and chosen photos below stay near the buttons */
+.upgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;border:0;padding:0;margin:var(--s2) 0 0;min-width:0}
+.upgrid legend{padding:0;margin-bottom:6px}
+.upth{position:relative;display:flex;flex-direction:column;gap:4px;padding:4px;border:1px solid var(--m-line2);border-radius:var(--m-radius);background:var(--m-card);cursor:pointer;min-width:0;min-height:44px}
+.upth input{position:absolute;top:7px;left:7px;width:20px;height:20px;margin:0;accent-color:var(--m-accent);z-index:1}
+.upth:has(input:checked){border-color:var(--m-accent);box-shadow:inset 0 0 0 2px var(--m-accent)}
+.upth:has(input:focus-visible){outline:2px solid var(--m-accent);outline-offset:2px}
+.upth:has(input:disabled){cursor:default}
+.upimg{position:relative;display:grid;place-items:center;aspect-ratio:1;background:var(--m-card2);border-radius:6px;overflow:hidden}
+.upimg img{width:100%;height:100%;object-fit:contain;display:block}
+.upimg .skelbar{width:60%}
+.upcap{font-size:12px;color:var(--m-muted)}
+.updemo{position:absolute;left:3px;right:3px;bottom:3px;font-size:11px;font-weight:700;line-height:1.3;padding:1px 4px;border-radius:4px;background:var(--m-text);color:var(--m-card);text-align:center;white-space:nowrap;overflow:hidden}
+.upmiss{font-size:12px;color:var(--m-muted);padding:6px;text-align:center}
+.upcmp{display:grid;grid-template-columns:repeat(2,minmax(0,160px));gap:var(--s2);margin-top:var(--s2)}
+.upcmp figure{margin:0;min-width:0}
+.upcmp img{width:100%;height:auto;aspect-ratio:1;object-fit:contain;background:var(--m-card2);border:1px solid var(--m-line);border-radius:var(--m-radius);display:block}
+.upcmp figcaption{font-size:12px;color:var(--m-muted);margin-top:4px}
+.upnote{margin-top:var(--s2)}
+.impdone{border:1px solid var(--m-ok-text);border-radius:var(--m-radius);background:color-mix(in srgb,var(--m-ok) 8%,var(--m-card));padding:var(--s2) var(--s3);margin-bottom:var(--s2)}
+.impdone p{margin:0 0 6px}
+@media (max-width:640px){.ntfile .mkw .chk{min-height:44px}}
 .pickunits{max-height:220px;overflow-y:auto;border:1px solid var(--m-line);border-radius:var(--m-radius);padding:2px 10px;margin-top:6px}
 .radio{display:flex;align-items:flex-start;gap:10px;min-height:38px;cursor:pointer;padding:6px 0}
 .radio input{width:18px;height:18px;margin-top:2px;flex:none;accent-color:var(--m-accent)}
@@ -864,6 +962,35 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
 .rtot{margin:10px 0 0;padding-top:8px;border-top:1.5px solid var(--m-text);font-size:13.5px;font-weight:600;overflow-wrap:anywhere}
 .rtot .z{font-weight:400}
 .rexp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-left:auto}
+/* ---------- 0.10.0 Job report (PLAN 23) ----------
+   Units and wire boxes sit under their line, indented and muted, so the
+   line stays the row you read; the totals row closes the table with the
+   same heavy rule the report totals use. */
+.tbl tr.subrow td{padding:3px 8px 6px 28px;font-size:13px;color:var(--m-muted);border-bottom:1px dashed var(--m-line)}
+.tbl tfoot td{font-weight:700;border-top:1.5px solid var(--m-text);border-bottom:0}
+@container (max-width:719.98px){
+  .tbl tfoot{display:block}
+  .tbl tr.subrow{margin:calc(var(--s1) * -1) 0 var(--s2) var(--s3);padding:6px var(--s2);background:var(--m-card2);width:auto}
+  .tbl tr.subrow td{padding:0;border:0}
+  .tbl tr.totrow{background:var(--m-card2);border-color:var(--m-text)}
+  .tbl tr.totrow td{border-top:0}
+  .tbl tr.totrow td.nil{display:none}
+}
+.jrtop{align-items:center;flex-wrap:wrap;gap:var(--s1) var(--s2)}
+.jrh{margin:0;font-size:17px;min-width:0;overflow-wrap:anywhere}
+.jrh:focus{outline:none}
+.jrh:focus-visible{outline:2px solid var(--m-accent);outline-offset:2px}
+.jrpick{margin:0 0 var(--s2);max-width:720px}
+.jrlist{list-style:none;margin:6px 0 0;padding:0;border:1px solid var(--m-line);border-radius:var(--m-radius);overflow:hidden}
+.jrlist li+li{border-top:1px solid var(--m-line)}
+.jrlist .hit .hn b{font-variant-numeric:tabular-nums}
+.jrmeta{margin-bottom:var(--s2)}
+.picksheet .jrmeta{display:flex;flex-wrap:wrap;gap:4px 22px;margin:6px 0 8px}
+.picksheet .jrmeta dt{color:#333}
+.picksheet .jrmeta dd small{color:#333}
+.picksheet tr.sub td{font-size:9pt;color:#222;padding:2px 4px 3px 18px;border-bottom:1px dotted #999}
+.picksheet tr.tot td{font-weight:700;border-top:1.5px solid #000;border-bottom:0}
+.picksheet .ptot{font-size:10pt;margin:8px 0 0}
 .clinks{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px;padding:10px 12px;border:1px solid var(--m-line);border-radius:var(--m-radius);background:var(--m-card2)}
 .clinks .h4{margin:0 6px 0 0}
 .dict{margin-top:18px}
@@ -983,6 +1110,9 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
   .mbody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--s3)}
   .mbox .btnrow.end{flex:none;flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:var(--s1);padding:var(--s2) var(--s3) calc(var(--s2) + env(safe-area-inset-bottom));border-top:1px solid var(--m-line);margin:0;background:var(--m-card)}
   .mbox .btnrow.end>*{width:100%}
+  /* 0.10.0: New job keeps Cancel, Back, and Next on one row, so the list keeps the room */
+  .mbox.ntbox .btnrow.end{flex-direction:row}
+  .mbox.ntbox .btnrow.end>*{width:auto;flex:1 1 0;min-width:0}
   .mbox .btnrow.end>span>.btn{width:100%}
   /* the box sheet's quick buttons ride in the footer, right above Save cut */
   .mbox .btnrow.end>.quick{margin:0}
@@ -1069,10 +1199,15 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
   /* one row on a 360px phone: the version shows in the footer and the tab title instead of the badge */
   .brand{font-size:17px}
   .brand .v{display:none}
-  .top .sync{margin-left:auto}
+  /* 0.10.0: the phone keeps the pill with the role under it; the name lives in the Account sheet */
+  /* exactly 44px tall, so the header stays one row and still shrinks to 48px */
+  .acct{align-items:center;text-align:center;padding:0 6px;gap:1px;height:44px}
+  .acct .sync{padding:1px 8px}
+  .acctRole{line-height:1.15}
+  .acctName{display:none}
   .top.shrunk .brand{font-size:16px}
   .top.shrunk .brand svg{width:22px;height:22px}
-  .nav,.who .em{display:none}
+  .nav{display:none}
   .body{padding:var(--s2);padding-bottom:calc(var(--tab-h) + var(--s3))}
   .foot{padding-bottom:calc(var(--tab-h) + var(--s3))}
   .mcard{padding:var(--s3)}
@@ -1106,7 +1241,7 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
 @media (max-width:640px),(pointer:coarse){
   .btn.sm{font-size:13px}
   body,.tbl,.onhand li,.crow,.ship dd,.ship ul,.pkg .what,.pkg dd,.tle,.tlv,.chead .pn,.rcv,.olpick,.a2card .a2t p,.a2card ol,.tipsheet p,.dict .tbl td:first-child,.tc,.tc .pd,.trk,.tbl tr.grp td,.dh b{font-size:15px}
-  .hint,.pd,.locs,.chip,.st,.lab,.h4,.mcard h4,.tbl th,.sv .k,.sv .u,.meta dt,.meta dd small,.unit,.mv,.tlm,.sync,.brand .v,.who span,.foot,.pkey,.seg button,.seg button b,.dh .st,.dh .dd,.lines .st,.crumb,.loadmsg,.err,.tcp,.tch .tn,.trgh span,.trgh small,.pkg .when,.pkg dt,.pkg dd small,.ship dt,.carrier,.rhint,.camhint,.cam .read,.forticket label,.res .rk,.res .rm,.wkchip,.earlier,.lnote,.pexp,.lateA,.tbl tr.grp td span,.req,.demobar,.day .empty,.drop p,.step b,button.chip,pre.note{font-size:13px}
+  .hint,.pd,.locs,.chip,.st,.lab,.h4,.mcard h4,.tbl th,.sv .k,.sv .u,.meta dt,.meta dd small,.unit,.mv,.tlm,.sync,.brand .v,.acctRole,.foot,.pkey,.seg button,.seg button b,.dh .st,.dh .dd,.lines .st,.crumb,.loadmsg,.err,.tcp,.tch .tn,.trgh span,.trgh small,.pkg .when,.pkg dt,.pkg dd small,.ship dt,.carrier,.rhint,.camhint,.cam .read,.forticket label,.res .rk,.res .rm,.wkchip,.earlier,.lnote,.pexp,.lateA,.tbl tr.grp td span,.req,.demobar,.day .empty,.drop p,.step b,button.chip,pre.note{font-size:13px}
 }
 /* ---------- 0.8.0 simple mode (PLAN 18): doors, job cards, pick up, deliver, audit, office ----------
    One color per job, the status pill text values from the palette above,
@@ -1278,7 +1413,8 @@ a.textbtn{display:inline-flex;align-items:center}
     </button>
     <div class="domain">Restricted to <code>@umbrellaautomation.com</code> accounts.</div>
     <!-- 0.8.1: phones and tablets only. Sign-in is a Google popup a home-screen app on iPhone may not finish, so sign in comes first -->
-    <p class="a2pre">Sign in first. Then Office &gt; This phone puts Loadout on your home screen.</p>
+    <!-- 0.10.0 (PLAN 22.2): the last tab is Office or More by role, and nobody is signed in yet, so the tip names the section only -->
+    <p class="a2pre">Sign in first. Then This phone, under the last tab, puts Loadout on your home screen.</p>
     <div id="signinErr" class="err" hidden></div>
     <a class="demo" href="?demo=1" title="Opens Loadout on invented sample data with no sign-in. Nothing in it is saved.">Open the demo</a>
   </div>
@@ -1287,20 +1423,24 @@ a.textbtn{display:inline-flex;align-items:center}
 <div id="app" hidden>
   <a class="skip" href="#main" data-skip>Skip to content</a>
   <header class="top">
-    <div class="brand">
+    <!-- 0.10.0: the mark and name are one link to the person's Home; a relative hash keeps the demo's query string -->
+    <a class="brand" href="#home" id="brandHome" aria-label="Loadout, go to Home">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.9.1</span>
-    </div>
+      Loadout <span class="v" id="verBadge">v0.10.0</span>
+    </a>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
       <button type="button" data-go="home">Home</button>
       <button type="button" data-go="tickets">Jobs</button>
       <button type="button" data-go="scan">Scan</button>
       <button type="button" data-go="stock">Shelf</button>
-      <button type="button" data-go="office">Office</button>
+      <button type="button" data-go="office"><span data-ow></span></button>
     </nav>
-    <span class="sync" id="syncPill" title="Green when every change has reached the server. Shows Offline and a pending count when the warehouse has no signal; work keeps saving on the device."><i></i><span id="syncText">Synced</span></span>
-    <div class="who"><span class="em" id="whoEmail"></span><button type="button" class="btn sm" id="signoutBtn">Sign out</button></div>
+    <!-- 0.10.0 (PLAN 24): one account block. The sync pill with the name beside it, the role under them; the whole block opens the Account sheet, which holds Sign out -->
+    <button type="button" class="acct" id="acctBtn" aria-haspopup="dialog" title="Who is signed in and what the role can do. Sign out is in here, so a stray tap cannot end a session mid-pull.">
+      <span class="acct1"><span class="sync" id="syncPill"><i></i><span id="syncText">Synced</span></span><span class="acctName" id="acctName"></span></span>
+      <span class="acctRole" id="acctRole"></span>
+    </button>
   </header>
   <div class="a2strip" id="a2Strip" hidden></div>
 
@@ -1325,10 +1465,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.9.1</span>
-    <span id="footWho"></span>
-    <span id="footRole"></span>
-    <span id="footSync"></span>
+    <span id="footVer">Loadout v0.10.0</span>
   </footer>
 
   <nav class="tabbar" aria-label="Views">
@@ -1336,7 +1473,7 @@ a.textbtn{display:inline-flex;align-items:center}
     <button type="button" data-go="tickets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg>Jobs</button>
     <button type="button" class="scan" data-go="scan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M4 12h16"/></svg>Scan</button>
     <button type="button" data-go="stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>Shelf</button>
-    <button type="button" data-go="office"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M8.5 7h2M13.5 7h2M8.5 11h2M13.5 11h2M8.5 15h2M13.5 15h2M10.5 21v-3h3v3"/></svg>Office</button>
+    <button type="button" data-go="office"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M8.5 7h2M13.5 7h2M8.5 11h2M13.5 11h2M8.5 15h2M13.5 15h2M10.5 21v-3h3v3"/></svg><span data-ow></span></button>
   </nav>
 </div>
 
@@ -1354,7 +1491,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.9.1";
+const VERSION = "0.10.0";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -1801,6 +1938,8 @@ function wireGrab(wrap, box) {
 function closeModal(wrap) {
   if (!wrap) wrap = modalStack[modalStack.length - 1];
   if (!wrap || wrap._closed) return;
+  /* 0.10.0: a form with typed work (New job) asks before X, Escape, or the handle throw it away; _guard returns true to let it close */
+  if (wrap._guard && !wrap._guard()) return;
   wrap._closed = true;
   modalStack = modalStack.filter(m => m !== wrap);
   syncInert();
@@ -1811,7 +1950,7 @@ function closeModal(wrap) {
   if (back) { try { back.focus({ preventScroll: SHEETQ.matches }); } catch (e) {} }
   if (wrap._onClose) { const f = wrap._onClose; wrap._onClose = null; f(); }
 }
-function closeAllModals() { while (modalStack.length) closeModal(); }
+function closeAllModals() { modalStack.forEach(m => { m._guard = null; }); while (modalStack.length) closeModal(); }
 document.addEventListener("keydown", e => {
   if (e.key === "Tab" && modalStack.length) { trapTab(e, modalStack[modalStack.length - 1]); return; }
   if (e.key === "Escape" && modalStack.length) { closeModal(); return; }
@@ -2170,6 +2309,8 @@ function firestoreStore(user) {
     const want = new Set();
     S.tickets.forEach(t => { if (t.status !== "closed") want.add(t.id); });
     if (S.ticketId) want.add(S.ticketId);
+    /* 0.10.0: the job open in the Job report, which may be closed */
+    if (S.repJob && S.view === "office" && S.repTab === "job") want.add(S.repJob);
     lineUnsubs.forEach((u, id) => { if (!want.has(id)) { try { u(); } catch (e) {} lineUnsubs.delete(id); S.lines.delete(id); S.linesLoaded.delete(id); } });
     want.forEach(id => {
       if (lineUnsubs.has(id)) return;
@@ -2521,7 +2662,11 @@ async function doBox(c, markNow, cut, recount, jobName, note, locId, tk) {
 async function doSaveProduct(id, data, isNew, changedKeys) {
   const ops = [{ op: "set", coll: "loadout_products", id, merge: true, data: Object.assign({}, data, isNew ? { createdAt: NOW, onHand: 0 } : {}, { updatedAt: NOW }) }];
   ops.push(mv("edit", { productId: id, productName: data.name, note: isNew ? "Product created" : "Edited: " + changedKeys.join(", ") }));
-  return DB.commit(ops, (isNew ? "new product " : "") + data.name);
+  const ok = await DB.commit(ops, (isNew ? "new product " : "") + data.name);
+  /* 0.10.0 (PLAN 21.4): a UPC just went onto the product (Set UPC, Link, the panel field, New product). It is
+     saved already; now ask whether the lookup's photo fits. The demo refuses the save and still asks, so the sheet can be seen. */
+  if ((ok || DEMO) && data.upc && (isNew || (changedKeys || []).includes("upc"))) offerUpcPhoto(S.products.get(id) || Object.assign({ id }, data), data.upc);
+  return ok;
 }
 async function doSaveLocation(id, data, isNew) {
   return DB.commit([
@@ -3026,7 +3171,7 @@ function olUnitCost(ol) { return ol && ol.unitCost != null && ol.unitCost !== ""
 /* where a ticket came from (PLAN 12b item 7). The worker writes source on the
    ticket and importSource on the proposal; either names it. */
 function tkSource(t) { const p = t.proposalId ? S.proposals.get(t.proposalId) : null; return t.importSource || t.source || (p && p.importSource) || "csv"; }
-function tkSourceLabel(t) { const s = tkSource(t); return s === "manual" ? "Built by hand" : s === "zapier" || s === "api" ? "Imported from Portal" : "Imported from CSV"; }
+function tkSourceLabel(t) { const s = tkSource(t); return s === "manual" ? "Built by hand" : s === "zapier" || s === "api" ? "Imported from Portal" : "From the proposal file"; }
 const REVIEW_CHIP = '<span class="chip warn" title="Zapier made or changed this job from a Portal proposal. Check the lines and the matches, then press Reviewed on the job."><i></i>Imported from Portal, review</span>';
 async function doReviewed(t) {
   return DB.commit([{ op: "update", coll: "loadout_tickets", id: t.id, data: { needsReview: false, reviewedAt: NOW, reviewedBy: S.user.email, reviewedByName: S.user.name, updatedAt: NOW } },
@@ -3402,7 +3547,7 @@ function loadDemo() {
     ["checkin", 3, "Tech", { productId: "sonos-amp", itemId: "h4n6v8b2c3", itemLabel: "V8B2C3", qty: 1, toLocationId: "warehouse", condition: "damaged", note: "Back from a client's home, needs a look." }],
     ["pick", 2, "Warehouse", { productId: "patch-cable-cat6-utp-patch-cable-rj45m-rj45m-blue-3ft", qty: 6, fromLocationId: "storage-room--patch-cables", toLocationId: "bay-1", note: "Moved between locations" }],
     ["pick", 2, "Warehouse", { productId: "patch-cable-cat6-utp-patch-cable-rj45m-rj45m-blue-3ft", qty: 6, fromLocationId: "bay-1", toLocationId: "storage-room--patch-cables", note: "Job postponed, back on the shelf" }],
-    ["cut", 1, "Tech", { productId: "wire-cat6-riser-234-blue", containerId: "a1026", containerLabel: "A1026", qty: -360, cut: { fromMark: 1000, toMark: 640, length: 360 }, jobName: "Lakeview office refresh" }]
+    ["cut", 1, "Tech", { productId: "wire-cat6-riser-234-blue", containerId: "a1026", containerLabel: "A1026", qty: -360, cut: { fromMark: 1000, toMark: 640, length: 360 }, jobName: "Lakeview office refresh", ticketId: "1042", ticketNumber: "1042", ticketLineId: "wire--cat6-riser-234-blue" }]
   ];
   S.movements = mvs.map(([type, d, by, f], i) => {
     const p = S.products.get(f.productId);
@@ -3846,7 +3991,9 @@ function tableHTML(id, cols, rows, opts = {}) {
       return '<td data-l="' + esc(c.label) + '" class="cv ' + (c.r ? "r " : "") + (c.cls || "") + '"><div class="tv">' + v + "</div></td>";
     }).join("") + (opts.actions ? '<td class="act" data-l="">' + opts.actions(r) + "</td>" : "") +
       (X ? '<td class="xc" data-l="">' + chevBtn(X.kind, xid, X.label(r)) + "</td>" : "") + "</tr>" +
-      (open ? '<tr class="xpanel"><td colspan="' + span + '">' + X.panel(r) + "</td></tr>" : "");
+      (open ? '<tr class="xpanel"><td colspan="' + span + '">' + X.panel(r) + "</td></tr>" : "") +
+      /* 0.10.0: opts.subRows(r) lists what hangs under a row (a job line's units and wire boxes); they follow it whatever the sort */
+      (opts.subRows ? opts.subRows(r).map(s => '<tr class="subrow"><td class="full" colspan="' + span + '"><div class="tv">' + s + "</div></td></tr>").join("") : "");
   };
   let body;
   if (opts.group) {
@@ -3859,7 +4006,9 @@ function tableHTML(id, cols, rows, opts = {}) {
   } else body = sorted.map(rowHTML).join("");
   /* 12c item 11: an empty list says so inside the table body, under its own headers */
   if (!rows.length && opts.empty) body = '<tr class="emptyrow"><td class="full" colspan="' + span + '"><div class="empty">' + opts.empty + "</div></td></tr>";
-  return '<div class="tblwrap"><table class="tbl" data-tbl="' + id + '"><thead><tr>' + head + "</tr></thead><tbody>" + body + "</tbody></table></div>";
+  /* 0.10.0: a totals row under the visible columns; a column without a total leaves its cell empty */
+  const foot = opts.foot && rows.length ? '<tfoot><tr class="totrow">' + vis.map((c, ci) => { const v = c.tot ? c.tot(rows) : ci === 0 ? "Total" : ""; return '<td data-l="' + esc(c.label) + '" class="cv ' + (c.r ? "r " : "") + (v === "" ? "nil" : "") + '"><div class="tv">' + esc(v) + "</div></td>"; }).join("") + "</tr></tfoot>" : "";
+  return '<div class="tblwrap"><table class="tbl" data-tbl="' + id + '"><thead><tr>' + head + "</tr></thead><tbody>" + body + "</tbody>" + foot + "</table></div>";
 }
 function skelTable(cols, label) {
   const head = cols.map(c => '<th class="plain' + (c.r ? " r" : "") + '">' + esc(c.label) + "</th>").join("");
@@ -4011,8 +4160,46 @@ function paintSync() {
   else label = "Synced";
   pill.className = "sync " + cls; txt.textContent = label;
   pill.title = DEMO && !S.demoSync ? "Demo mode: nothing reaches a server." : SYNC_TIP;
-  $("#footSync").textContent = label;
+  paintAcct();
 }
+/* ---------------- 0.10.0: the account block and the last tab's word ----------------
+   PLAN 24: who is signed in sits in the header (name and role), and Sign
+   out lives in the Account sheet. PLAN 22.2: the last tab reads More for a
+   tech (Labels, Movements, This phone, About) and Office for everyone else;
+   officeWord() is the one place that word is chosen, and the hash stays
+   #office for every role. */
+const officeWord = () => S.role === "tech" ? "More" : "Office";
+const ROLE_WHAT = {
+  admin: "Everything: jobs, the shelf, orders, reports, people, and settings.",
+  warehouse: "Builds jobs, pulls and stages them, receives shipments, audits shelves, and orders. People, settings, and reports stay with the admin.",
+  tech: "Picks up from the bay, confirms deliveries, brings product back, cuts wire, and checks units in and out. Building jobs and ordering stay with the warehouse.",
+  accounting: "Reads reports, backups, and exports. Changes nothing.",
+  board: "The warehouse wall board only.",
+  none: "Paused. An admin has to turn this account back on."
+};
+let signOutFn = null;
+function paintAcct() {
+  const b = $("#acctBtn"); if (!b) return;
+  const role = ROLE_LABEL[S.role] || S.role, name = S.user ? S.user.name || S.user.email : "";
+  $("#acctName").textContent = name;
+  $("#acctRole").textContent = (DEMO ? "Demo, " : "") + role;
+  b.setAttribute("aria-label", "Account: " + name + ", " + role + ". Sync: " + ($("#syncText") ? $("#syncText").textContent : ""));
+  $$("[data-ow]").forEach(s => { if (s.textContent !== officeWord()) s.textContent = officeWord(); });
+}
+function openAccount() {
+  const u = S.user || {}, role = ROLE_LABEL[S.role] || S.role;
+  const body = '<div class="acctsheet"><dl class="meta"><div><dt>Name</dt><dd>' + esc(u.name || "") + "</dd></div><div><dt>Email</dt><dd>" + esc(u.email || "") + "</dd></div>" +
+    "<div><dt>Role</dt><dd>" + esc(role) + (DEMO ? "<small>The demo shows this role. Add &amp;role=tech, warehouse, or accounting to the address to see another.</small>" : "") + "</dd></div></dl>" +
+    '<p class="rolewhat">' + esc(ROLE_WHAT[S.role] || "") + "</p></div>";
+  const w = openModal("Account", body, '<button type="button" class="btn" data-close>Close</button><button type="button" class="btn danger" data-ok>' + (DEMO ? "Leave the demo" : "Sign out") + "</button>", { noFocus: true });
+  w.querySelector("[data-ok]").addEventListener("click", () => { closeModal(w); if (signOutFn) signOutFn(); });
+}
+$("#acctBtn").addEventListener("click", openAccount);
+/* 0.10.0: the mark goes Home; already there (no hashchange), it scrolls to the top */
+$("#brandHome").addEventListener("click", e => {
+  if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+  if (location.hash === "#home") { e.preventDefault(); window.scrollTo({ top: 0, behavior: REDUCEDQ.matches ? "auto" : "smooth" }); }
+});
 window.addEventListener("online", () => { S.online = true; S.offNoted = false; paintSync(); if (DEMO) setLive(true); else if (BOARD) paintBoardLive(); if (S.bk && S.bk.st === "offline") { S.bk = null; bkPaint(); } });
 window.addEventListener("offline", () => { S.online = false; paintSync(); setLive(false); });
 /* the board's "Not live since" strip: set when a listener fails, the
@@ -4069,7 +4256,7 @@ function renderTickets() {
   const all = Array.from(S.tickets.values());
   const clients = new Map(); all.forEach(t => { if (t.clientId) clients.set(t.clientId, (S.clients.get(t.clientId) || {}).name || t.clientName || t.clientId); });
   let h = '<div class="mcard"><div class="thead"><h2 class="vt">Jobs</h2><span class="sp"><button type="button" class="btn sm" data-act="columns" data-tbl="tickets">Edit columns</button>' +
-    (isWriter() ? '<button type="button" class="btn sm acc" data-act="newTicket" title="Import a Portal proposal CSV, or type the lines by hand">New job</button>' : "") + "</span></div>" +
+    (isWriter() ? '<button type="button" class="btn sm acc" data-act="newTicket" title="Make the list of product for one client\'s install, by hand or from the proposal file">New job</button>' : "") + "</span></div>" +
     '<div class="toolbar"><label class="sr" for="tfQ">Search jobs</label><span class="srch"><input class="fld" id="tfQ" type="search" data-tf="q" value="' + esc(f.q || "") + '" placeholder="Job number, client, job name, or bay" title="Matches the job number, client, job, proposal, and bay. Press / to jump here."><button type="button" class="clr" data-act="clearSearch" data-for="tfQ" aria-label="Clear the search">&times;</button></span></div>' +
     '<div class="filters"><div><label class="lab" for="tfStatus">Status</label><select class="fld" id="tfStatus" data-tf="status"><option value="active"' + (f.status === "active" ? " selected" : "") + ">Not closed</option>" +
       TK_STATUS.map(s => '<option value="' + s + '"' + (f.status === s ? " selected" : "") + ">" + TK_LABEL[s] + "</option>").join("") + '<option value="all"' + (f.status === "all" ? " selected" : "") + ">All, closed too</option></select></div>" +
@@ -4080,7 +4267,7 @@ function renderTickets() {
     '<label class="chk" title="Jobs with a line on a purchase order the vendor has backordered"><input type="checkbox" id="tfBack" data-tf="backorders"' + (f.backorders ? " checked" : "") + "> Has backorders</label></div>";
   if (S.errors.tickets) h += errorBox("tickets", "tickets");
   else if (!S.loaded.tickets) h += skelTable(ticketCols().filter(c => c.def !== false), "Loading jobs");
-  else if (!all.length) h += '<div class="empty"><p>No jobs yet. Import a Portal CSV or build one by hand.</p>' + (isWriter() ? '<button type="button" class="btn acc" data-act="newTicket">New job</button>' : "") + "</div>";
+  else if (!all.length) h += '<div class="empty"><p>No jobs yet. New job makes the list of product for a client\'s install.</p>' + (isWriter() ? '<button type="button" class="btn acc" data-act="newTicket">New job</button>' : "") + "</div>";
   else {
     const list = all.filter(tkMatches);
     h += tableHTML("tickets", ticketCols(), list, {
@@ -4164,6 +4351,8 @@ function renderTicket() {
     '<div class="tkbtns">' + (canPick ? '<a class="btn" href="' + jobHref(t, "pickup") + '" title="Take what is staged in the bay into your van; it is yours until the delivery is confirmed">Pick up</a>' : "") +
     (canDlv ? '<a class="btn" href="' + jobHref(t, "deliver") + '" title="Tick what arrived on site and confirm it">Confirm delivery</a>' : "") + (t.needsReview && W ? '<button type="button" class="btn acc" data-act="tkReviewed" title="Clears the review flag once the lines, quantities, and product matches from Portal look right. The timeline keeps who reviewed it.">Mark reviewed</button>' : "") + '<button type="button" class="btn" data-act="tkCopy" title="Copies the status block below so you can paste it into the proposal\'s internal notes in Portal">Copy for Portal</button>' +
     '<button type="button" class="btn" data-act="tkPrint" title="The pull sheet for the clipboard, grouped by area, with where to pull each line from">Print pull sheet</button>' +
+    /* 0.10.0 (PLAN 23): the same job as a report, with costs, units, and exports */
+    (canConsole() ? '<a class="btn" href="#office/reports/job/' + encodeURIComponent(t.id) + '" title="Every line of this job in Reports, with its units, wire boxes, and costs when they are on, ready to export or print">Open as a report</a>' : "") +
     (closed || !W ? "" : lines.some(isShort) ? '<button type="button" class="btn" data-act="tkOrder" title="Puts every Short line (the shelves cannot cover it and no PO carries it yet) on a draft purchase order">Order missing</button>'
       : '<span title="Every line is covered by stock or a PO"><button type="button" class="btn" disabled aria-describedby="omHint">Order missing</button><span class="sr" id="omHint">Every line is covered by stock or a PO</span></span>') +
     (W && !closed ? '<button type="button" class="btn" data-act="tkBoard" aria-pressed="' + pinned + '" title="' + (pinned ? "Takes this job off the warehouse TV" : "Pins this job to the warehouse TV so its pull sheet shows by the bays") + '">' + (pinned ? "Remove from board" : "Show on board") + "</button>" : "") +
@@ -4189,11 +4378,11 @@ function renderTicket() {
         '<div class="pkey"><span><i style="background:var(--m-ok)"></i>Staged ' + s.staged + '</span><span><i style="background:var(--m-warn-text)"></i>To order ' + toOrdLines + "</span>" + (onPoLines ? '<span><i style="background:var(--m-card2);border:1px solid var(--m-info)"></i>On order ' + onPoLines + "</span>" : "") + '<span><i style="background:var(--m-card2);border:1px solid var(--m-control-line)"></i>Still to pull ' + Math.max(0, s.lines - s.staged - toOrdLines - onPoLines) + "</span></div></div>";
   h += '<div class="mcard"><div class="thead"><h4>Pull sheet, by area</h4><span class="sp">' +
     (W && !closed && lines.length ? '<button type="button" class="btn sm" data-act="tkPullAll" title="Fills From stock using on-hand at each product\'s default location first, then lists what still needs ordering">Pull everything in stock</button>' : "") +
-    (W && !closed ? '<button type="button" class="btn sm" data-act="tkAddLines" title="Type more lines, or import a change order CSV for this proposal">Add lines</button>' : "") +
+    (W && !closed ? '<button type="button" class="btn sm" data-act="tkAddLines" title="Pick more products from the shelf list, or read a changed proposal file (.csv) for this job">Add lines</button>' : "") +
     '<button type="button" class="btn sm" data-act="columns" data-tbl="ticketLines">Edit columns</button></span></div>';
   if (S.errors.lines && !loaded) h += errorBox("the job's lines", "tickets");
   else if (!loaded) h += skelTable([{ label: "Product" }, { label: "Needed", r: true }, { label: "Staged", r: true }], "Loading lines");
-  else if (!lines.length) h += '<div class="empty"><p>This job has no lines. Add a line or import a CSV.</p>' + (W && !closed ? '<button type="button" class="btn acc" data-act="tkAddLines">Add a line</button> <button type="button" class="btn" data-act="tkAddCsv">Import a CSV</button>' : "") + "</div>";
+  else if (!lines.length) h += '<div class="empty"><p>This job has no lines yet. Make the list yourself, or use the proposal file (.csv).</p>' + (W && !closed ? '<button type="button" class="btn acc" data-act="tkAddLines">Add lines</button> <button type="button" class="btn" data-act="tkAddCsv">Use a proposal file</button>' : "") + "</div>";
   else {
     const areas = []; lines.forEach(l => { const a = l.area || "No area"; if (!areas.includes(a)) areas.push(a); });
     h += tableHTML("ticketLines", lineCols(t), lines, {
@@ -4522,113 +4711,315 @@ function handLines(I) {
   I.hand.forEach(h => {
     const txt = clean(h.product), q = num(h.qty); if (!txt || q <= 0) return;
     const k = txt.toLowerCase().replace(/\s+/g, " ");
-    const p = Array.from(S.products.values()).find(x => productName(x).toLowerCase() === k || ((x.brand || x.model) && prodKey(x.brand, x.model) === k) || (x.model && x.model.toLowerCase() === k)) || null;
-    const area = clean(h.area), id = lineIdFor(area, p ? p.brand : "", p ? p.model : "", p ? productName(p) : txt);
+    /* 0.10.0: a line picked from the shelf list carries its product id; a typed line is matched by name as before */
+    const p = (h.pid && S.products.get(h.pid)) || Array.from(S.products.values()).find(x => productName(x).toLowerCase() === k || ((x.brand || x.model) && prodKey(x.brand, x.model) === k) || (x.model && x.model.toLowerCase() === k)) || null;
+    /* rooms are optional (Group by room); with it off every line has no area */
+    const area = I.rooms === false ? "" : clean(h.area), id = lineIdFor(area, p ? p.brand : "", p ? p.model : "", p ? productName(p) : txt);
     if (lines.has(id)) { lines.get(id).qtyNeeded += q; return; }
     lines.set(id, { id, area, option: "", brand: p ? p.brand || "" : "", model: p ? p.model || "" : "", description: p ? p.description || "" : txt, unit: p ? p.unit : "each", qtyNeeded: q, portalItemId: null, productId: p ? p.id : null, rows: [] });
   });
   return lines;
 }
+/* 0.10.0 (PLAN 22.1): New job, made plain. Two choices instead of two jargon
+   tabs. Make the list yourself is three short steps (who it is for, the
+   list, check and create); Use a proposal file (.csv) is choose or drop the
+   file, then "Here is what the file says". What gets written does not
+   change: the same I state reaches createTicket() with I.tab "hand" or
+   "csv", so the ids, the line fields, the saved column map, and the
+   re-import rule are the 0.9.1 ones. Warehouse sees the hand-built path
+   first and preselected, admin the file. The sheet is a form: it closes by
+   X, Cancel, or the final button, and asks before it throws typed lines
+   away (closeModal's _guard). */
+/* the stepper moves an each product by 1 and a wire product by 50 ft (a short run) */
+const QTY_STEP = { each: 1, ft: 50 };
+function ntShelfLine(p, q) {
+  if (!p) return { cls: "", txt: "Typed line: it can be staged and delivered, not pulled from the shelf." };
+  const have = availableFor(p), u = p.unit === "ft" ? " ft" : "";
+  if (have <= 0) return { cls: "warn", txt: "Not on the shelf, will need ordering" };
+  if (have < q) return { cls: "warn", txt: "Only " + fmtN(have) + u + " on the shelf, " + fmtN(q - have) + u + " will be short" };
+  return { cls: "ok", txt: fmtN(have) + u + " on the shelf" };
+}
+function ntFind(q) {
+  const t = String(q || "").trim().toLowerCase(); if (!t) return [];
+  const words = t.split(/\s+/);
+  return Array.from(S.products.values()).filter(p => { const hay = [productName(p), p.brand, p.model, p.upc, p.type, p.category].join(" ").toLowerCase(); return words.every(x => hay.includes(x)); })
+    .sort((a, b) => (productName(b).toLowerCase().startsWith(t) - productName(a).toLowerCase().startsWith(t)) || productName(a).localeCompare(productName(b))).slice(0, 8);
+}
+/* a code read off a box: a Loadout product label, a UPC, or a model number */
+function productByCode(code) {
+  const c = String(code || "").trim(); if (!c) return null;
+  const m = /^loadout:prod:(.+)$/i.exec(c); if (m) return S.products.get(m[1]) || null;
+  const all = Array.from(S.products.values()), lc = c.toLowerCase();
+  return all.find(p => p.upc && p.upc === c) || all.find(p => p.model && p.model.toLowerCase() === lc) || null;
+}
+/* a small scanner sheet over New job: the camera when there is one, a typed code always */
+function openMiniScan(onProduct) {
+  const body = '<div class="mscan"><div class="cam mcam"><video id="msVideo" playsinline muted></video><div class="box"></div><p class="camhint" id="msHint">Starting the camera</p></div>' +
+    '<label class="lab" for="msCode">Or type the UPC, model, or label code</label><div class="srow"><input class="fld mono" id="msCode" autocomplete="off" spellcheck="false"><button type="button" class="btn" id="msGo">Find</button></div><p class="err" id="msErr" role="alert" hidden></p></div>';
+  let stream = null, timer = null, reader = null, done = false;
+  const stop = () => { clearInterval(timer); timer = null; if (reader) { try { reader.reset(); } catch (e) {} reader = null; } if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } };
+  const w = openModal("Scan a product", body, '<button type="button" class="btn" data-close>Cancel</button>', { onClose: stop, noFocus: true });
+  const hint = $("#msHint", w), err = $("#msErr", w);
+  const hit = code => {
+    if (done) return;
+    const p = productByCode(code);
+    if (!p) { err.textContent = "Nothing on the shelf list has the code " + String(code || "").trim() + ". Search by name, or type it as a line."; err.hidden = false; return; }
+    done = true; closeModal(w); onProduct(p);
+  };
+  $("#msGo", w).addEventListener("click", () => hit($("#msCode", w).value));
+  $("#msCode", w).addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); hit(e.target.value); } });
+  (async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { hint.textContent = "No camera here. Type the code below."; return; }
+    try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false }); }
+    catch (e) { hint.textContent = "The camera is off or blocked. Type the code below."; return; }
+    if (w._closed) { stop(); return; }
+    const v = $("#msVideo", w); v.srcObject = stream; try { await v.play(); } catch (e) {}
+    hint.textContent = "Point at the UPC on the box";
+    if ("BarcodeDetector" in window) {
+      let formats = ["qr_code", "ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39"];
+      try { const sup = await window.BarcodeDetector.getSupportedFormats(); formats = formats.filter(f => sup.includes(f)); } catch (e) {}
+      const det = new window.BarcodeDetector({ formats });
+      timer = setInterval(async () => { if (!v.videoWidth || done) return; try { const r = await det.detect(v); if (r && r[0]) hit(r[0].rawValue); } catch (e) {} }, 280);
+    } else {
+      try {
+        await loadScript(ZXING_URL);
+        reader = new window.ZXing.BrowserMultiFormatReader();
+        const cb = res => { if (res) hit(res.getText ? res.getText() : res.text); };
+        if (typeof reader.decodeFromStream === "function") reader.decodeFromStream(stream, v, cb); else reader.decodeFromVideoElementContinuously(v, cb);
+      } catch (e) { hint.textContent = "This browser cannot read barcodes. Type the code below."; }
+    }
+  })();
+}
 function openNewTicket(opts = {}) {
-  const addTo = opts.ticket || null;
-  const I = { tab: opts.tab || "csv", rows: [], headers: [], map: {}, lines: new Map(), skipped: [], noCreate: new Set(), hand: [{ area: "", product: "", qty: "" }],
-    client: addTo ? addTo.clientId : "", newClient: "", job: addTo ? addTo.jobId : "", newJob: "", newAddr: "", proposal: "", proposalTouched: false, bay: "" };
-  const prodList = '<datalist id="ntProducts">' + Array.from(S.products.values()).map(p => '<option value="' + esc(productName(p)) + '">').sort().join("") + "</datalist>";
-  /* finding 30: plain buttons with aria-pressed, not a tab pattern without its keys */
-  const body = '<div class="seg" role="group" aria-label="How to build the job"><button type="button" data-nt="csv">Import a Portal CSV</button><button type="button" data-nt="hand">Build by hand</button></div>' +
-    '<div id="ntCsv"><div class="step"><b>1</b>The proposal CSV</div>' +
+  const addTo = opts.ticket || null, fileFirst = S.role === "admin";
+  const I = { tab: opts.tab || (fileFirst ? "csv" : "hand"), step: 0, rows: [], headers: [], map: {}, lines: new Map(), skipped: [], noCreate: new Set(), hand: [], rooms: false, q: "", typeOpen: false, fixOpen: false,
+    client: addTo ? addTo.clientId : "", newClient: "", job: addTo ? addTo.jobId : "", newJob: "", newAddr: "", proposal: "", proposalTouched: false, bay: "", install: "" };
+  const STEPS = addTo ? ["list", "check"] : ["who", "list", "check"];
+  const STEP_NAME = { who: "Who it is for", list: "The list", check: addTo ? "Check and add" : "Check and create" };
+  const card = (k, title, txt) => '<label class="ncard"><input type="radio" name="ntWay" value="' + k + '"' + (I.tab === k ? " checked" : "") + "><span><b>" + title + "</b><span>" + txt + "</span></span></label>";
+  const cards = [card("hand", "Make the list yourself", "Pick products from the shelf list and type how many. For service calls and small jobs."),
+    card("csv", "Use a proposal file (.csv)", "The office downloads this from Portal when a client accepts a proposal. If someone sent you a file ending in .csv, choose this.")];
+  if (fileFirst) cards.reverse();
+  const portalOn = isAdmin() && S.portal && (S.portal.tier === "t1" || S.portal.tier === "t2");
+  const body = (addTo ? '<p class="ntlead">Add product to job #' + esc(addTo.number) + ", " + esc(tkWho(addTo)) + ". Lines already on it stay as they are.</p>"
+      : '<p class="ntlead">A job is the list of product one client\'s install needs. Loadout uses it to show what to pull, what to order, and what was delivered.</p>') +
+    (portalOn && !addTo ? '<p class="hint" style="margin-top:0">Accepted proposals arrive here on their own; look for jobs marked To review.</p>' : "") +
+    '<div class="ncards" role="radiogroup" aria-label="How to make the list">' + cards.join("") + "</div>" +
+    '<div id="ntHand" hidden><p class="ntstep" id="ntStepHead"></p><div id="ntStepBody"></div></div>' +
+    '<div id="ntCsv" hidden>' +
+      '<p class="hint">No file? Ask the office to send the proposal file, or make the list yourself.</p>' +
+      '<details class="more"><summary>Where the file comes from</summary><ol class="ntol"><li>In Portal, open the proposal the client accepted.</li><li>Download it as CSV, not the PDF or the pick list.</li><li>Choose that file here, or send it to whoever builds the job.</li></ol></details>' +
       /* finding 5: a visible button opens the picker; the input itself is out of the tab order */
-      '<div class="drop" id="ntDrop"><button type="button" class="btn acc" id="ntPick">Choose a CSV file</button><p>or drop it here. In Portal: open the accepted proposal and download the CSV.</p></div><input type="file" id="ntFile" accept=".csv,.txt,text/csv" class="filehide" tabindex="-1" aria-hidden="true">' +
-      '<details class="more"><summary>Paste the CSV text instead</summary><label class="lab" for="ntPaste">CSV text</label><textarea class="fld mono" id="ntPaste" rows="5" placeholder="Area,Item Type,Brand,Model,Description,Quantity"></textarea><div class="btnrow"><button type="button" class="btn" id="ntReadPaste">Read the pasted text</button></div></details>' +
-      (DEMO ? '<div class="btnrow"><button type="button" class="btn" id="ntSample" title="Demo only: a made-up Portal-style CSV with skipped rows, matches, and new products">Load sample</button></div>' : "") +
-      '<p class="hint" id="ntFileName"></p><div id="ntMap"></div><div id="ntRows"></div></div>' +
-    '<div id="ntHand" hidden><div class="step"><b>1</b>Lines</div><p class="hint" style="margin-top:0">Type a catalog product name (the list suggests them) or any text. Text that matches nothing stays a typed line: it can be staged and delivered, not pulled.</p><div id="ntHandRows"></div><div class="btnrow"><button type="button" class="btn" id="ntAddRow">Add a line</button></div>' + prodList + "</div>" +
-    '<div id="ntTk"></div><p class="err" id="ntErr" hidden></p>';
-  const w = openModal(addTo ? "Add lines to job #" + addTo.number : "New job", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Create job</button>', { wide: true, noFocus: true });
-  const err = m => { const e = $("#ntErr", w); e.textContent = m || ""; e.hidden = !m; };
+      '<div class="drop" id="ntDrop"><button type="button" class="btn acc" id="ntPick">Choose the proposal file</button><p>or drop it here</p></div><input type="file" id="ntFile" accept=".csv,.txt,text/csv" class="filehide" tabindex="-1" aria-hidden="true">' +
+      '<details class="more"><summary>Paste the text instead</summary><label class="lab" for="ntPaste">The file\'s text</label><textarea class="fld mono" id="ntPaste" rows="5" placeholder="Area,Item Type,Brand,Model,Description,Quantity"></textarea><div class="btnrow"><button type="button" class="btn" id="ntReadPaste">Read the pasted text</button></div></details>' +
+      (DEMO ? '<div class="btnrow"><button type="button" class="btn" id="ntSample" title="Demo only: a made-up proposal file with skipped rows, matches, and new products">Use the sample file</button></div>' : "") +
+      '<p class="hint" id="ntFileName"></p><div id="ntRead"></div><div id="ntTk"></div></div>' +
+    '<p class="sr" id="ntLive" aria-live="polite"></p><p class="err" id="ntErr" role="alert" hidden></p>';
+  const foot = '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn" id="ntBack">Back</button><button type="button" class="btn acc" id="ntNext">Next</button><button type="button" class="btn acc" data-ok>Create job</button>';
+  const w = openModal(addTo ? "Add lines to job #" + addTo.number : "New job", body, foot, { wide: true, noFocus: true, cls: "ntbox" });
+  const err = m => { const e = $("#ntErr", w); e.textContent = m || ""; e.hidden = !m; if (m) e.scrollIntoView({ block: "nearest" }); };
+  const live = m => { const l = $("#ntLive", w); l.textContent = ""; setTimeout(() => { l.textContent = m; }, 30); };
   const curLines = () => I.tab === "hand" ? handLines(I) : I.lines;
-  const existing = () => addTo || (I.proposal ? S.tickets.get(slug(I.proposal)) || null : null);
-  const paintTab = () => {
-    $$("[data-nt]", w).forEach(b => { const on = b.dataset.nt === I.tab; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
-    $("#ntCsv", w).hidden = I.tab !== "csv"; $("#ntHand", w).hidden = I.tab !== "hand";
-    paintTk(); paintOk();
+  const existing = () => addTo || (I.tab === "csv" && I.proposal ? S.tickets.get(slug(I.proposal)) || null : null);
+  /* typed work that leaving would lose */
+  const dirty = () => I.hand.length > 0 || I.rows.length > 0 || !!(clean(I.newClient) || clean(I.newJob) || (!addTo && I.client));
+  w._guard = () => {
+    if (!dirty()) return true;
+    const c = openModal("Leave without saving?", "<p>" + (I.hand.length ? "The " + plural(I.hand.length, "line") + " on this list are" : I.rows.length ? "The proposal file you read is" : "What you typed is") + " not saved yet. Leaving throws " + (I.hand.length ? "them" : "it") + " away.</p>",
+      '<button type="button" class="btn" data-close>Keep working</button><button type="button" class="btn danger" data-ok>Leave without saving</button>', { noFocus: true });
+    c.querySelector("[data-ok]").addEventListener("click", () => { closeModal(c); w._guard = null; closeModal(w); });
+    return false;
   };
-  const paintMap = () => {
-    const el = $("#ntMap", w); if (!I.rows.length) { el.innerHTML = ""; return; }
-    const opt = sel => '<option value="-1">Not in this file</option>' + I.headers.map((h, i) => '<option value="' + i + '"' + (sel === i ? " selected" : "") + ">" + esc(h) + "</option>").join("");
-    const prev = I.rows.slice(I.hdrIdx + 1, I.hdrIdx + 7), shown = IMP_FIELDS.filter(f => I.map[f.k] != null && I.map[f.k] >= 0);
-    el.innerHTML = '<div class="step"><b>2</b>Columns</div>' + (I.noHeader ? '<p class="err" style="margin-top:0">Could not find column headers. Pick them below.</p>' : '<p class="hint" style="margin-top:0">Matched by header name. Fix any that are wrong; the mapping is saved for the next import.</p>') +
-      '<div class="grid3">' + IMP_FIELDS.map(f => '<div><label class="lab" for="ntm_' + f.k + '"' + (f.tip ? ' title="' + esc(f.tip) + '"' : "") + ">" + (f.tip ? "<abbr>" + esc(f.label) + "</abbr>" : esc(f.label)) + '</label><select class="fld" id="ntm_' + f.k + '" data-ntmap="' + f.k + '">' + opt(I.map[f.k] == null ? -1 : I.map[f.k]) + "</select></div>").join("") + "</div>" +
-      '<h4 class="h4" style="margin-top:14px">Preview, first rows as read</h4>' +
-      (shown.length ? '<div class="tblwrap"><table class="tbl"><thead><tr>' + shown.map(f => '<th class="plain">' + esc(f.label) + "</th>").join("") + "</tr></thead><tbody>" +
-        prev.map(r => "<tr>" + shown.map(f => '<td data-l="' + esc(f.label) + '">' + esc(clean(r[I.map[f.k]])) + "</td>").join("") + "</tr>").join("") + "</tbody></table></div>" : '<p class="hint">Map at least the quantity and the brand, model, or description.</p>');
-  };
-  const paintRows = () => {
-    const el = $("#ntRows", w); if (!I.rows.length) { el.innerHTML = ""; return; }
-    const ls = Array.from(I.lines.values()), m = ls.filter(l => l.productId).length, cr = ls.filter(l => !l.productId && (l.brand || l.model) && !I.noCreate.has(l.id)).length;
-    el.innerHTML = '<div class="step"><b>3</b>Lines</div><div class="chips" style="margin-bottom:8px"><span class="chip"><i></i>' + ls.length + " lines</span>" + '<span class="chip ok"><i></i>' + m + " matched</span>" + (cr ? '<span class="chip new"><i></i>' + cr + " new products</span>" : "") + (I.skipped.length ? '<span class="chip warn"><i></i>' + I.skipped.length + " rows skipped</span>" : "") + "</div>" +
-      (ls.length ? '<div class="tblwrap"><table class="tbl"><thead><tr><th class="plain">Area</th><th class="plain">Product</th><th class="plain r">Qty</th><th class="plain">Catalog</th></tr></thead><tbody>' + ls.map(l => {
-        const p = l.productId ? S.products.get(l.productId) : null;
-        const cat = p ? '<span class="chip ok"><i></i>Matched: ' + esc(productName(p)) + "</span>" : (l.brand || l.model) ? '<label class="chk" title="Adds ' + esc([l.brand, l.model].join(" ")) + ' to the catalog with no stock, so the line can be received and pulled later. Untick to keep it as a typed line."><input type="checkbox" data-ntcreate="' + esc(l.id) + '"' + (I.noCreate.has(l.id) ? "" : " checked") + "> Create product</label>" : '<span class="chip warn"><i></i>No brand or model, stays a typed line</span>';
-        return '<tr><td data-l="Area">' + esc(l.area || "No area") + '</td><td data-l="Product"><div class="pn">' + (l.brand || l.model ? "<b>" + esc(l.brand) + "</b> " + esc(l.model) : esc(l.description)) + '</div><div class="pd">' + esc(l.brand || l.model ? l.description : "") + (l.rows.length > 1 ? " (rows " + l.rows.join(", ") + " added together)" : "") + '</div></td><td data-l="Qty" class="r n">' + fmtN(l.qtyNeeded) + (l.unit === "ft" ? " ft" : "") + '</td><td data-l="Catalog">' + cat + "</td></tr>";
-      }).join("") + "</tbody></table></div>" : '<p class="err">No product lines found. Check the column mapping above.</p>') +
-      '<details class="more"' + (I.skipped.length ? " open" : "") + "><summary>Skipped rows (" + I.skipped.length + ')</summary><ul class="hint">' + (I.skipped.length ? I.skipped.map(s => "<li>Row " + s.row + ", " + esc(s.label) + ": " + esc(s.why) + "</li>").join("") : "<li>None</li>") + "</ul></details>";
-  };
-  const paintHand = () => {
-    $("#ntHandRows", w).innerHTML = I.hand.map((h, i) => {
-      const lsMatch = handLines({ hand: [Object.assign({}, h, { qty: 1 })] }), one = Array.from(lsMatch.values())[0];
-      const chip = !clean(h.product) ? "" : one && one.productId ? '<span class="chip ok"><i></i>Matched: ' + esc(productName(S.products.get(one.productId))) + "</span>" : '<span class="chip warn"><i></i>Not in the catalog, stays a typed line</span>';
-      return '<div class="hline"><div><label class="lab" for="nh_a' + i + '">Area</label><input class="fld" id="nh_a' + i + '" data-nh="area" data-i="' + i + '" value="' + esc(h.area) + '" placeholder="Living room"></div>' +
-        '<div class="hp"><label class="lab" for="nh_p' + i + '">Product</label><input class="fld" id="nh_p' + i + '" data-nh="product" data-i="' + i + '" list="ntProducts" value="' + esc(h.product) + '" placeholder="Ubiquiti U6-Pro"></div>' +
-        '<div><label class="lab" for="nh_q' + i + '">Qty</label><input class="fld n" id="nh_q' + i + '" data-nh="qty" data-i="' + i + '" type="number" min="1" step="any" inputmode="decimal" value="' + esc(h.qty) + '"></div>' +
-        '<button type="button" class="btn x" data-nhdel="' + i + '" aria-label="Remove line ' + (i + 1) + '"' + (I.hand.length === 1 ? " disabled" : "") + '>Remove</button><div class="mch" id="nh_m' + i + '">' + chip + "</div></div>";
-    }).join("");
-  };
-  const paintTk = () => {
-    const ex = existing(), el = $("#ntTk", w), step = I.tab === "csv" ? 4 : 2;
-    const clients = Array.from(S.clients.values()).filter(c => !c.archived).sort((a, b) => a.name.localeCompare(b.name));
-    const jobs = Array.from(S.jobs.values()).filter(j => j.clientId === I.client && j.status !== "closed").sort((a, b) => a.name.localeCompare(b.name));
-    let h = '<div class="step"><b>' + step + "</b>Job</div>";
+  const clientsList = () => Array.from(S.clients.values()).filter(c => !c.archived).sort((a, b) => a.name.localeCompare(b.name));
+  const jobsOf = cid => Array.from(S.jobs.values()).filter(j => j.clientId === cid && j.status !== "closed").sort((a, b) => a.name.localeCompare(b.name));
+  /* who the job is for: step 1 of the hand path, and the block under the file's lines */
+  const whoHTML = file => {
+    const ex = existing();
+    let h = "";
     if (ex) {
       const have = S.lines.get(ex.id) || new Map(), ls = Array.from(curLines().values());
       const nNew = ls.filter(l => !have.has(l.id)).length, nChg = ls.filter(l => have.has(l.id) && num(have.get(l.id).qtyNeeded) !== num(l.qtyNeeded)).length;
-      h += '<p class="hint" style="margin-top:0"><b>Job #' + esc(ex.number) + "</b>, " + esc(tkWho(ex)) + ". " + (addTo && I.tab === "hand" ? "These lines are added to it" : "This " + (addTo ? "import" : "proposal number") + " updates it") + ": " + nNew + " new line" + (nNew === 1 ? "" : "s") + ", " + nChg + " changed quantit" + (nChg === 1 ? "y" : "ies") + ". Lines not in this " + (I.tab === "hand" ? "list" : "file") + " stay as they are.</p>";
+      h += '<p class="hint" style="margin-top:0"><b>Job #' + esc(ex.number) + "</b>, " + esc(tkWho(ex)) + ". " + (addTo && I.tab === "hand" ? "These lines are added to it" : "This " + (addTo ? "file" : "proposal number") + " updates it") + ": " + plural(nNew, "new line") + ", " + nChg + " changed quantit" + (nChg === 1 ? "y" : "ies") + ". Lines not in this " + (I.tab === "hand" ? "list" : "file") + " stay as they are.</p>";
     }
-    if (!addTo) h += '<div class="grid2"><div><label class="lab" for="ntProp" title="Prefilled from the CSV when it carries one. Importing the same number again adds or adjusts lines on that job instead of making a second one. Leave blank for a hand-built job and one is made up.">' + '<abbr>Proposal number</abbr></label><input class="fld mono" id="ntProp" value="' + esc(I.proposal) + '" placeholder="1042"></div>' +
-      (ex ? "" : '<div><label class="lab" for="ntBay" title="Optional. Where this job\'s product is laid out; Pull from stock moves product there. It can be set later.">' + "<abbr>Staging bay</abbr></label><select class=\"fld\" id=\"ntBay\">" + locOptions(I.bay, { blankLabel: "No bay yet", filter: l => l.kind === "bay" }) + "</select></div>") +
-      '<div><label class="lab" for="ntInstall" title="Optional. The day the job installs: it puts the job on that day in the Week view. Set it later from the job header or the Week view\'s Unscheduled list.">' + '<abbr>Install date</abbr></label><input class="fld" type="date" id="ntInstall" value="' + esc(I.install || (ex ? installDay(ex) : "")) + '"></div>' + "</div>";
+    if (file && !addTo) h += '<div class="grid2"><div><label class="lab" for="ntProp" title="Prefilled from the file when it carries one. Reading the same number again adds or adjusts lines on that job instead of making a second one.">' + '<abbr>Proposal number</abbr></label><input class="fld mono" id="ntProp" value="' + esc(I.proposal) + '" placeholder="1042"></div></div>';
     if (!ex) {
-      h += '<div class="grid2"><div><label class="lab" for="ntClient">Client</label><select class="fld" id="ntClient" data-decide><option value="">Choose the client</option>' + clients.map(c => '<option value="' + esc(c.id) + '"' + (I.client === c.id ? " selected" : "") + ">" + esc(c.name) + "</option>").join("") + '<option value="__new"' + (I.client === "__new" ? " selected" : "") + ">New client...</option></select>" +
-        (I.client === "__new" ? '<label class="lab" for="ntNewClient">New client name</label><input class="fld" id="ntNewClient" value="' + esc(I.newClient) + '">' : "") + "</div>" +
-        '<div><label class="lab" for="ntJob">Job</label><select class="fld" id="ntJob" data-decide' + (I.client ? "" : " disabled") + '><option value="">' + (I.client ? "Choose the job" : "Pick the client first") + "</option>" + jobs.map(j => '<option value="' + esc(j.id) + '"' + (I.job === j.id ? " selected" : "") + ">" + esc(j.name) + "</option>").join("") + (I.client ? '<option value="__new"' + (I.job === "__new" ? " selected" : "") + ">New job...</option>" : "") + "</select>" +
-        (I.job === "__new" ? '<label class="lab" for="ntNewJob">New job name</label><input class="fld" id="ntNewJob" value="' + esc(I.newJob) + '" placeholder="Main office buildout"><label class="lab" for="ntNewAddr">Address</label><input class="fld" id="ntNewAddr" value="' + esc(I.newAddr) + '">' : "") + "</div></div>";
+      const jobs = I.client && I.client !== "__new" ? jobsOf(I.client) : [];
+      const typeJob = I.client === "__new" || I.job === "__new" || (I.client && !jobs.length);
+      h += '<div class="grid2"><div><label class="lab" for="ntClient" title="Pick one, or choose New client to type a name. A new client is added to the client list with this job.">' + '<abbr>Client</abbr></label><select class="fld" id="ntClient" data-decide><option value="">Choose the client</option>' + clientsList().map(c => '<option value="' + esc(c.id) + '"' + (I.client === c.id ? " selected" : "") + ">" + esc(c.name) + "</option>").join("") + '<option value="__new"' + (I.client === "__new" ? " selected" : "") + ">New client...</option></select>" +
+        (I.client === "__new" ? '<label class="lab" for="ntNewClient">New client name</label><input class="fld" id="ntNewClient" value="' + esc(I.newClient) + '" autocomplete="off">' : "") + "</div><div>" +
+        (jobs.length ? '<label class="lab" for="ntJob" title="A job this client already has, or New job for a new one">' + '<abbr>Job</abbr></label><select class="fld" id="ntJob"><option value="">Choose the job</option>' + jobs.map(j => '<option value="' + esc(j.id) + '"' + (I.job === j.id ? " selected" : "") + ">" + esc(j.name) + "</option>").join("") + '<option value="__new"' + (I.job === "__new" ? " selected" : "") + ">New job...</option></select>" : "") +
+        (typeJob ? '<label class="lab" for="ntNewJob">' + (jobs.length ? "New job name" : "Job name") + '</label><input class="fld" id="ntNewJob" value="' + esc(I.newJob) + '" placeholder="Service call, lobby TV" autocomplete="off">' + (file ? '<label class="lab" for="ntNewAddr">Address <span class="req">optional</span></label><input class="fld" id="ntNewAddr" value="' + esc(I.newAddr) + '">' : "") : "") +
+        (!I.client ? '<p class="hint">Pick the client first; the job comes next.</p>' : "") + "</div></div>";
     }
-    el.innerHTML = h; wireGlow(el);
+    if (!addTo) h += '<div class="grid2">' + (ex ? "" : '<div><label class="lab" for="ntBay" title="Where this job\'s product is laid out; pulling moves product there. It can be set later.">' + '<abbr>Staging bay</abbr> <span class="req">optional</span></label><select class="fld" id="ntBay">' + locOptions(I.bay, { blankLabel: "No bay yet", filter: l => l.kind === "bay" }) + "</select></div>") +
+      '<div><label class="lab" for="ntInstall" title="The day the job installs: it puts the job on that day in the Week view. Set it later from the job page or the Week view\'s Unscheduled list.">' + '<abbr>Install date</abbr> <span class="req">optional</span></label><input class="fld" type="date" id="ntInstall" value="' + esc(I.install || (ex ? installDay(ex) : "")) + '"></div></div>';
+    return h;
   };
-  const paintOk = () => {
-    const ex = existing(), b = w.querySelector("[data-ok]");
-    b.textContent = addTo ? "Add to job #" + addTo.number : ex ? "Update job #" + ex.number : "Create job";
+  const whoErr = () => {
+    if (existing()) return "";
+    if (!I.client) return "Pick the client, or choose New client.";
+    if (I.client === "__new" && !clean(I.newClient)) return "Type the new client's name.";
+    if (!I.job) return "Pick the job, or choose New job.";
+    if (I.job === "__new" && !clean(I.newJob)) return "Type a name for the job, for example Service call, lobby TV.";
+    return "";
   };
-  const reload = () => { paintMap(); paintRows(); paintTk(); paintOk(); };
-  $$("[data-nt]", w).forEach(b => b.addEventListener("click", () => { I.tab = b.dataset.nt; paintTab(); }));
-  const load = (text, name) => { err(""); impLoadText(I, text, name); $("#ntFileName", w).textContent = "Read " + I.fileName + ": " + I.rows.length + " rows."; reload(); };
+  /* the client decides the job: a client with no open jobs, or a new client, gets a typed job name */
+  const setClient = v => { I.client = v; const jobs = v && v !== "__new" ? jobsOf(v) : []; I.job = v === "__new" || (v && !jobs.length) ? "__new" : ""; };
+  const paintFoot = () => {
+    const back = $("#ntBack", w), next = $("#ntNext", w), ok = w.querySelector("[data-ok]"), hand = I.tab === "hand", last = !hand || I.step === STEPS.length - 1;
+    back.hidden = !hand || I.step === 0; next.hidden = last; ok.hidden = !last; ok.disabled = !last;
+    const ex = existing(); ok.textContent = addTo ? "Add to job #" + addTo.number : ex ? "Update job #" + ex.number : "Create job";
+  };
+  /* ---- the hand-built path ---- */
+  const listHTML = () => '<div class="ntfind"><label class="lab" for="ntQ" title="Searches brand, model, UPC, type, and category. Tap a result to add it; tap it again for one more.">' + '<abbr>Find a product on the shelf list</abbr></label><div class="srow"><input class="fld" type="search" id="ntQ" value="' + esc(I.q) + '" placeholder="Brand, model, or UPC" autocomplete="off" spellcheck="false"><button type="button" class="btn" id="ntScan" title="Reads the UPC or the Loadout label on a box with the camera and adds that product">Scan</button></div><div id="ntHits" class="nthits"></div></div>' +
+    '<label class="chk" title="Rooms are optional. With this on, each line gets a room, and the pull sheet groups the lines by it."><input type="checkbox" id="ntRooms"' + (I.rooms ? " checked" : "") + "> Group by room</label>" +
+    '<div id="ntLines" class="ntlines"></div><div class="nttype" id="ntType"></div>';
+  const paintHits = () => {
+    const el = $("#ntHits", w); if (!el) return;
+    const t = I.q.trim(), hits = ntFind(t);
+    el.innerHTML = !t ? "" : hits.length ? '<ul class="hitlist" aria-label="Products that match">' + hits.map(p => { const have = availableFor(p); return '<li><button type="button" class="hit" data-ntadd="' + esc(p.id) + '"><span class="hn">' + esc(productName(p)) + '</span><span class="hs">' + (have > 0 ? esc(qtyTxt(p, have)) + " on the shelf" : "None on the shelf") + "</span></button></li>"; }).join("") + "</ul>"
+      : '<p class="hint">Nothing on the shelf list matches "' + esc(t) + '". Type it as a line below.</p>';
+  };
+  const paintType = () => {
+    const el = $("#ntType", w); if (!el) return;
+    el.innerHTML = I.typeOpen ? '<label class="lab" for="ntTyped" title="For anything the shelf list does not have. It goes on the job as a note line: it can be staged and delivered, not pulled from the shelf.">' + '<abbr>Not on the list? Type it</abbr></label><div class="srow"><input class="fld" id="ntTyped" placeholder="What it is, for example 2-gang wall plate" autocomplete="off"><button type="button" class="btn" id="ntTypedAdd">Add line</button></div>'
+      : '<button type="button" class="textbtn" id="ntTypeOpen">Not on the list? Type it</button>';
+  };
+  const lineHTML = (h, i) => {
+    const p = h.pid ? S.products.get(h.pid) : null, ft = !!p && p.unit === "ft", sh = ntShelfLine(p, num(h.qty)), nm = p ? productName(p) : h.product;
+    return '<div class="ntl"><div class="ntl1"><b>' + esc(nm) + '</b><span class="ntsl ' + sh.cls + '" id="ntsl' + i + '">' + esc(sh.txt) + "</span></div>" +
+      (I.rooms ? '<div class="ntroom"><label class="lab" for="ntr' + i + '">Room</label><input class="fld" id="ntr' + i + '" data-ntroom="' + i + '" value="' + esc(h.area) + '" placeholder="Lobby" autocomplete="off"></div>' : "") +
+      '<div class="qstep"><button type="button" class="btn" data-ntq="' + i + '" data-d="-1" aria-label="' + (ft ? QTY_STEP.ft + " ft" : "One") + " fewer, " + esc(nm) + '">&minus;</button><label class="sr" for="ntq' + i + '">How many ' + esc(nm) + (ft ? ", in feet" : "") + '</label><input class="fld n" id="ntq' + i + '" type="number" min="1" step="any" data-ntqty="' + i + '" value="' + esc(h.qty) + '"><span class="qu" aria-hidden="true">' + (ft ? "ft" : "") + '</span><button type="button" class="btn" data-ntq="' + i + '" data-d="1" aria-label="' + (ft ? QTY_STEP.ft + " ft" : "One") + " more, " + esc(nm) + '">+</button></div>' +
+      '<button type="button" class="btn ntrm" data-ntrm="' + i + '" aria-label="Remove ' + esc(nm) + '">Remove</button></div>';
+  };
+  const paintLines = () => {
+    const el = $("#ntLines", w); if (!el) return;
+    el.innerHTML = I.hand.length ? I.hand.map(lineHTML).join("") : '<p class="ntempty">No lines yet. Find a product above, or scan its box.</p>';
+    paintType();
+  };
+  const checkHTML = () => {
+    const ls = Array.from(handLines(I).values());
+    if (!ls.length) return '<p class="ntempty">The list is empty. Go back and add at least one product.</p>';
+    let shelf = 0, order = 0, typed = 0;
+    ls.forEach(l => { const p = l.productId ? S.products.get(l.productId) : null; if (!p) typed++; else if (availableFor(p) >= l.qtyNeeded) shelf++; else order++; });
+    const parts = [fmtN(shelf) + " on the shelf", fmtN(order) + " to order"]; if (typed) parts.push(fmtN(typed) + " typed");
+    let h = '<p class="nttot">' + plural(ls.length, "line") + ": " + parts.join(", ") + ".</p>";
+    if (addTo) h += whoHTML(false);
+    else {
+      const cn = I.client === "__new" ? clean(I.newClient) : (S.clients.get(I.client) || {}).name || "", jn = I.job === "__new" ? clean(I.newJob) : (S.jobs.get(I.job) || {}).name || "";
+      h += '<p class="hint" style="margin-top:0">For ' + esc(cn) + ", " + esc(jn) + (I.bay ? ", staged in " + esc(locName(I.bay)) : "") + (I.install ? ", installing " + esc(fmtDate(new Date(I.install + "T12:00:00"))) : "") + ".</p>";
+    }
+    return h + '<ul class="ntcheck">' + ls.map(l => { const p = l.productId ? S.products.get(l.productId) : null, sh = ntShelfLine(p, l.qtyNeeded);
+      return '<li><b class="n">' + esc(fmtN(l.qtyNeeded) + (l.unit === "ft" ? " ft" : "")) + "</b><span>" + esc(p ? productName(p) : l.description) + (l.area ? ' <span class="z">' + esc(l.area) + "</span>" : "") + '<span class="ntsl ' + sh.cls + '">' + esc(sh.txt) + "</span></span></li>"; }).join("") + "</ul>";
+  };
+  const paintStep = () => {
+    const k = STEPS[I.step];
+    $("#ntStepHead", w).innerHTML = '<span class="ntsn">Step ' + (I.step + 1) + " of " + STEPS.length + "</span>" + esc(STEP_NAME[k]);
+    const el = $("#ntStepBody", w);
+    if (k === "who") { el.innerHTML = whoHTML(false); wireGlow(el); }
+    else if (k === "list") { el.innerHTML = listHTML(); paintHits(); paintLines(); }
+    else el.innerHTML = checkHTML();
+    paintFoot();
+  };
+  const goStep = n => { I.step = Math.max(0, Math.min(STEPS.length - 1, n)); err(""); paintStep(); const hd = $("#ntStepHead", w); hd.tabIndex = -1; hd.focus({ preventScroll: false }); };
+  const addProduct = p => {
+    const step = p.unit === "ft" ? QTY_STEP.ft : QTY_STEP.each, same = I.hand.find(h => h.pid === p.id && (!I.rooms || !clean(h.area)));
+    if (same) same.qty = String(num(same.qty) + step);
+    else I.hand.push({ pid: p.id, product: productName(p), qty: String(step), area: "" });
+    I.q = ""; const q = $("#ntQ", w); if (q) q.value = "";
+    paintHits(); paintLines(); err(""); live((same ? "One more " : "Added ") + productName(p));
+  };
+  const addTyped = () => {
+    const f = $("#ntTyped", w), v = f ? clean(f.value) : "";
+    if (!v) { err("Type what the line is first."); if (f) f.focus(); return; }
+    I.hand.push({ pid: null, product: v, qty: "1", area: "", note: true });
+    I.typeOpen = false; paintLines(); err(""); live("Added the typed line " + v);
+    const b = $("#ntTypeOpen", w); if (b) b.focus();
+  };
+  /* ---- the proposal file path ---- */
+  const hasCol = k => I.map[k] != null && I.map[k] >= 0;
+  /* the table opens on its own only while a quantity, or every one of brand, model, and description, is unmatched */
+  const needCols = () => !hasCol("qty") || !(hasCol("brand") || hasCol("model") || hasCol("description"));
+  const mapHTML = () => {
+    const opt = sel => '<option value="-1">Not in this file</option>' + I.headers.map((h, i) => '<option value="' + i + '"' + (sel === i ? " selected" : "") + ">" + esc(h) + "</option>").join("");
+    const prev = I.rows.slice(I.hdrIdx + 1, I.hdrIdx + 7), shown = IMP_FIELDS.filter(f => hasCol(f.k));
+    return '<p class="hint" style="margin-top:0">' + (I.noHeader ? "The file has no header row Loadout knows." : "Matched by the names at the top of each column.") + " Pick the right column for each; Loadout remembers it for the next file.</p>" +
+      '<div class="grid3">' + IMP_FIELDS.map(f => '<div><label class="lab" for="ntm_' + f.k + '"' + (f.tip ? ' title="' + esc(f.tip) + '"' : "") + ">" + (f.tip ? "<abbr>" + esc(f.label) + "</abbr>" : esc(f.label)) + '</label><select class="fld" id="ntm_' + f.k + '" data-ntmap="' + f.k + '">' + opt(I.map[f.k] == null ? -1 : I.map[f.k]) + "</select></div>").join("") + "</div>" +
+      '<h4 class="h4" style="margin-top:14px">The first rows, as read</h4>' +
+      (shown.length ? '<div class="tblwrap"><table class="tbl"><thead><tr>' + shown.map(f => '<th class="plain">' + esc(f.label) + "</th>").join("") + "</tr></thead><tbody>" +
+        prev.map(r => "<tr>" + shown.map(f => '<td data-l="' + esc(f.label) + '">' + esc(clean(r[I.map[f.k]])) + "</td>").join("") + "</tr>").join("") + "</tbody></table></div>" : '<p class="hint">Pick at least the quantity and the brand, model, or description.</p>');
+  };
+  const markHTML = l => {
+    const p = l.productId ? S.products.get(l.productId) : null;
+    if (p) return '<span class="mk ok">On the shelf list</span>';
+    if (!(l.brand || l.model)) return '<span class="mk">Kept as a note (no brand or model)</span>';
+    const on = !I.noCreate.has(l.id);
+    return '<span class="mk' + (on ? " new" : "") + '">' + (on ? "New to Loadout (will be added)" : "Kept as a note (not added)") + "</span>" +
+      '<label class="chk ntadd" title="Adds ' + esc([l.brand, l.model].join(" ")) + ' to the shelf list with none on hand, so the line can be ordered, received, and pulled later. Untick to keep it as a note line."><input type="checkbox" data-ntcreate="' + esc(l.id) + '"' + (on ? " checked" : "") + "> Add to the shelf list</label>";
+  };
+  const paintRead = () => {
+    const el = $("#ntRead", w); if (!I.rows.length) { el.innerHTML = ""; return; }
+    const ls = Array.from(I.lines.values()), miss = needCols(), prop = I.proposalFromCsv || "";
+    let h = '<h3 class="ntsh">Here is what the file says</h3><p class="ntsays">' + (prop ? "Proposal " + esc(prop) + (I.proposalName ? ", " + esc(I.proposalName) : "") + ". " : "") +
+      (ls.length ? plural(ls.length, "line") + " of product" : "No product lines") + (I.skipped.length ? ", " + plural(I.skipped.length, "row") + " left out" : "") + ".</p>";
+    if (miss) h += '<p class="err">Loadout could not find the columns it needs: a quantity, and a brand, model, or description. Pick them here.</p>' + mapHTML();
+    if (ls.length) h += '<ul class="ntfile">' + ls.map(l => '<li><b class="n">' + esc(fmtN(l.qtyNeeded) + (l.unit === "ft" ? " ft" : "")) + '</b><span class="nm">' + (l.brand || l.model ? esc([l.brand, l.model].filter(Boolean).join(" ")) : esc(l.description)) +
+      (l.area ? ' <span class="z">' + esc(l.area) + "</span>" : "") + (l.rows.length > 1 ? ' <span class="z">(rows ' + l.rows.join(", ") + " added together)</span>" : "") + '</span><span class="mkw">' + markHTML(l) + "</span></li>").join("") + "</ul>";
+    if (!miss) h += '<details class="more" id="ntFix"' + (I.fixOpen ? " open" : "") + "><summary>Something look wrong? Fix the columns</summary>" + mapHTML() + "</details>";
+    h += '<details class="more"><summary>' + plural(I.skipped.length, "row") + ' skipped</summary><ul class="hint">' + (I.skipped.length ? I.skipped.map(s => "<li>Row " + s.row + ", " + esc(s.label) + ": " + esc(s.why) + "</li>").join("") : "<li>None</li>") + "</ul></details>";
+    el.innerHTML = h;
+    const fx = $("#ntFix", el); if (fx) fx.addEventListener("toggle", () => { I.fixOpen = fx.open; });
+  };
+  const paintTk = () => { const el = $("#ntTk", w); el.innerHTML = I.rows.length ? '<h3 class="ntsh">Who it is for</h3>' + whoHTML(true) : ""; wireGlow(el); };
+  const reload = () => { paintRead(); paintTk(); paintFoot(); };
+  const paintWay = () => {
+    $$("input[name=ntWay]", w).forEach(r => { r.checked = r.value === I.tab; r.closest(".ncard").classList.toggle("on", r.checked); });
+    $("#ntHand", w).hidden = I.tab !== "hand"; $("#ntCsv", w).hidden = I.tab !== "csv";
+    if (I.tab === "hand") { $("#ntTk", w).innerHTML = ""; paintStep(); } else { $("#ntStepBody", w).innerHTML = ""; reload(); }
+    err("");
+  };
+  const load = (text, name) => { err(""); impLoadText(I, text, name); $("#ntFileName", w).textContent = "Read " + I.fileName + ", " + plural(I.rows.length, "row") + "."; reload(); };
   $("#ntPick", w).addEventListener("click", () => { const f = $("#ntFile", w); f.value = ""; f.click(); });
   $("#ntFile", w).addEventListener("change", async e => { const f = e.target.files && e.target.files[0]; if (!f) return; try { load(await f.text(), f.name); } catch (x) { err("Could not read that file: " + (x.message || x)); } });
   const drop = $("#ntDrop", w);
   drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
   drop.addEventListener("dragleave", () => drop.classList.remove("over"));
   drop.addEventListener("drop", async e => { e.preventDefault(); drop.classList.remove("over"); const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) { try { load(await f.text(), f.name); } catch (x) { err("Could not read that file."); } } });
-  $("#ntReadPaste", w).addEventListener("click", () => { const v = $("#ntPaste", w).value; if (!v.trim()) { err("Paste the CSV text first."); return; } load(v, "pasted text"); });
+  $("#ntReadPaste", w).addEventListener("click", () => { const v = $("#ntPaste", w).value; if (!v.trim()) { err("Paste the file's text first."); return; } load(v, "pasted text"); });
   if ($("#ntSample", w)) $("#ntSample", w).addEventListener("click", () => load(SAMPLE_CSV, "sample-proposal-1051.csv"));
-  $("#ntAddRow", w).addEventListener("click", () => { I.hand.push({ area: I.hand.length ? I.hand[I.hand.length - 1].area : "", product: "", qty: "" }); paintHand(); paintTk(); const i = I.hand.length - 1; $("#nh_p" + i, w).focus(); });
-  w.addEventListener("click", e => { const d = e.target.closest("[data-nhdel]"); if (d && !d.disabled) { I.hand.splice(+d.dataset.nhdel, 1); paintHand(); paintTk(); } });
+  $("#ntBack", w).addEventListener("click", () => goStep(I.step - 1));
+  $("#ntNext", w).addEventListener("click", () => {
+    const k = STEPS[I.step];
+    if (k === "who") { const e = whoErr(); if (e) { err(e); return; } }
+    if (k === "list" && !handLines(I).size) { err("Add at least one product with a quantity, or type a line."); return; }
+    goStep(I.step + 1);
+  });
+  w.addEventListener("click", e => {
+    const t = e.target.closest("button"); if (!t || !w.contains(t)) return;
+    if (t.dataset.ntadd) { const p = S.products.get(t.dataset.ntadd); if (p) { addProduct(p); const q = $("#ntQ", w); if (q) q.focus(); } }
+    else if (t.dataset.ntq) { const i = +t.dataset.ntq, h = I.hand[i]; if (!h) return; const p = h.pid ? S.products.get(h.pid) : null, st = p && p.unit === "ft" ? QTY_STEP.ft : QTY_STEP.each; h.qty = String(Math.max(1, num(h.qty) + st * +t.dataset.d)); const f = $("#ntq" + i, w); if (f) f.value = h.qty; const sh = ntShelfLine(p, num(h.qty)), s = $("#ntsl" + i, w); if (s) { s.className = "ntsl " + sh.cls; s.textContent = sh.txt; } }
+    else if (t.dataset.ntrm) { const i = +t.dataset.ntrm, h = I.hand[i]; if (!h) return; I.hand.splice(i, 1); paintLines(); live("Removed " + (h.pid && S.products.get(h.pid) ? productName(S.products.get(h.pid)) : h.product)); const f = $("#ntQ", w); if (f) f.focus(); }
+    else if (t.id === "ntScan") openMiniScan(p => { addProduct(p); const q = $("#ntQ", w); if (q) q.focus(); });
+    else if (t.id === "ntTypeOpen") { I.typeOpen = true; paintType(); const f = $("#ntTyped", w); if (f) f.focus(); }
+    else if (t.id === "ntTypedAdd") addTyped();
+  });
+  w.addEventListener("keydown", e => {
+    if (e.key !== "Enter" || e.isComposing) return;
+    const t = e.target;
+    /* Enter in the search adds the first match; Enter in a typed line adds it. Neither reaches the sheet's own Enter-to-confirm. */
+    if (t.id === "ntQ") { e.preventDefault(); e.stopPropagation(); const first = ntFind(I.q)[0]; if (first) addProduct(first); }
+    else if (t.id === "ntTyped") { e.preventDefault(); e.stopPropagation(); addTyped(); }
+    else if (t.dataset && (t.dataset.ntqty || t.dataset.ntroom)) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
   w.addEventListener("input", e => {
     const t = e.target;
-    if (t.dataset.nh) { I.hand[+t.dataset.i][t.dataset.nh] = t.value; if (t.dataset.nh === "product") { const one = Array.from(handLines({ hand: [{ area: "", product: t.value, qty: 1 }] }).values())[0]; $("#nh_m" + t.dataset.i, w).innerHTML = !clean(t.value) ? "" : one && one.productId ? '<span class="chip ok"><i></i>Matched: ' + esc(productName(S.products.get(one.productId))) + "</span>" : '<span class="chip warn"><i></i>Not in the catalog, stays a typed line</span>'; } }
+    if (t.id === "ntQ") { I.q = t.value; paintHits(); }
+    else if (t.dataset.ntqty) { const i = +t.dataset.ntqty, h = I.hand[i]; if (!h) return; h.qty = t.value; const p = h.pid ? S.products.get(h.pid) : null, sh = ntShelfLine(p, num(h.qty)), s = $("#ntsl" + i, w); if (s) { s.className = "ntsl " + sh.cls; s.textContent = sh.txt; } }
+    else if (t.dataset.ntroom) { const h = I.hand[+t.dataset.ntroom]; if (h) h.area = t.value; }
     else if (t.id === "ntProp") {
       const was = !!existing(); I.proposal = t.value.trim(); I.proposalTouched = true;
       if (was !== !!existing()) { paintTk(); const p = $("#ntProp", w); p.focus(); p.setSelectionRange(p.value.length, p.value.length); }
-      paintOk();
+      paintFoot();
     }
     else if (t.id === "ntNewClient") I.newClient = t.value;
     else if (t.id === "ntNewJob") I.newJob = t.value;
@@ -4637,19 +5028,27 @@ function openNewTicket(opts = {}) {
   });
   w.addEventListener("change", e => {
     const t = e.target;
-    if (t.dataset.ntmap) { const v = +t.value; Object.keys(I.map).forEach(k => { if (I.map[k] === v && v >= 0) I.map[k] = -1; }); I.map[t.dataset.ntmap] = v; I.mapTouched = true; impBuild(I); reload(); }
-    else if (t.dataset.ntcreate) { t.checked ? I.noCreate.delete(t.dataset.ntcreate) : I.noCreate.add(t.dataset.ntcreate); paintRows(); }
-    else if (t.id === "ntClient") { I.client = t.value; I.job = ""; paintTk(); }
-    else if (t.id === "ntJob") { I.job = t.value; const j = S.jobs.get(I.job); if (j && j.stagingLocationId && !I.bay) I.bay = j.stagingLocationId; paintTk(); }
+    if (t.name === "ntWay") { I.tab = t.value; paintWay(); }
+    else if (t.id === "ntRooms") { I.rooms = t.checked; paintLines(); const f = $("#ntRooms", w); if (f) f.focus(); }
+    else if (t.dataset.ntmap) { const v = +t.value; Object.keys(I.map).forEach(k => { if (I.map[k] === v && v >= 0) I.map[k] = -1; }); I.map[t.dataset.ntmap] = v; I.mapTouched = true; I.fixOpen = true; impBuild(I); reload(); const s = $("#ntm_" + t.dataset.ntmap, w); if (s) s.focus(); }
+    else if (t.dataset.ntcreate) { t.checked ? I.noCreate.delete(t.dataset.ntcreate) : I.noCreate.add(t.dataset.ntcreate); const id = t.dataset.ntcreate; paintRead(); const c = w.querySelector('[data-ntcreate="' + CSS.escape(id) + '"]'); if (c) c.focus(); }
+    else if (t.id === "ntClient") { setClient(t.value); if (I.tab === "hand") paintStep(); else paintTk(); const s = $("#ntClient", w); if (s) s.focus(); }
+    else if (t.id === "ntJob") { I.job = t.value; const j = S.jobs.get(I.job); if (j && j.stagingLocationId && !I.bay) I.bay = j.stagingLocationId; if (I.tab === "hand") paintStep(); else paintTk(); const s = $("#ntJob", w); if (s) s.focus(); }
     else if (t.id === "ntBay") I.bay = t.value;
   });
-  paintTab(); paintHand();
-  if (addTo && I.tab === "hand" && !COARSE.matches) setTimeout(() => $("#nh_a0", w) && $("#nh_a0", w).focus(), 30);
-  w.querySelector("[data-ok]").addEventListener("click", () => createTicket(I, addTo, w, err));
+  paintWay();
+  if (!COARSE.matches) setTimeout(() => { const r = w.querySelector("input[name=ntWay]:checked"); if (r) r.focus(); }, 30);
+  w.querySelector("[data-ok]").addEventListener("click", () => {
+    if (I.tab === "hand") {
+      if (!addTo) { const e = whoErr(); if (e) { goStep(0); err(e); return; } }
+      if (!handLines(I).size) { goStep(STEPS.indexOf("list")); err("Add at least one product with a quantity, or type a line."); return; }
+    }
+    createTicket(I, addTo, w, err);
+  });
 }
 function createTicket(I, addTo, w, err) {
   const ls = Array.from((I.tab === "hand" ? handLines(I) : I.lines).values());
-  if (!ls.length) { err(I.tab === "hand" ? "Type at least one line with a product and a quantity." : I.rows.length ? "No product lines to import. Check the column mapping." : "Choose or paste the proposal CSV first."); return; }
+  if (!ls.length) { err(I.tab === "hand" ? "Add at least one product with a quantity, or type a line." : I.rows.length ? "No product lines in this file. Open Fix the columns and check them." : "Choose the proposal file first, or paste its text."); return; }
   const ex = addTo || (I.proposal ? S.tickets.get(slug(I.proposal)) || null : null);
   const ops = [], now = new Date();
   let clientId, clientNm, jobId, jobNm;
@@ -4722,12 +5121,13 @@ function createTicket(I, addTo, w, err) {
   }
   const what = ex ? (source === "csv" ? "Re-imported " + I.fileName : "Added by hand") + ": " + nNew + " new lines, " + nChg + " changed" : "Job #" + number + (source === "csv" ? " created from CSV, " + ls.length + " lines" + (I.skipped.length ? ", " + I.skipped.length + " rows skipped" : "") : " built by hand, " + ls.length + " lines");
   ops.push(mv("edit", { ticketId: tid, ticketNumber: number, jobName: jobNm, note: what + (nProd ? ", " + nProd + " products created" : "") }));
-  closeModal(w);
+  w._guard = null; closeModal(w);
   commitChunks(ops, ex ? "the changes to job #" + number : "job #" + number).then(ok => {
     if (!ok) return;
     toast(ex ? "Job #" + number + " updated: " + nNew + " new, " + nChg + " changed" : "Job #" + number + " created");
   });
-  if (!DEMO) go("ticket", tid);
+  /* 0.10.0 (PLAN 22.1): a new job lands on its Pull screen for whoever can pull; an update stays on the job page */
+  if (!DEMO) go(!ex && isWriter() ? "pull" : "ticket", tid);
 }
 
 /* ==============================================================
@@ -5222,10 +5622,10 @@ function renderHome() {
   if (isTech()) h += '<h2 class="sr">What are you doing?</h2><div class="doors">' + ["pickup", "deliver", "pull", "receive", "audit"].filter(k => (k !== "audit" && k !== "receive") || isWriter()).map(doorHTML).join("") + "</div>";
   const list = liveJobs().sort(byInstall);
   h += '<div class="mcard"' + (isTech() ? ' style="margin-top:var(--s3)"' : "") + '><div class="thead"><h2 class="vt">Jobs</h2><span class="sp">' +
-    (isAdmin() ? '<a class="btn sm" href="#week" title="The install schedule a week at a time. It also sits under Office, Orders and tracking.">Week</a>' : "") +
+    (isAdmin() ? '<a class="btn sm" href="#week" title="The install schedule a week at a time. It also sits under ' + officeWord() + ', Orders and tracking.">Week</a>' : "") +
     '<a class="btn sm" href="#jobs" title="Every job in a table you can sort, filter, and lay out, closed ones too">All jobs</a>' +
-    (isWriter() ? '<button type="button" class="btn sm acc" data-act="newTicket" title="Import a Portal proposal CSV, or type the lines by hand">New job</button>' : "") + "</span></div>" +
-    jobCardsHTML(list, "<p>No open jobs. Import a Portal CSV or build one by hand.</p>" + (isWriter() ? '<button type="button" class="btn acc" data-act="newTicket">New job</button>' : "")) +
+    (isWriter() ? '<button type="button" class="btn sm acc" data-act="newTicket" title="Make the list of product for one client\'s install, by hand or from the proposal file">New job</button>' : "") + "</span></div>" +
+    jobCardsHTML(list, "<p>No open jobs. New job makes the list of product for a client's install.</p>" + (isWriter() ? '<button type="button" class="btn acc" data-act="newTicket">New job</button>' : "")) +
     (list.length ? '<p class="hint">' + list.length + " open job" + (list.length > 1 ? "s" : "") + ", soonest install first.</p>" : "") + "</div>";
   el.innerHTML = h;
   fitDoors();
@@ -5308,7 +5708,7 @@ function pullJobHTML() {
   const lines = ticketLines(t.id), s = tkSummary(t), closed = tkStatus(t) === "closed";
   h += " / Job " + esc(t.number) + '</div><h2 class="vt">' + esc(t.clientName || "No client") + '</h2><p class="hint" style="margin:2px 0 var(--s1)">' + esc(jobMeta(t)) + ' <a class="textbtn" href="' + jobHref(t) + '">Open the job</a></p>' + jobStripHTML(s, true);
   if (closed) return h + '<div class="empty"><p>This job is closed. Nothing is pulled for it any more.</p><a class="btn" href="' + jobHref(t) + '">Open the job</a></div></div>';
-  if (!lines.length) return h + '<div class="empty"><p>This job has no lines yet. Add them on the job, or import its CSV.</p><a class="btn" href="' + jobHref(t) + '">Open the job</a></div></div>';
+  if (!lines.length) return h + '<div class="empty"><p>This job has no lines yet. Add them on the job page.</p><a class="btn" href="' + jobHref(t) + '">Open the job</a></div></div>';
   const pl = pullPlan(t), stock = shelfStock(), bay = tkBay(t) || "the bay";
   if (!pl.keys.length) {
     const canPick = isTech() && lines.some(l => lineInBay(l) > 0);
@@ -5620,15 +6020,15 @@ function renderOffice(force) {
   if (!sec) {
     _offBuilt = "";
     const list = OFFICE.filter(o => o[3](S.role));
-    el.innerHTML = '<div class="mcard"><div class="thead"><h2 class="vt">Office</h2></div>' + installCardHTML() +
+    el.innerHTML = '<div class="mcard"><div class="thead"><h2 class="vt">' + officeWord() + "</h2></div>" + installCardHTML() +
       '<div class="ocards">' + list.map(o => '<a class="oc" href="#' + (o[0] === "orders" ? "orders" : o[0] === "audit" ? "audit" : "office/" + o[0]) + '"><b>' + esc(o[1]) + "</b><span>" + esc(o[2]) + "</span></a>").join("") + "</div>" +
       (OFFICE.some(o => o[0] !== "phone" && !o[3](S.role)) ? '<p class="hint">' + (S.role === "accounting" ? "Orders, people, settings, and the warehouse sections are for the admin." : "Orders, reports, people, settings, and the rest are for the admin.") + "</p>" : "") + "</div>";
     return;
   }
   /* 0.9.1: #office/phone on a computer lands on Office itself */
   if (sec === "phone" && !a2Device()) { S.officeSec = null; setHash(); renderOffice(force); return; }
-  const crumb = '<div class="crumb"><a class="textbtn" href="#office">Office</a> / ' + esc(officeName(sec)) + "</div>";
-  if (!officeCan(sec)) { _offBuilt = ""; el.innerHTML = '<div class="mcard">' + crumb + '<div class="empty"><p>' + esc(officeName(sec)) + ' is not open to your role.</p><a class="btn" href="#office">Back to Office</a></div></div>'; return; }
+  const crumb = '<div class="crumb"><a class="textbtn" href="#office">' + officeWord() + "</a> / " + esc(officeName(sec)) + "</div>";
+  if (!officeCan(sec)) { _offBuilt = ""; el.innerHTML = '<div class="mcard">' + crumb + '<div class="empty"><p>' + esc(officeName(sec)) + ' is not open to your role.</p><a class="btn" href="#office">Back to ' + officeWord() + "</a></div></div>"; return; }
   /* forms keep what is typed: Import and Settings only redraw when asked to */
   if (!force && _offBuilt === sec && (sec === "import" || sec === "settings")) return;
   if (sec === "settings" && _offBuilt !== "settings") { S.genDraft = null; S.boardDraft = null; }
@@ -5657,7 +6057,7 @@ function paintOfficeBar() {
   bar.hidden = !on;
   if (!on) { bar.innerHTML = ""; return; }
   const cur = S.view === "order" ? "orders" : S.view, tabs = [["orders", "Orders"], ["tracking", "Tracking"], ["week", "Week"]];
-  bar.innerHTML = '<div class="ocrumb"><span class="crumb" style="margin:0"><a class="textbtn" href="#office">Office</a> / Orders and tracking</span><div class="seg" role="group" aria-label="Orders and tracking">' +
+  bar.innerHTML = '<div class="ocrumb"><span class="crumb" style="margin:0"><a class="textbtn" href="#office">' + officeWord() + '</a> / Orders and tracking</span><div class="seg" role="group" aria-label="Orders and tracking">' +
     tabs.map(([k, l]) => '<button type="button" data-go="' + k + '" aria-pressed="' + (cur === k) + '" class="' + (cur === k ? "on" : "") + '">' + l + "</button>").join("") + "</div></div>";
 }
 
@@ -5807,7 +6207,7 @@ function renderStock() {
     /* finding 22: Consumables has a Columns button too, for its "Counted by the each" table */
     '<button type="button" class="btn sm" data-act="columns" data-tbl="' + (S.stockTab === "locations" ? "locations" : S.stockTab === "consumables" ? "consumables" : S.stockTab === "out" ? "items" : "catalog") + '">Edit columns</button>' +
     '<a class="btn sm" href="#shelf/units" title="Every serialized unit by status: out, in stock, staged, installed, returned">All units</a>' +
-    '<button type="button" class="btn sm" data-act="go" data-view="office" data-sub="labels" title="Opens the label sheet picker under Office">Print labels</button>' +
+    '<button type="button" class="btn sm" data-act="go" data-view="office" data-sub="labels" title="Opens the label sheet picker under ' + officeWord() + '">Print labels</button>' +
     (isWriter() ? (S.stockTab === "locations" ? '<button type="button" class="btn sm acc" data-act="newLocation">New location</button>' : '<button type="button" class="btn sm acc" data-act="newProduct">New product</button>') : "") +
     '</span></div><div class="toolbar"><div class="seg" role="group" aria-label="Shelf lists">' +
     tabs.map(([k, l, n]) => '<button type="button" aria-pressed="' + (tabOn === k) + '" class="' + (tabOn === k ? "on " : "") + (k === "low" ? "warnt" : "") + '" data-act="stockTab" data-tab="' + k + '">' + l + "<b>" + n + "</b></button>").join("") + "</div>" +
@@ -6620,7 +7020,7 @@ function rcvCardHTML(p) {
 }
 function renderReceive() {
   const el = $("#v-receive");
-  let h = bandHTML("receive") + '<div class="mcard"><div class="thead"><h2 class="vt">Receive a shipment</h2><span class="sp"><a class="btn sm" href="#tracking" title="Every package, to the office and to client sites, under Office, Orders and tracking">Tracking</a></span></div>';
+  let h = bandHTML("receive") + '<div class="mcard"><div class="thead"><h2 class="vt">Receive a shipment</h2><span class="sp"><a class="btn sm" href="#tracking" title="Every package, to the office and to client sites, under ' + officeWord() + ', Orders and tracking">Tracking</a></span></div>';
   if (!isWriter()) { el.innerHTML = h + '<div class="empty"><p>Receiving is for the warehouse and the admin.</p><a class="btn" href="#home">Back to Home</a></div></div>'; return; }
   h += '<p class="hint" style="margin:0 0 var(--s2)">Boxes coming to the shop. Arrived first: find the box and press Receive. Lines for a job go to its bay.</p>';
   if (S.errors.shipments || S.errors.orders) { el.innerHTML = h + errorBox("shipments", S.errors.shipments ? "shipments" : "orders") + "</div>"; return; }
@@ -6852,7 +7252,7 @@ function curHash() {
   if (v === "tickets") return "#jobs";
   if (v === "stock") return S.x && S.x.kind === "p" ? "#shelf/p/" + e(S.x.id) : S.x && S.x.kind === "l" ? "#shelf/l/" + e(S.x.id) : S.stockTab === "all" || S.stockTab === "consumables" ? "#shelf" : "#shelf/" + S.stockTab; /* 0.9.1: Consumables only is a session filter, kept out of the address like the others */
   if (v === "items") return S.x && S.x.kind === "i" ? "#shelf/units/i/" + e(S.x.id) : "#shelf/units/" + S.itemsTab;
-  if (v === "office") return "#office" + (S.officeSec ? "/" + S.officeSec + (S.officeSec === "reports" ? "/" + S.repTab : "") : "");
+  if (v === "office") return "#office" + (S.officeSec ? "/" + S.officeSec + (S.officeSec === "reports" ? "/" + S.repTab + (S.repTab === "job" && S.repJob ? "/" + e(S.repJob) : "") : "") : "");
   if (v === "pickup" || v === "deliver") return "#" + v + (S.flowJob ? "/" + e(S.flowJob) : "");
   if (v === "pull") return "#pull" + (S.pullJob ? "/" + e(S.pullJob) : "");
   if (v === "audit") return "#audit" + (S.auditLoc ? "/" + e(S.auditLoc) : "");
@@ -7094,6 +7494,8 @@ function photoSlot(p) {
   let act = "";
   if (W) act = '<div class="pact"><p class="hint" style="margin:0">' + (busy ? "Uploading the photo." : "A shelf photo helps whoever picks it find the right box. JPEG, PNG, or WebP; it is shrunk to 1200 px before upload.") + "</p>" +
     '<div class="btnrow"><button type="button" class="btn" data-act="photoPick" data-id="' + id + '"' + (busy ? " disabled" : "") + ' title="Take a photo or pick one from the phone or computer. Uploading needs a connection.">' + (url ? "Replace photo" : "Add photo") + "</button>" +
+    /* 0.10.0 (PLAN 21.4): a product with a UPC can always ask the lookup again */
+    (p.upc ? '<button type="button" class="btn" data-act="upcFind" data-id="' + id + '"' + (busy ? " disabled" : "") + ' title="Asks a public product lookup for photos of UPC ' + esc(p.upc) + '. You pick one or none; nothing changes until you do. Needs a connection.">Find a photo</button>' : "") +
     (url ? '<button type="button" class="btn danger" data-act="photoRemove" data-id="' + id + '"' + (busy ? " disabled" : "") + ">Remove photo</button>" : "") + "</div></div>";
   return '<div class="sect"><h4 class="h4">Photo</h4><div class="pslot">' + img + act + "</div></div>";
 }
@@ -7105,8 +7507,9 @@ function photoPick(p) {
   const f = $("#photoFile"); f.value = ""; f.click();
 }
 /* decode, shrink to PHOTO_PX on the long side, and encode as JPEG under PHOTO_MAX */
-async function shrinkPhoto(file) {
-  if (!PHOTO_TYPES.includes(file.type)) throw new Error("Use a JPEG, PNG, or WebP photo.");
+async function shrinkPhoto(file, anyImage) {
+  /* 0.10.0: a lookup photo may also arrive as a GIF (the worker passes JPEG, PNG, WebP, GIF); it is re-encoded as JPEG here like any other */
+  if (!PHOTO_TYPES.includes(file.type) && !(anyImage && file.type === "image/gif")) throw new Error("Use a JPEG, PNG, or WebP photo.");
   let src, w, h, done = () => {};
   try { src = await createImageBitmap(file, { imageOrientation: "from-image" }); w = src.width; h = src.height; done = () => src.close && src.close(); }
   catch (e) {
@@ -7129,18 +7532,25 @@ async function storageApi() {
   if (!fb.st) { const m = await import(SDK + "firebase-storage.js"); fb.stMod = m; fb.st = m.getStorage(fb.app); }
   return { m: fb.stMod, st: fb.st };
 }
-async function doSetPhoto(p, file) {
+/* src (0.10.0): { upc } when the photo came from the UPC lookup; a camera or picked photo has none.
+   Either way it is the same resize, the same path, and the same Storage rules. */
+async function doSetPhoto(p, file, src) {
+  const had = !!p.imageUrl, path = "loadout/products/" + p.id + ".jpg";
+  const fields = url => Object.assign({ imageUrl: url, imagePath: path, imageAt: NOW, photoSource: src ? "upc" : "camera", updatedAt: NOW },
+    src ? { upcLookupAt: NOW, upcLookupResult: "used", upcLookupUpc: src.upc } : {});
+  const note = (had ? "Photo replaced" : "Photo added") + (src ? " from the UPC lookup" : "");
+  /* the demo uploads nothing; a lookup photo still hands the refused write to the demo hook so a script can read it */
+  if (DEMO && src) return DB.commit([{ op: "update", coll: "loadout_products", id: p.id, data: fields("demo: not uploaded") }, mv("edit", { productId: p.id, note })], "the photo of " + productName(p));
   if (DEMO || !isWriter()) { toast("Demo mode: not saved"); return false; }
-  const had = !!p.imageUrl;
   S.photoBusy = p.id; render(true);
   try {
-    const blob = await shrinkPhoto(file);
+    const blob = await shrinkPhoto(file, !!src);
     const { m, st } = await storageApi();
-    const path = "loadout/products/" + p.id + ".jpg", ref = m.ref(st, path);
+    const ref = m.ref(st, path);
     await m.uploadBytes(ref, blob, { contentType: "image/jpeg", cacheControl: "private, max-age=86400" });
     const url = await m.getDownloadURL(ref);
-    return await DB.commit([{ op: "update", coll: "loadout_products", id: p.id, data: { imageUrl: url, imagePath: path, imageAt: NOW, updatedAt: NOW } },
-      mv("edit", { productId: p.id, note: had ? "Photo replaced" : "Photo added" })], "the photo of " + productName(p));
+    return await DB.commit([{ op: "update", coll: "loadout_products", id: p.id, data: fields(url) },
+      mv("edit", { productId: p.id, note })], "the photo of " + productName(p));
   } catch (e) {
     console.warn("Photo upload failed:", e);
     const msg = e && e.code === "storage/unauthorized" ? "Only admin and warehouse can change photos." : e && e.message && !e.code ? e.message : "Could not upload the photo. Check the connection and try again.";
@@ -7161,6 +7571,193 @@ async function doRemovePhoto(p) {
     console.warn("Photo removal failed:", e);
     toast(e && e.code === "storage/unauthorized" ? "Only admin and warehouse can change photos." : "Could not remove the photo. Try again.", true); return false;
   } finally { S.photoBusy = null; render(true); }
+}
+
+/* ---------------- 0.10.0: a photo from a UPC (PLAN 21.4) ----------------
+   The moment a UPC goes onto a product (Scan's Set UPC and Link, the UPC
+   field on the panel, New product), Loadout asks loadout-worker what the
+   free UPC lookup knows and offers its photos in one sheet, "Photo for this
+   UPC". The UPC is saved first and either way. A browser cannot call the
+   lookup, so the worker does, for signed-in admin and warehouse only; the
+   photo needs the Authorization header, so it comes through fetch() and
+   shows from a blob URL, revoked when the sheet closes. A chosen photo goes
+   through doSetPhoto like a camera photo. The product keeps photoSource,
+   upcLookupAt, upcLookupResult (used, none, kept, not_found) and
+   upcLookupUpc, so the same UPC does not ask twice on its own; Find a
+   photo on the panel always asks. Never automatic past the question,
+   never silent, and nothing is queued while offline. */
+const WORKER_URL = "https://loadout-worker.umbrelladev.workers.dev";
+const UPC_NOTE = "Photos come from a public product lookup and are for use inside Loadout.";
+/* the demo answers from these and makes no network call; &upc=busy|offline shows those states */
+const DEMO_UPC_MODE = DEMO && ["busy", "offline"].includes(QUERY.get("upc")) ? QUERY.get("upc") : null;
+const DEMO_UPC = {
+  "810010074409": { found: true, title: "Ubiquiti UniFi 6 Pro access point", brand: "Ubiquiti", model: "U6-Pro", photos: 4 },
+  "078477581138": { found: true, title: "Cat6 keystone jack, blue, 25 pack", brand: "Kenable", model: "KJ6-25", photos: 2 },
+  "612825120034": { found: false, photos: 0 }
+};
+function demoUpcBlob(i) {
+  const c = document.createElement("canvas"); c.width = 480; c.height = 480;
+  const g = c.getContext("2d"), tint = ["#dfe7f2", "#e6e2d8", "#dbe8df", "#ece0e0"][i % 4];
+  g.fillStyle = tint; g.fillRect(0, 0, 480, 480);
+  g.strokeStyle = "#5b6675"; g.lineWidth = 6; g.strokeRect(120 + i * 6, 130, 240 - i * 12, 190);
+  g.beginPath(); g.moveTo(120 + i * 6, 190); g.lineTo(360 - i * 6, 190); g.stroke();
+  g.fillStyle = "#1a2233"; g.font = "600 34px system-ui, sans-serif"; g.textAlign = "center";
+  g.fillText("Demo photo " + (i + 1), 240, 390);
+  return new Promise(res => c.toBlob(res, "image/jpeg", 0.85));
+}
+const upcSleep = ms => new Promise(r => setTimeout(r, ms));
+async function upcFetch(path) {
+  const u = fb && fb.auth ? fb.auth.currentUser : null;
+  if (!u) throw { kind: "signin" };
+  let tok, r;
+  try { tok = await u.getIdToken(); } catch (e) { throw { kind: "signin" }; }
+  try { r = await fetch(WORKER_URL + path, { headers: { Authorization: "Bearer " + tok }, cache: "no-store" }); }
+  catch (e) { throw { kind: "unreachable" }; }
+  if (r.ok) return r;
+  let code = ""; try { code = ((await r.json()) || {}).error || ""; } catch (e) {}
+  throw { kind: r.status === 429 ? "busy" : r.status === 403 ? (code === "origin_not_allowed" ? "origin" : "forbidden") : r.status === 401 ? "signin" : r.status === 400 ? "bad" : r.status === 404 ? "nophoto" : "unreachable", status: r.status, code };
+}
+async function upcLookup(upc) {
+  if (DEMO) {
+    await upcSleep(450);
+    if (DEMO_UPC_MODE === "busy") throw { kind: "busy" };
+    const f = DEMO_UPC[upc];
+    return Object.assign({ ok: true, upc, found: false, photos: 0 }, f || {}, { demo: true });
+  }
+  return (await upcFetch("/upc/lookup?upc=" + encodeURIComponent(upc))).json();
+}
+async function upcPhotoBlob(upc, i) {
+  if (DEMO) { await upcSleep(150 + i * 120); return demoUpcBlob(i); }
+  const b = await (await upcFetch("/upc/photo?upc=" + encodeURIComponent(upc) + "&i=" + i)).blob();
+  if (!/^image\//.test(b.type)) throw { kind: "unreachable" };
+  return b;
+}
+/* the mismatch warning: no brand or model word of four or more characters in common */
+function upcWords(...xs) { const s = new Set(); xs.forEach(x => String(x || "").toLowerCase().split(/[^a-z0-9]+/).forEach(w => { if (w.length >= 4) s.add(w); })); return s; }
+function upcMismatch(p, f) {
+  let mine = upcWords(p.brand, p.model); if (!mine.size) mine = upcWords(productName(p));
+  if (!mine.size) return false;
+  const theirs = upcWords(f.title, f.brand, f.model);
+  for (const x of mine) if (theirs.has(x)) return false;
+  return true;
+}
+async function writeUpcResult(p, upc, result) {
+  return DB.commit([{ op: "update", coll: "loadout_products", id: p.id, data: { upcLookupAt: NOW, upcLookupResult: result, upcLookupUpc: upc, updatedAt: NOW } }], "the photo lookup for " + productName(p));
+}
+/* called after a UPC is saved; the same UPC with a recorded answer does not ask again on its own */
+function offerUpcPhoto(p, upc) {
+  if (!p || !upc || !isWriter()) return;
+  if (p.upcLookupResult && p.upcLookupUpc === upc) return;
+  setTimeout(() => openUpcPhoto(p, upc), 80);
+}
+const UPC_FAIL = {
+  offline: "No connection, so nothing was looked up. The UPC is saved; use Find a photo on the product once you are back online.",
+  busy: "The lookup is busy. Try again later.",
+  unreachable: "Could not reach the lookup. The UPC is saved; try Find a photo on the product later.",
+  forbidden: "Your role cannot look photos up. Admin and warehouse can.",
+  origin: "This copy of Loadout is not allowed to use the lookup. Open it from its usual address.",
+  signin: "Sign in again to look photos up.",
+  bad: "The lookup does not take that UPC. Check the digits on the box.",
+  nophoto: "The lookup has no photo for this UPC."
+};
+function openUpcPhoto(p0, upc, opts = {}) {
+  const prod = () => S.products.get(p0.id) || p0, q = opts.queue || null;
+  const st = { urls: [], blobs: [], pick: -1, kind: "looking", f: null, decided: false, closing: false };
+  const head = '<div class="uphead"><span>UPC <b class="mono">' + esc(upc) + "</b></span>" + (q ? '<span class="hint" style="margin:0">Product ' + (q.i + 1) + " of " + q.n + "</span>" : "") + "</div>";
+  const w = openModal("Photo for this UPC", head + '<div id="upBody"></div><p class="hint upnote">' + esc(UPC_NOTE) + "</p>", '<button type="button" class="btn" data-close>Close</button>',
+    { noFocus: true, onClose: () => { st.closing = true; st.urls.forEach(u => URL.revokeObjectURL(u)); st.urls = []; if (q && st.decided && opts.onDone) opts.onDone(); } });
+  const foot = w.querySelector(".mbox > .btnrow.end"), bodyEl = $("#upBody", w);
+  const done = () => { st.decided = true; closeModal(w); };
+  /* in the review queue the way on is Next product (Done on the last); alone it is Close */
+  const closeBtn = () => q ? '<button type="button" class="btn acc" data-upact="next">' + (q.i + 1 < q.n ? "Next product" : "Done") + "</button>" : '<button type="button" class="btn acc" data-close>Close</button>';
+  const setFoot = html => { foot.innerHTML = (q && q.i + 1 < q.n ? '<button type="button" class="btn" data-upact="skipRest" title="Stops the review here. The rest keep their UPC and no photo; Find a photo on each product asks again.">Skip the rest</button>' : "") + html; };
+  foot.addEventListener("click", async e => {
+    const b = e.target.closest("button"); if (!b || b.disabled) return;
+    if (b.hasAttribute("data-close")) { closeModal(w); return; }
+    const a = b.dataset.upact, p = prod();
+    if (a === "skipRest") { if (q) q.stop(); st.decided = true; closeModal(w); return; }
+    if (a === "next") { done(); return; }
+    if (a === "none" || a === "kept") { done(); writeUpcResult(p, upc, a); if (!DEMO) toast(a === "kept" ? "Kept the current photo" : "No photo taken from the lookup"); return; }
+    if (a === "use") {
+      const blob = st.blobs[st.pick]; if (!blob) return;
+      $$("button", foot).forEach(x => { x.disabled = true; }); b.textContent = "Saving the photo";
+      const ok = await doSetPhoto(p, blob, { upc });
+      done(); if (ok) toast("Photo saved");
+    }
+  });
+  const paintFail = kind => {
+    st.kind = kind;
+    bodyEl.innerHTML = '<p class="upstate' + (kind === "busy" || kind === "unreachable" || kind === "offline" ? "" : " bad") + '">' + esc(UPC_FAIL[kind] || UPC_FAIL.unreachable) + "</p>" +
+      (kind === "busy" ? '<p class="hint">The free lookup allows 100 a day, shared with other users of the same network, so this is normal now and then.</p>' : "");
+    setFoot(closeBtn());
+  };
+  const pickChanged = () => {
+    const sel = w.querySelector("input[name=upPick]:checked"); st.pick = sel ? +sel.value : -1;
+    const ch = $("#upChosen", w); if (ch && st.pick >= 0 && st.urls[st.pick]) ch.src = st.urls[st.pick];
+    const use = foot.querySelector('[data-upact="use"]'); if (use) use.disabled = st.pick < 0;
+  };
+  const paintFound = () => {
+    const p = prod(), f = st.f, has = !!p.imageUrl, n = Math.min(4, num(f.photos));
+    const theirs = [f.brand, f.model].filter(Boolean).join(", ");
+    let h = '<div class="upnames"><div><span class="lab">The lookup calls it</span><b>' + esc(f.title || theirs || "No name given") + "</b>" + (theirs && f.title ? '<span class="z">' + esc(theirs) + "</span>" : "") + "</div>" +
+      '<div><span class="lab">Loadout calls it</span><b>' + esc(productName(p)) + "</b></div></div>";
+    if (upcMismatch(p, f)) h += '<p class="upwarn">The lookup calls this ' + esc(f.title || theirs) + "; check that it is the same product.</p>";
+    if (!n) { h += '<p class="upstate">' + esc(UPC_FAIL.nophoto) + "</p>"; bodyEl.innerHTML = h; setFoot(closeBtn()); return; }
+    h += '<fieldset class="upgrid"><legend class="lab">' + (n === 1 ? "The photo it found" : "Pick one of the " + n + " photos it found") + "</legend>" +
+      Array.from({ length: n }, (_, i) => '<label class="upth" id="upTh' + i + '"><input type="radio" name="upPick" value="' + i + '" disabled><span class="upimg"><span class="skelbar"></span></span><span class="upcap">Photo ' + (i + 1) + "</span></label>").join("") + "</fieldset>";
+    if (has) h += '<div class="upcmp"><figure><img src="' + esc(p.imageUrl) + '" alt="The current photo of ' + esc(productName(p)) + '" width="160" height="160"><figcaption>Current photo</figcaption></figure><figure><img id="upChosen" alt="The chosen photo from the lookup" width="160" height="160"><figcaption>Chosen photo</figcaption></figure></div>';
+    bodyEl.innerHTML = h;
+    setFoot(has ? '<button type="button" class="btn" data-upact="kept">Keep the current photo</button><button type="button" class="btn acc" data-upact="use" disabled>Replace it with this one</button>'
+      : '<button type="button" class="btn" data-upact="none">None of these</button><button type="button" class="btn acc" data-upact="use" disabled>Use this photo</button>');
+    bodyEl.addEventListener("change", e => { if (e.target.name === "upPick") pickChanged(); });
+    let left = n, got = 0;
+    for (let i = 0; i < n; i++) {
+      upcPhotoBlob(upc, i).then(b => {
+        if (st.closing) return;
+        const url = URL.createObjectURL(b); st.urls[i] = url; st.blobs[i] = b; got++;
+        const th = $("#upTh" + i, w); if (!th) return;
+        th.querySelector(".upimg").innerHTML = '<img src="' + url + '" alt="Photo ' + (i + 1) + " of " + n + " from the lookup" + (f.demo ? ", a drawn demo picture" : "") + '" width="140" height="140">' + (f.demo ? '<span class="updemo">Demo</span>' : "");
+        const r = th.querySelector("input"); r.disabled = false;
+        if (st.pick < 0) { r.checked = true; pickChanged(); }
+      }).catch(() => {
+        if (st.closing) return;
+        const th = $("#upTh" + i, w); if (th) { th.classList.add("fail"); th.querySelector(".upimg").innerHTML = '<span class="upmiss">Could not load</span>'; }
+      }).finally(() => {
+        if (--left || st.closing || got) return;
+        bodyEl.insertAdjacentHTML("beforeend", '<p class="upstate">The lookup found this product, but none of its photos could be fetched. Try Find a photo again later.</p>');
+        setFoot(closeBtn());
+      });
+    }
+  };
+  bodyEl.innerHTML = '<p class="upstate" role="status">Looking up this UPC.</p><div class="upgrid">' + '<span class="upth"><span class="upimg"><span class="skelbar"></span></span></span>'.repeat(4) + "</div>";
+  const offline = DEMO ? DEMO_UPC_MODE === "offline" || !onlineNow() : !navigator.onLine;
+  if (!isWriter()) { paintFail("forbidden"); return w; }
+  if (offline) { paintFail("offline"); return w; }
+  upcLookup(upc).then(f => {
+    if (st.closing) return;
+    st.f = f;
+    if (!f || !f.found) {
+      st.kind = "not_found";
+      bodyEl.innerHTML = '<p class="upstate">The lookup knows nothing about this UPC. It knows name-brand boxed products and little else; Add photo on the product takes one with the camera.</p>';
+      setFoot(closeBtn());
+      writeUpcResult(prod(), upc, "not_found");
+      return;
+    }
+    st.kind = "found"; paintFound();
+  }).catch(e => { if (!st.closing) paintFail(e && e.kind ? e.kind : "unreachable"); });
+  return w;
+}
+/* Office > Import: after an import that gave products a UPC, one sheet per product with Skip the rest */
+function openUpcQueue(list) {
+  const items = list.filter(p => p && p.upc);
+  const qs = { i: 0, n: items.length, stopped: false, stop() { this.stopped = true; } };
+  const next = () => {
+    if (qs.stopped || qs.i >= items.length) { if (qs.i >= items.length) toast("Photo review done"); return; }
+    const p = S.products.get(items[qs.i].id) || items[qs.i];
+    openUpcPhoto(p, items[qs.i].upc, { queue: qs, onDone: () => { if (qs.stopped) return; qs.i++; next(); } });
+  };
+  if (!items.length) { toast("No products gained a UPC in that import."); return; }
+  next();
 }
 
 /* ---------------- stock modals ---------------- */
@@ -7192,7 +7789,7 @@ function openReceive(p, presetLoc) {
     const c = cost && cost.value.trim() !== "" ? num(cost.value.replace(/[$,]/g, "")) : null;
     closeModal(w);
     const ok = await doReceiveUnits(p, loc, qty, c, ser.checked, $("#rcSerials", w).value.split(/\r?\n/), $("#rcNote", w).value.trim() || null, macs);
-    if (ok) { toast("Received " + qty + " into " + locName(loc) + (ser.checked ? ". Print their labels from Office, Labels." : "")); refreshScan(); }
+    if (ok) { toast("Received " + qty + " into " + locName(loc) + (ser.checked ? ". Print their labels from " + officeWord() + ", Labels." : "")); refreshScan(); }
   });
 }
 /* the shop's scheme: a letter plus month and year of purchase (A1126). skip
@@ -7252,7 +7849,7 @@ function openNewBox(p, presetUpc) {
     /* the write carries a create precondition: another device took the label first */
     if (r && r.exists) { boxTaken(w, "#nbLabel", label); return; }
     closeModal(w);
-    if (r && r.ok) { toast("Box " + label + " added. Print its sticker from Office, Labels."); refreshScan(); }
+    if (r && r.ok) { toast("Box " + label + " added. Print its sticker from " + officeWord() + ", Labels."); refreshScan(); }
   });
 }
 function openMoveStock(p) {
@@ -7329,7 +7926,7 @@ function openSerialize(p) {
     const macs = macLines($("#szMac", w).value);
     if (macs.bad) { err.textContent = "Line " + macs.bad + " of the MAC addresses is not 12 characters 0 to 9 and A to F. Fix it or leave it blank."; err.hidden = false; return; }
     closeModal(w);
-    if (await doSerialize(p, l, n, $("#szSer", w).value.split(/\r?\n/), macs)) toast(n + " unit" + (n > 1 ? "s" : "") + " serialized. Print the labels from Office, Labels.");
+    if (await doSerialize(p, l, n, $("#szSer", w).value.split(/\r?\n/), macs)) toast(n + " unit" + (n > 1 ? "s" : "") + " serialized. Print the labels from " + officeWord() + ", Labels.");
   });
 }
 
@@ -7548,7 +8145,7 @@ function paintScanResult() {
   }
   /* unknown */
   if (/^loadout:/i.test(sc.code)) {
-    el.innerHTML = '<div class="rk"><span>Label not found</span></div><div class="rt mono">' + esc(sc.code) + '</div><p class="rm">This label points at a record that is not in Loadout any more, or has not reached this device yet. Check the sticker, or reprint it from Office, Labels.</p>';
+    el.innerHTML = '<div class="rk"><span>Label not found</span></div><div class="rt mono">' + esc(sc.code) + '</div><p class="rm">This label points at a record that is not in Loadout any more, or has not reached this device yet. Check the sticker, or reprint it from ' + officeWord() + ", Labels.</p>";
     return;
   }
   const isUpc = /^\d{8,14}$/.test(sc.code);
@@ -8288,6 +8885,9 @@ const DATA_DICTIONARY = [
     ["amps", "Current rating"], ["inputs, outputs", "Splitter ports"], ["sex", "Male or female"], ["band", "Band"], ["pins", "Pin count"], ["wireType", "Pair count or cable spec, as 23/4 or RG6"], ["grade", "GP, Riser, Plenum, or Shielded"],
     ["unit", "each or ft"], ["upc", "Barcode, learned on first scan"], ["category", "Wire, Network, Camera, and so on"], ["consumable", "Shows in Consumables with a par level"],
     ["parLevel", "Reorder point in the product's unit"], ["defaultLocationId", "Usual shelf"], ["defaultLocationName", "Its name when set"], ["imageUrl", "Download link of the product photo (Firebase Storage)"], ["imagePath", "Storage path of the photo: loadout/products/{id}.jpg"], ["imageAt", "When the photo was last added or replaced"],
+    ["photoSource", "Where the photo came from: camera (taken or picked on a phone or computer) or upc (chosen from the UPC lookup) (0.10.0)"],
+    ["upcLookupAt", "When someone last answered Photo for this UPC for this product (0.10.0)"], ["upcLookupResult", "That answer: used (a lookup photo was saved), none (None of these), kept (Keep the current photo), or not_found (the lookup knew nothing) (0.10.0)"],
+    ["upcLookupUpc", "The UPC that answer was about. The sheet does not open on its own again for the same UPC; Find a photo always asks (0.10.0)"],
     ["onHand", "Total on hand, recomputed with each movement"], ["lastCost", "Last unit cost; values in reports use it"], ["portalItemId", "Portal item id when imported"],
     ["lastCountAt", "Count date from the inventory sheet"]].concat(DD_WHO) },
   { coll: "loadout_locations", id: "area--shelf slug, as storage-room--rca-av-video", about: "Shelves, bays, vans, and bare areas.", fields: [
@@ -8539,6 +9139,13 @@ const REPORTS = [
     },
     empty: () => "No deliver movements " + rrText() + "." },
 
+  /* 0.10.0 (PLAN 23): everything on one job, line by line, with its units and wire boxes under each line. No date range: a job is whole. */
+  { k: "job", label: "Job report", file: "job", mv: false, job: true,
+    views: () => viewSel("jobBy", [["all", "Every line"], ["open", "Only what is not delivered yet"], ["ordered", "Only what was ordered"]], "Every line on the job, or only the lines still short of delivered, or only the lines on a purchase order"),
+    hint: () => "Every line on one job, from what the proposal needs to what was delivered and brought back. Serialized units and the boxes wire was cut from sit under their line." + (costOn() ? " Unit cost is the PO line's when the line is on a PO, else the product's last cost." : " Costs show when Show costs is on in Settings."),
+    build() { return jobRepBuild(); },
+    empty: () => "Pick a job to see its lines." },
+
   { k: "itemsout", label: "Units out", file: "items-out", mv: true,
     hint: () => "Serialized units checked out in the range, and units out now that left earlier. Days out counts to the day it came back, or to today.",
     build() {
@@ -8597,7 +9204,7 @@ const REPORTS = [
       return '<div><label class="lab" for="rf_mvType">Type</label><select class="fld" id="rf_mvType" data-rf="mvType"><option value="">All types</option>' + Object.entries(MV_LABEL).map(([k, l]) => '<option value="' + k + '"' + (S.rf.mvType === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" +
         '<div><label class="lab" for="rf_mvPerson">Person</label><select class="fld" id="rf_mvPerson" data-rf="mvPerson"><option value="">Everyone</option>' + people.map(p => "<option" + (S.rf.mvPerson === p ? " selected" : "") + ">" + esc(p) + "</option>").join("") + "</select></div>";
     },
-    hint: () => "The raw audit trail for the range, read in full (the Movements log under More shows the latest 500). Columns hides or shows the raw fields; the export takes the columns shown.",
+    hint: () => "The raw audit trail for the range, read in full (the Movements log under " + officeWord() + " shows the latest 500). Columns hides or shows the raw fields; the export takes the columns shown.",
     build() {
       const rows = (S.rep.mvs || []).filter(m => (!S.rf.mvType || m.type === S.rf.mvType) && (!S.rf.mvPerson || (m.byName || m.by) === S.rf.mvPerson));
       const cols = [
@@ -8643,6 +9250,150 @@ const REPORTS = [
 ];
 const curReport = () => REPORTS.find(x => x.k === S.repTab) || REPORTS[0];
 
+/* ---------------- 0.10.0: the Job report (PLAN 23) ----------------
+   One row per pull sheet line. The units serving a line and the boxes its
+   wire was cut from are sub-rows under it (on screen they follow their line
+   whatever the sort; in CSV and XLSX they are rows of their own with the
+   line's key repeated). Brought back and the box cuts come from the job's
+   movements (the same read the job page's timeline makes). Lines and units
+   are readable by every role on the domain, accounting included, so no
+   rules change. The job picked last stays for the session. */
+const jrStore = { get() { try { return sessionStorage.getItem("loadout.repJob") || null; } catch (e) { return null; } }, set(id) { try { if (id) sessionStorage.setItem("loadout.repJob", id); } catch (e) {} } };
+function jrTicket() { if (!S.repJob) S.repJob = jrStore.get(); return S.repJob ? S.tickets.get(S.repJob) || null : null; }
+function jrPick(id) {
+  S.repJob = id || null; jrStore.set(id); S.repJobQ = ""; S.repJobOpen = false;
+  if (!id) { try { sessionStorage.removeItem("loadout.repJob"); } catch (e) {} }
+  if (DB && DB.syncLines) DB.syncLines();
+  setHash(); render(true);
+  const h = $("#jrHead"); if (h) h.focus({ preventScroll: true });
+}
+function jrMvs(t) {
+  if (!S.tkHist[t.id]) { S.tkHist[t.id] = null; DB.movementsWhere("ticketId", t.id).then(list => { S.tkHist[t.id] = list.map(normMv); scheduleRender(); }).catch(() => { S.tkHist[t.id] = []; scheduleRender(); }); }
+  return S.tkHist[t.id];
+}
+/* sums by unit for a totals cell: "14, 360 ft" */
+function jrSum(rows, get) {
+  let each = 0, ft = 0; rows.forEach(r => { const v = num(get(r)); if (r.unit === "ft") ft += v; else each += v; });
+  return ft && each ? fmtN(each) + " each, " + fmtN(ft) + " ft" : ft ? fmtN(ft) + " ft" : fmtN(each);
+}
+function jrRows(t) {
+  const lines = ticketLines(t.id), mvs = S.tkHist[t.id] || [], stock = shelfStock();
+  const units = new Map(), cuts = new Map(), back = new Map();
+  S.items.forEach(i => { if (i.ticketId === t.id && i.ticketLineId) { if (!units.has(i.ticketLineId)) units.set(i.ticketLineId, []); units.get(i.ticketLineId).push(i); } });
+  mvs.forEach(m => {
+    /* a cut written without its line (older rows) goes to this job's line for the same product */
+    const lid = m.ticketLineId || (m.type === "cut" && m.productId ? (lines.find(l => l.productId === m.productId) || {}).id : null);
+    if (!lid) return;
+    if (m.type === "cut" && m.cut) { if (!cuts.has(lid)) cuts.set(lid, []); cuts.get(lid).push(m); }
+    else if (m.type === "move" && /^Brought back/i.test(String(m.note || ""))) back.set(lid, (back.get(lid) || 0) + num(m.qty));
+  });
+  return lines.map(l => {
+    const p = lineProduct(l), links = olinksFor(t, l);
+    const poCost = links.map(x => x.ol && x.ol.unitCost != null && x.ol.unitCost !== "" ? num(x.ol.unitCost) : null).find(v => v != null);
+    const cost = poCost != null ? poCost : unitCost(l.productId), need = num(l.qtyNeeded), dl = num(l.qtyDelivered);
+    return { l, key: l.id, room: l.area || "", product: lineName(l), bm: [p ? p.brand : l.brand, p ? p.model : l.model].filter(Boolean).join(" "), unit: lineIsFt(l) ? "ft" : "each",
+      need, pulled: num(l.qtyStaged), staged: lineInBay(l), picked: lineOut(l), delivered: dl, back: back.get(l.id) || 0, order: uncoveredFor(l, stock, t),
+      ordered: links.length > 0, po: links.map(x => poLabel(x.o)).join(", "), poStatus: links.map(x => ordDnr(x.o) ? DNR : pillLabel("po", x.o.status)).join(", "),
+      cost, total: cost == null ? null : cost * need, dlValue: cost == null ? null : cost * dl,
+      units: (units.get(l.id) || []).sort((a, b) => itemLabel(a).localeCompare(itemLabel(b))), cuts: (cuts.get(l.id) || []).sort((a, b) => (toDate(a.at) || 0) - (toDate(b.at) || 0)) };
+  });
+}
+const jrQty = (r, v) => fmtN(v) + (r.unit === "ft" ? " ft" : "");
+function jrUnitText(i) { return "Unit " + itemLabel(i) + (i.serial && i.serial !== itemLabel(i) ? ", serial " + i.serial : "") + (i.mac ? ", MAC " + i.mac : "") + ". " + (ITEM_STATUS[i.status] || i.status) + ": " + whereItem(i); }
+function jrCutText(m) { return "Cut " + fmtN(m.cut.length) + " ft from box " + (m.containerLabel || "with no label") + ", " + fmtDate(m.at) + (m.byName ? " by " + m.byName : ""); }
+function jrCols() {
+  const C = costOn(), qc = (k, label, get, title) => ({ k, label, r: true, cls: "n", title, sort: r => num(get(r)), text: r => jrQty(r, get(r)), x: r => num(get(r)), tot: rows => jrSum(rows, get) });
+  const cols = [txtCol("room", "Room", r => r.room), txtCol("product", "Product", r => r.product, { html: r => '<span class="pn">' + esc(r.product) + "</span>" }), txtCol("bm", "Brand and model", r => r.bm, { def: false }),
+    qc("need", "Needed", r => r.need, "What the job needs"), qc("pulled", "Pulled", r => r.pulled, "Taken off the shelf or a PO for this job"), qc("staged", "Staged", r => r.staged, "In the job's bay now"),
+    qc("picked", "Picked up", r => r.picked, "Taken out of the bay into a van"), qc("delivered", "Delivered", r => r.delivered, "Confirmed on site"), qc("back", "Brought back", r => r.back, "Brought back from a van to the bay or a shelf"),
+    qc("order", "Still to order", r => r.order, "Short: the shelves cannot cover it and no PO carries it"),
+    txtCol("po", "PO", r => r.po), txtCol("poStatus", "PO status", r => r.poStatus)];
+  if (C) cols.push(moneyCol("cost", "Unit cost", r => r.cost), moneyCol("total", "Line total", r => r.total, { tot: rows => money(rows.reduce((a, r) => a + num(r.total), 0)) }));
+  return cols;
+}
+function jrFilter(rows) { const v = rfv("jobBy", "all"); return v === "open" ? rows.filter(r => r.delivered < r.need) : v === "ordered" ? rows.filter(r => r.ordered) : rows; }
+function jobRepBuild() {
+  const t = jrTicket(), cols = jrCols();
+  if (!t) return { id: "rep_job", cols, rows: [], total: "" };
+  const all = jrRows(t), rows = jrFilter(all), C = costOn();
+  const sum = f => all.reduce((a, r) => a + num(r[f]), 0);
+  const short = all.filter(r => r.order > 0).length, open = all.filter(r => r.delivered < r.need).length;
+  let total = plural(all.length, "line") + ", " + fmtN(all.length - open) + " delivered in full, " + plural(short, "line") + " still to order.";
+  if (C) { const need = sum("total"), dv = sum("dlValue"); total += " Product value needed " + money(need) + ", delivered " + money(dv) + ", still out " + money(Math.max(0, need - dv)) + "." + (all.some(r => r.cost == null) ? ' <span class="z">Lines with no cost count as zero.</span>' : ""); }
+  return { id: "rep_job", cols, rows, all, total, t, defaultSort: (a, b) => num(a.l.sort) - num(b.l.sort) || String(a.key).localeCompare(String(b.key)),
+    emptyMsg: rfv("jobBy", "all") === "open" ? "Every line on this job is delivered." : rfv("jobBy", "all") === "ordered" ? "No line on this job is on a purchase order." : "This job has no lines." };
+}
+function jrHeadHTML(t) {
+  const lines = ticketLines(t.id), pulled = Array.from(new Set(lines.map(l => l.pickedByName).filter(Boolean))), lastPull = lines.map(l => toDate(l.pickedAt)).filter(Boolean).sort((a, b) => b - a)[0];
+  const who = (n, at) => n ? esc(n) + (at ? "<small>" + esc(fmtDate(at)) + "</small>" : "") : '<span class="z">Not yet</span>';
+  return '<dl class="meta jrmeta"><div><dt>Client</dt><dd>' + esc(t.clientName || "None") + "</dd></div><div><dt>Job</dt><dd>" + esc(t.jobName || "None") + "<small>Job #" + esc(t.number) + "</small></dd></div>" +
+    "<div><dt>Proposal</dt><dd>" + (t.proposalId ? "#" + esc(t.proposalId) : "None") + "</dd></div><div><dt>Bay</dt><dd>" + esc(tkBay(t) || "None yet") + "</dd></div>" +
+    "<div><dt>Install</dt><dd>" + (t.installAt ? esc(fmtDate(t.installAt)) : '<span class="z">Not set</span>') + "</dd></div><div><dt>Status</dt><dd>" + esc(TK_LABEL[tkStatus(t)] || "") + "</dd></div>" +
+    "<div><dt>Pulled by</dt><dd>" + who(pulled.join(", "), lastPull) + "</dd></div><div><dt>Picked up by</dt><dd>" + who(t.pickedUpByName, t.pickedUpAt) + "</dd></div><div><dt>Delivered by</dt><dd>" + who(t.deliveredByName, t.deliveredAt) + "</dd></div></dl>";
+}
+function jrPickerHTML(t) {
+  const q = String(S.repJobQ || "").trim().toLowerCase();
+  const all = Array.from(S.tickets.values()).sort((a, b) => (toDate(b.createdAt) || 0) - (toDate(a.createdAt) || 0));
+  const hits = (q ? all.filter(x => [x.clientName, x.jobName, x.number, x.proposalId].filter(Boolean).join(" ").toLowerCase().includes(q)) : all).slice(0, 20);
+  return '<div class="jrpick"' + (t && !S.repJobOpen ? " hidden" : "") + ' id="jrPick"><label class="lab" for="jrQ" title="Searches the client, the job name, the job number, and the proposal number. The latest twenty jobs list under it.">' + "<abbr>Find a job</abbr></label>" +
+    '<input class="fld" type="search" id="jrQ" value="' + esc(S.repJobQ || "") + '" placeholder="Client, job name, job number, or proposal number" autocomplete="off">' +
+    (hits.length ? '<ul class="jrlist" aria-label="' + (q ? "Jobs that match" : "The latest jobs") + '">' + hits.map(x => '<li><button type="button" class="hit" data-act="jrPick" data-id="' + esc(x.id) + '"><span class="hn"><b>#' + esc(x.number) + "</b> " + esc(tkWho(x)) + "</span>" + '<span class="hs">' + esc(TK_LABEL[tkStatus(x)] || "") + ", " + esc(fmtDate(x.createdAt)) + "</span></button></li>").join("") + "</ul>"
+      : '<p class="hint">No job matches "' + esc(S.repJobQ) + '".</p>') + "</div>";
+}
+function jobReportHTML(h) {
+  if (S.errors.tickets) return h + errorBox("jobs", "tickets");
+  if (!S.loaded.tickets) return h + skelTable([{ label: "Room" }, { label: "Product" }, { label: "Needed", r: true }], "Loading jobs");
+  const t = jrTicket();
+  if (S.repJob && !t) { h += '<div class="errbox" role="alert"><p>That job is not in Loadout. It may have been removed, or has not reached this device yet.</p><button type="button" class="btn" data-act="jrPick" data-id="">Pick another job</button></div>'; return h; }
+  if (!t) return h + '<div class="empty" style="padding-bottom:8px"><p>Pick a job to see its lines.</p></div>' + jrPickerHTML(null);
+  h += '<div class="thead jrtop"><h3 class="jrh" id="jrHead" tabindex="-1">Job #' + esc(t.number) + ", " + esc(tkWho(t)) + '</h3><span class="sp"><button type="button" class="btn sm" data-act="jrAnother" aria-controls="jrPick" aria-expanded="' + !!S.repJobOpen + '" title="Search the jobs again">Pick another job</button><a class="btn sm" href="' + jobHref(t) + '">Open the job</a></span></div>' + jrPickerHTML(t) + jrHeadHTML(t);
+  if (S.errors.lines && !S.linesLoaded.has(t.id)) return h + errorBox("the job's lines", "tickets");
+  if (!S.linesLoaded.has(t.id) && DB && DB.syncLines) DB.syncLines();
+  if (!S.linesLoaded.has(t.id) || jrMvs(t) === null) return h + skelTable([{ label: "Room" }, { label: "Product" }, { label: "Needed", r: true }, { label: "Delivered", r: true }], "Reading job #" + t.number);
+  const R = curReport(), b = jobRepBuild();
+  const exp = b.rows.length ? '<span class="rexp"><button type="button" class="btn sm" data-act="columns" data-tbl="' + b.id + '">Edit columns</button><button type="button" class="btn sm" data-act="repCsv">Export CSV</button><button type="button" class="btn sm" data-act="repXlsx">Export XLSX</button><button type="button" class="btn sm" data-act="jrPrint" title="A letter-size sheet of this report with the header block and the totals">Print</button></span>' : "";
+  h += '<div class="filters rfil">' + R.views() + "</div>" + '<div class="thead"><h4>Lines</h4><span class="hint" style="margin:0">' + (b.rows.length ? plural(b.rows.length, "line") + (b.rows.length !== b.all.length ? " of " + fmtN(b.all.length) : "") : "") + "</span>" + exp + "</div>";
+  if (!b.rows.length) return h + '<div class="empty"><p>' + esc(b.emptyMsg) + "</p></div>";
+  return h + tableHTML(b.id, b.cols, b.rows, { defaultSort: b.defaultSort, foot: true, subRows: r => r.units.map(i => esc(jrUnitText(i))).concat(r.cuts.map(m => esc(jrCutText(m)))) }) + (b.total ? '<p class="rtot">' + b.total + "</p>" : "");
+}
+/* CSV and XLSX: the visible columns, then what a unit or box row adds; every row starts with the line's key */
+function jrExport(kind) {
+  const b = jobRepBuild(); if (!b.t || !b.rows.length) { toast("Nothing to export for this job.", true); return; }
+  const vis = visibleCols(b.id, b.cols), rows = sortRows(b.id, b.cols, b.rows, b.defaultSort);
+  const val = (c, x) => { const v = c.x ? c.x(x) : c.text ? c.text(x) : ""; return v == null ? "" : v; };
+  const keep = new Set(["room", "product", "bm"]);
+  const head = ["Line key", "Row"].concat(vis.map(c => c.label), ["Unit or box", "Serial", "MAC address", "Where now", "Cut on", "Cut by", "Feet cut"]);
+  const out = [];
+  rows.forEach(r => {
+    out.push([r.key, "Line"].concat(vis.map(c => val(c, r)), ["", "", "", "", "", "", ""]));
+    r.units.forEach(i => out.push([r.key, "Unit"].concat(vis.map(c => keep.has(c.k) ? val(c, r) : ""), [itemLabel(i), i.serial || "", i.mac || "", (ITEM_STATUS[i.status] || i.status) + ": " + whereItem(i), "", "", ""])));
+    r.cuts.forEach(m => out.push([r.key, "Box"].concat(vis.map(c => keep.has(c.k) ? val(c, r) : ""), [m.containerLabel || "", "", "", "", isoDay(m.at), m.byName || m.by || "", num(m.cut.length)])));
+  });
+  const name = "loadout-job-" + slug(b.t.number) + "-" + rfv("jobBy", "all");
+  if (kind === "csv") { downloadBlob(new Blob(["\ufeff" + csvOf(out, head.map((l, k) => ({ label: l, get: x => x[k] })))], { type: "text/csv" }), name + ".csv"); toast("CSV downloaded"); return; }
+  ensureXLSX().then(XLSX => {
+    const ws = XLSX.utils.aoa_to_sheet([head].concat(out));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, ("Job " + b.t.number).slice(0, 31));
+    XLSX.writeFile(wb, name + ".xlsx"); toast("XLSX downloaded");
+  }).catch(e => toast(e.message || String(e), true));
+}
+function jrPrint() {
+  const b = jobRepBuild(), t = b.t; if (!t) return;
+  const vis = visibleCols(b.id, b.cols), rows = sortRows(b.id, b.cols, b.rows, b.defaultSort), span = vis.length;
+  const body = rows.map(r => "<tr>" + vis.map(c => '<td class="' + (c.r ? "r" : "") + '">' + esc(c.text ? c.text(r) : "") + "</td>").join("") + "</tr>" +
+    r.units.map(i => '<tr class="sub"><td colspan="' + span + '">' + esc(jrUnitText(i)) + "</td></tr>").join("") + r.cuts.map(m => '<tr class="sub"><td colspan="' + span + '">' + esc(jrCutText(m)) + "</td></tr>").join("")).join("");
+  const tot = '<tr class="tot">' + vis.map((c, ci) => '<td class="' + (c.r ? "r" : "") + '">' + esc(c.tot ? c.tot(rows) : ci === 0 ? "Total" : "") + "</td>").join("") + "</tr>";
+  $("#printSheet").innerHTML = '<div class="pvbar"><button type="button" class="btn acc" id="pvPrint">Print</button><button type="button" class="btn" id="pvClose">Close preview</button><span>Job report for job #' + esc(t.number) + ", letter paper.</span></div>" +
+    '<div class="picksheet jrsheet"><div class="phead"><div><h1>Job report, job #' + esc(t.number) + "</h1>" + jrHeadHTML(t) + '<div class="pmeta"><span><b>Showing:</b> ' + esc({ all: "Every line", open: "Only what is not delivered yet", ordered: "Only what was ordered" }[rfv("jobBy", "all")]) + "</span><span><b>Printed:</b> " + esc(fmtWhen(new Date())) + " by " + esc(S.user.name) + "</span></div></div></div>" +
+    (rows.length ? "<table><thead><tr>" + vis.map(c => '<th class="' + (c.r ? "r" : "") + '">' + esc(c.label) + "</th>").join("") + "</tr></thead><tbody>" + body + tot + "</tbody></table>" : "<p>" + esc(b.emptyMsg) + "</p>") +
+    (b.total ? '<p class="ptot">' + b.total + "</p>" : "") + "</div>";
+  $("#printSheet").setAttribute("aria-hidden", "false");
+  document.body.classList.add("preview");
+  $("#pvPrint").addEventListener("click", () => window.print());
+  $("#pvClose").addEventListener("click", closePreview);
+  $("#pvPrint").focus();
+}
+
 /* the range is read once per From and To (and on Refresh); listeners keep the rest live */
 async function repLoad(force) {
   const r = rrGet(), key = r.from + "|" + r.to, d = rrDates();
@@ -8662,9 +9413,12 @@ async function repLoad(force) {
 }
 function reportsHTML() {
   const R = curReport(); S.repTab = R.k;
+  const tabs = '<div class="toolbar rpick"><div class="seg" role="group" aria-label="Reports">' + REPORTS.map(x => '<button type="button" aria-pressed="' + (x.k === R.k) + '" class="' + (x.k === R.k ? "on" : "") + '" data-act="repTab" data-tab="' + x.k + '">' + esc(x.label) + "</button>").join("") + "</div></div>";
+  /* 0.10.0: the Job report has no date range (a job is whole) and its own picker */
+  if (R.job) return jobReportHTML(tabs + '<p class="rhint">' + esc(R.hint()) + "</p>");
   repLoad(false);
   const r = rrGet(), rep = S.rep || { loading: true };
-  let h = '<div class="toolbar rpick"><div class="seg" role="group" aria-label="Reports">' + REPORTS.map(x => '<button type="button" aria-pressed="' + (x.k === R.k) + '" class="' + (x.k === R.k ? "on" : "") + '" data-act="repTab" data-tab="' + x.k + '">' + esc(x.label) + "</button>").join("") + "</div></div>" +
+  let h = tabs +
     '<div class="rr"><div><label class="lab" for="rrFrom">From</label><input class="fld" type="date" id="rrFrom" data-rr="from" value="' + esc(r.from) + '"></div>' +
     '<div><label class="lab" for="rrTo">To</label><input class="fld" type="date" id="rrTo" data-rr="to" value="' + esc(r.to) + '"></div>' +
     '<div><span class="lab" title="Sets From and To to a whole calendar month">Month</span><div class="btnrow"><button type="button" class="btn sm" data-act="rrPreset" data-m="0">This month</button><button type="button" class="btn sm" data-act="rrPreset" data-m="-1">Last month</button></div></div>' +
@@ -8680,6 +9434,7 @@ function reportsHTML() {
   return h + tableHTML(b.id, b.cols, b.rows, { defaultSort: b.defaultSort, rowClass: b.rowClass }) + (b.total ? '<p class="rtot">' + b.total + "</p>" : "");
 }
 function repExport(kind) {
+  if (curReport().job) { jrExport(kind); return; }
   const R = curReport(), b = R.build(); if (!b.rows.length) { toast("Nothing to export in this range.", true); return; }
   const vis = visibleCols(b.id, b.cols), rows = sortRows(b.id, b.cols, b.rows, b.defaultSort), r = rrGet();
   const val = (c, x) => { const v = c.x ? c.x(x) : c.text ? c.text(x) : ""; return v == null ? "" : v; };
@@ -9094,7 +9849,7 @@ async function importLoad(buf, fileName) {
   return S.imp.plan;
 }
 function importHTML() {
-  let h = '<p class="hint" style="margin-top:0">Drop in the shop\'s inventory workbook (or a CSV with the same columns). It is read in this browser and nothing is written until you press Import. Running it again on a newer copy updates the counts; it never makes duplicates.</p>' +
+  let h = impDoneHTML() + '<p class="hint" style="margin-top:0">Drop in the shop\'s inventory workbook (or a CSV with the same columns). It is read in this browser and nothing is written until you press Import. Running it again on a newer copy updates the counts; it never makes duplicates.</p>' +
     /* finding 5: one tab stop, a real button that opens the picker; the input is out of the tab order */
     '<div class="btnrow" style="margin-top:0"><button type="button" class="btn acc" id="impPick">Choose a file</button><input type="file" id="impFile" accept=".xlsx,.xls,.csv" class="filehide" tabindex="-1" aria-hidden="true"><span class="hint" style="margin:0">' + (S.imp ? esc(S.imp.fileName) : "No file yet") + "</span></div>" +
     '<p class="loadmsg" id="impBusy" hidden>Reading the workbook</p>';
@@ -9145,9 +9900,16 @@ function bindImport(el) {
   $$("select[data-imptab]", el).forEach(s => s.addEventListener("change", () => { S.imp.mapping[s.dataset.imptab] = s.value; collectAliases(el); S.imp.plan = buildImportPlan(S.imp); render(true); }));
 }
 function collectAliases(el) { $$("input[data-alias]", el).forEach(i => S.imp.aliases[i.dataset.alias] = i.value.trim()); }
+/* 0.10.0 (PLAN 21.4): the products an import gives a UPC (new, or a different one), for Review photos */
+function importUpcList(pl) {
+  return Array.from(pl.products.values()).filter(p => p.upc && (p.isNew || String((S.products.get(p.id) || {}).upc || "") !== p.upc))
+    .map(p => Object.assign({}, S.products.get(p.id) || {}, p.data, { id: p.id, upc: p.upc }));
+}
 async function runImport() {
   const pl = S.imp.plan, ops = importOps(pl);
-  if (DEMO) { toast("Demo mode: not saved"); return; }
+  /* the demo writes nothing but still shows the done box, so Review photos can be walked */
+  if (DEMO) { toast("Demo mode: not saved"); S.impDone = { demo: true, products: pl.counts.productsNew, boxes: pl.counts.boxes, list: importUpcList(pl) }; S.imp = null; render(true); return; }
+  const upcList = importUpcList(pl);
   const chunks = []; for (let i = 0; i < ops.length; i += 450) chunks.push(ops.slice(i, i + 450));
   let done = 0;
   for (const ch of chunks) {
@@ -9157,7 +9919,16 @@ async function runImport() {
     done += ch.length;
   }
   toast("Imported. " + fmtN(pl.counts.productsNew) + " new products, " + fmtN(pl.counts.boxes) + " boxes.");
+  S.impDone = { products: pl.counts.productsNew, boxes: pl.counts.boxes, list: upcList };
   S.imp = null; render(true);
+}
+function impDoneHTML() {
+  const d = S.impDone; if (!d) return "";
+  const n = d.list.length;
+  return '<div class="impdone" role="status"><p><b>' + (d.demo ? "Import done in the demo, nothing saved." : "Imported.") + "</b> " + plural(d.products, "new product") + ", " + plural(d.boxes, "box", "boxes") + ".</p>" +
+    (n ? "<p>" + plural(n, "product") + " gained a UPC. The public product lookup may have a photo for " + (n === 1 ? "it" : "each") + "; you pick one or none, one product at a time.</p>" : "") +
+    '<div class="btnrow">' + (n ? '<button type="button" class="btn acc" data-act="upcReview" title="Opens Photo for this UPC for each product in turn. Skip the rest stops at any point.">Review photos for ' + plural(n, "product") + "</button>" : "") +
+    '<button type="button" class="btn" data-act="impDoneX">Done</button></div></div>';
 }
 /* demo-only hooks for checking the importer and the loading and error states by script */
 if (DEMO) window.Loadout = { importBuffer: (buf, name) => importLoad(buf, name || "workbook.xlsx"), state: S, render: () => render(true), setLive, sampleCsv: () => SAMPLE_CSV, board: BD,
@@ -9296,6 +10067,10 @@ document.addEventListener("click", e => {
     case "repTab": S.repTab = b.dataset.tab; setHash(); render(true); break;
     case "rrPreset": S.rr = monthRange(+b.dataset.m); render(true); break;
     case "repRefresh": repLoad(true); render(true); break;
+    /* 0.10.0: the Job report */
+    case "jrPick": jrPick(id); break;
+    case "jrAnother": { S.repJobOpen = !S.repJobOpen; render(true); const q = $("#jrQ"); if (q && S.repJobOpen) q.focus(); break; }
+    case "jrPrint": jrPrint(); break;
     case "repCsv": repExport("csv"); break;
     case "repXlsx": repExport("xlsx"); break;
     case "userActive": openUserActive(S.users.get(id)); break;
@@ -9312,6 +10087,10 @@ document.addEventListener("click", e => {
     /* 0.5.0: product photos */
     case "photoPick": photoPick(P()); break;
     case "photoRemove": { const p = P(); if (p) confirmModal("Remove photo", "<p>Deletes the photo of " + esc(productName(p)) + " from storage. The product and its counts stay as they are.</p>", "Remove photo", () => doRemovePhoto(p).then(ok => ok && toast("Photo removed")), true); break; }
+    /* 0.10.0: a photo from a UPC (PLAN 21.4) */
+    case "upcFind": { const p = P(); if (p && p.upc) openUpcPhoto(p, p.upc); break; }
+    case "upcReview": if (S.impDone) openUpcQueue(S.impDone.list); break;
+    case "impDoneX": S.impDone = null; render(true); break;
     case "a2Add": a2Prompt(); break;
     case "a2Hide": a2Dismiss(b.dataset.k); paintA2(); if (S.view === "office") render(true); break;
     case "a2How": a2Dismiss("strip"); paintA2(); go("office"); break;
@@ -9359,6 +10138,8 @@ document.addEventListener("click", e => {
 document.addEventListener("input", e => {
   const t = e.target;
   if (t.id === "stockSearch") { S.search = t.value; scheduleRender(); }
+  /* 0.10.0: the Job report's job search */
+  else if (t.id === "jrQ") { S.repJobQ = t.value; scheduleRender(); }
   else if (t.dataset && t.dataset.aud && S.aud) { S.aud.vals[t.dataset.aud] = t.value.replace(/[^0-9]/g, ""); scheduleRender(); }
   else if (t.dataset && t.dataset.audbox && S.aud) { S.aud.boxes[t.dataset.audbox] = t.value.replace(/[^0-9]/g, ""); scheduleRender(); }
   else if (t.dataset && t.dataset.flownote && S.flow) { S.flow.notes[t.dataset.flownote] = t.value; }
@@ -9403,7 +10184,9 @@ function applyHash() {
   let [v, sub] = routeAlias(parts[0], parts[1]);
   const rest = parts.slice(2).join("/");
   if (!VIEWS.includes(v)) return false;
-  if (v === "office") { S.officeSec = sub || null; if (sub === "reports" && rest && REPORTS.some(r => r.k === rest)) S.repTab = rest; if (parts[1] === "board") setTimeout(scrollToBoard, 80); }
+  if (v === "office") { S.officeSec = sub || null; if (sub === "reports" && rest && REPORTS.some(r => r.k === rest)) S.repTab = rest; if (parts[1] === "board") setTimeout(scrollToBoard, 80);
+    /* 0.10.0: #office/reports/job/<jobId> opens the Job report on that job */
+    if (sub === "reports" && parts[2] === "job") { S.repTab = "job"; if (parts[3]) { S.repJob = parts.slice(3).join("/"); jrStore.set(S.repJob); if (DB && DB.syncLines) DB.syncLines(); } } }
   if (v === "pickup" || v === "deliver") { S.flowJob = sub || null; if (!sub) S.flow = null; }
   if (v === "pull") S.pullJob = sub || null;
   if (v === "audit") { S.auditLoc = sub || null; if (!sub) S.aud = null; }
@@ -9488,9 +10271,9 @@ function phoneHTML() {
   else if (m === "ios") h = why + "<ol><li>Tap Share " + SHARE_SVG + " in Safari's toolbar.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li></ol>";
   else h = why + "<p>Open the browser menu and pick Add to Home screen or Install app.</p>";
   /* the tip only comes back on a phone, so the button shows only where it can */
-  const gone = [a2Hidden("strip") && "the tip under the header", a2Hidden("card") && "the card on Office"].filter(Boolean);
+  const gone = [a2Hidden("strip") && "the tip under the header", a2Hidden("card") && "the card on " + officeWord()].filter(Boolean);
   if (m !== "none" && gone.length)
-    h += '<div class="again"><p class="hint">' + gone.join(" and ").replace(/^t/, "T") + (gone.length > 1 ? " were" : " was") + ' dismissed on this device.</p><div class="btnrow"><button type="button" class="btn" data-act="a2Back" title="Brings back the tip under the header and the card at the top of Office on this device.">Show the tip again</button></div></div>';
+    h += '<div class="again"><p class="hint">' + gone.join(" and ").replace(/^t/, "T") + (gone.length > 1 ? " were" : " was") + ' dismissed on this device.</p><div class="btnrow"><button type="button" class="btn" data-act="a2Back" title="Brings back the tip under the header and the card at the top of ' + officeWord() + ' on this device.">Show the tip again</button></div></div>';
   return '<div class="phonesec">' + h + "</div>";
 }
 function a2Reset() {
@@ -9538,7 +10321,7 @@ function setMe(me) {
   S.me = me;
   const prev = S.role;
   S.role = me.active === false ? "none" : (me.role || "tech");
-  $("#footRole").textContent = "Role: " + (ROLE_LABEL[S.role] || S.role);
+  paintAcct();
   if (S.role === "board" && !BOARD) { enterBoard(); return; }
   if (prev !== S.role) { _offBuilt = ""; render(true); }
 }
@@ -9550,10 +10333,8 @@ function startApp(user) {
   $("#signin").style.display = "none";
   $("#app").hidden = false;
   $("#demoBar").hidden = !DEMO;
-  $("#whoEmail").textContent = user.email;
-  $("#footWho").textContent = (DEMO ? "Demo account: " : "Signed in as ") + user.email;
   $("#verBadge").textContent = "v" + VERSION; $("#footVer").textContent = "Loadout v" + VERSION;
-  $("#footRole").textContent = "Role: " + (ROLE_LABEL[S.role] || S.role);
+  paintAcct();
   DB = DEMO ? demoStore() : firestoreStore(user);
   DB.start();
   paintSync();
@@ -9578,8 +10359,7 @@ function stopApp() {
 
 if (DEMO) {
   /* No Firebase module is imported on this path, so nothing in demo mode can reach Firestore. */
-  $("#signoutBtn").textContent = "Leave demo";
-  $("#signoutBtn").addEventListener("click", () => { location.href = location.pathname; });
+  signOutFn = () => { location.href = location.pathname; };
   /* ?demo=1&role=tech|warehouse|accounting|board shows that role's view; admin otherwise */
   const qr = QUERY.get("role"), demoRole = ["tech", "warehouse", "accounting", "board"].includes(qr) ? qr : "admin";
   S.role = demoRole;
@@ -9606,7 +10386,7 @@ if (DEMO) {
       $("#signinErr").hidden = false;
     }
   });
-  $("#signoutBtn").addEventListener("click", () => authMod.signOut(auth));
+  signOutFn = () => authMod.signOut(auth);
 
   authMod.onAuthStateChanged(auth, async user => {
     if (!user) { stopApp(); return; }

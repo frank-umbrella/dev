@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.9.1**.
+Current version: **0.10.0**.
 
 ## Files
 
@@ -36,7 +36,23 @@ van), **Deliver** (confirmed at the client's site). **Shelf** is what were Stock
 Units; **Office** is what were More and the Console; **Audit** is counting a
 shelf. A carrier's box at the shop has **Arrived** (since 0.9.0); Deliver and
 Delivered only ever mean the client's site. The tab bar on the phone and the nav on the desktop are the same five:
-Home, Jobs, Scan (the raised button), Shelf, Office.
+Home, Jobs, Scan (the raised button), Shelf, Office. Since 0.10.0 (PLAN 22.2)
+the last one reads **More** for a tech, whose sections there are Labels,
+Movements, This phone, and About; its heading, crumbs, and every message that
+names it follow the role, and the address stays `#office/...` for everyone.
+
+**Who is signed in** (0.10.0, PLAN 24) sits at the right of the header: the
+sync pill with the person's name beside it, and the role under them in grey
+(Admin, Warehouse, Tech, Accounting). On a phone the name moves into the
+sheet and the block is the pill with the role under it. The whole block is
+one 44 px button that opens the **Account** sheet: name, email, role, one
+sentence on what that role can do, and **Sign out** (Leave the demo in demo
+mode). Sign out is no longer a bare button in the header, so a stray tap
+cannot end a session in the middle of a pull. The footer shows the version
+only. The Loadout mark and name at the top left are one link to your Home
+(`#home`, so a middle-click or the keyboard work as on any link; 44 px tall
+on a phone): accounting lands on Office, Reports as before, the demo keeps
+its address, and on Home already it scrolls back to the top.
 
 - **Home**: five colored doors for warehouse and admin, most used on top,
   each with the verb and one line that leads with how much waits behind it:
@@ -117,14 +133,39 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   search (job number, client, job name, proposal, or bay; `/` jumps to it),
   filters for status, client, install date, items to order, and backorders,
   and an Install column that sorts, a Progress strip, and one next-step
-  button per job. **New job** imports a
-  Portal proposal CSV (columns matched by header name, a preview, Labor, Fee,
-  and CustomItem rows and blank quantities listed as skipped, unmatched brands
-  and models offered as new products) or takes lines typed by hand. Importing
-  the same proposal number again adds or adjusts lines on that job. Each
-  job says where it came from (Imported from CSV, Imported from Portal, or
-  Built by hand), and a job Zapier made from Portal carries an "Imported
-  from Portal, review" chip until someone checks it.
+  button per job. **New job** (rebuilt in 0.10.0, PLAN 22.1) says what a job
+  is in one sentence, then offers two large choices. **Make the list
+  yourself** (first and picked for the warehouse) is three short steps with
+  "Step 2 of 3" above each: *Who it is for* (the client, picked or typed as
+  New client, the job name, "Service call, lobby TV" for example, and an
+  optional bay and install date), *The list* (one search over the shelf list
+  with a **Scan** button beside it; tap a result to add it, a minus and plus
+  stepper of 44 px sets how many, in feet for wire; each line says what the
+  shelf holds: "12 on the shelf", "Only 2 on the shelf, 4 will be short", or
+  "Not on the shelf, will need ordering"; **Not on the list? Type it** adds a
+  note line; **Group by room** is off until wanted), and *Check and create*,
+  the list with its totals in one sentence ("7 lines: 5 on the shelf, 2 to
+  order"). **Create job** lands on the job's Pull screen for warehouse and
+  admin. **Use a proposal file (.csv)** (first and picked for the admin)
+  says where the file comes from (the three Portal steps sit in a
+  disclosure), takes the file by Choose or by drop, and shows **Here is what
+  the file says**: the proposal number, then every line in plain words
+  marked *On the shelf list*, *New to Loadout (will be added)* (with Add to
+  the shelf list to untick), or *Kept as a note (no brand or model)*. The
+  column table opens only when Loadout cannot find a quantity and a brand,
+  model, or description; otherwise it sits closed under **Something look
+  wrong? Fix the columns**, and the skipped rows sit closed under their
+  count. **Paste the text instead** stays, closed. The client, job, proposal
+  number, bay, and install date follow under Who it is for. The word CSV
+  shows only as "(.csv)", and every button and empty state says New job.
+  Back keeps what was added, and Cancel, the X, or Escape ask before
+  throwing typed lines away. Nothing about what is written changed: the
+  same ids, line fields, saved column map, and re-import rule (the same
+  proposal number again adds or adjusts lines on that job). **Add lines** on
+  a job offers the same two choices. Each job says where it came from (From
+  the proposal file, Imported from Portal, or Built by hand), and a job
+  Zapier made from Portal carries an "Imported from Portal, review" chip
+  until someone checks it.
 - **Job** (was Ticket): the pull sheet grouped by area. Each line shows one
   button, its next step (Pull 2 from Warehouse, Short: order 2, Stage, Pick
   up, Deliver), and the rest (Stage, Note, and so on) under the **...** sheet;
@@ -268,7 +309,7 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   People, Settings, Audit, Labels, Movements, Import inventory sheet,
   Backups, Export everything, and About. Admins see them all; warehouse sees
   Orders and tracking, Audit, Labels, Movements, and About; techs see Labels,
-  Movements, and About; accounting sees Reports, Backups, Export everything,
+  Movements, and About, under a tab that reads More for them (0.10.0); accounting sees Reports, Backups, Export everything,
   and About. A section opens the same screen as before, under Office
   (`#office/<section>`). **Reports**,
   each with a From and To date (this month by default, with This month and
@@ -281,7 +322,23 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   person, or both), Movements (the raw trail for the range, filtered by type
   and person), and Aging (open jobs, open POs, and arrived-not-received
   shipments in age bands). Reports read the range fresh from the database, not
-  the latest-500 list. **People** (admin): confirm newcomers, change a role
+  the latest-500 list. The **Job report** (0.10.0, PLAN 23) sits beside
+  Delivered and has no date range, since a job is whole: one search finds the
+  job by client, job name, job number, or proposal number, with the latest
+  twenty listed under it (the last job opened stays for the session). Then a
+  header block (client, job, proposal, bay, install date, status, who pulled,
+  picked up, and delivered, with dates) and one row per pull sheet line:
+  room, product, brand and model (in Columns), needed, pulled, staged,
+  picked up, delivered, brought back, still to order, the PO and its status,
+  and with Show costs on the unit cost and line total. Serialized units
+  (serial or MAC and where each is now) and the boxes wire was cut from sit
+  under their line. A totals row closes the table, and with costs on the
+  sentence under it gives the product value needed, delivered, and still
+  out. Views: Every line, Only what is not delivered yet, Only what was
+  ordered; sort, Columns, Export CSV and XLSX (units and boxes as their own
+  rows with the line's key repeated), and Print. `#office/reports/job/<jobId>`
+  opens it on a job, and the job page has **Open as a report** for admin and
+  accounting. **People** (admin): confirm newcomers, change a role
   (including the wall board TV's Board account), deactivate or reactivate.
   **Settings** (admin): show costs, QR threshold, week start, the Work week
   default for the Week view, label sheet, box start lengths, carriers,
@@ -338,16 +395,40 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   photo, Replace photo, and Remove photo for admin and warehouse. The photo
   is shrunk to 1200 px and saved as JPEG before upload, and shows on the Scan
   product card and in an optional Photo column (off by default; turn it on in
-  Columns). Adding or removing a photo needs a connection. **Product photos
-  from a UPC** are not built: PLAN 21.2 records what a lookup found (it
-  finds name-brand devices, needs a person to confirm each match, and would
-  run through loadout-worker) and the shape it would take if scheduled.
+  Columns). Adding or removing a photo needs a connection. **Photo from a
+  UPC** (0.10.0, PLAN 21.4): the moment a UPC goes onto a product (Scan's
+  Set UPC and Link to a product without a UPC, the UPC field on the panel,
+  New product), the UPC is saved and then one sheet, **Photo for this UPC**,
+  asks loadout-worker what the free public lookup knows. It shows the name
+  and brand the lookup found beside the product's own name, a plain warning
+  when they share no brand or model word of four letters or more ("The
+  lookup calls this ...; check that it is the same product."), and up to
+  four photos as a radio group, the first picked. With no photo on the
+  product the buttons are **Use this photo** and **None of these**; with one,
+  the current photo sits beside the chosen one and the buttons are **Keep
+  the current photo** and **Replace it with this one**. Nothing found, the
+  lookup busy (the free lookup allows 100 a day, shared, so "The lookup is
+  busy. Try again later." is normal), unreachable, offline (nothing is
+  queued), or a role that cannot look up each get one line and Close. A
+  chosen photo goes through the same upload as a camera photo (1200 px,
+  `loadout/products/{id}.jpg`, the same Storage rules), never linked from a
+  retailer. A product that already has a UPC has **Find a photo** on its
+  panel (admin and warehouse), which always asks; the automatic sheet does
+  not come back for a UPC it has an answer for. After an inventory import
+  that gave products a UPC, the done box offers **Review photos for N
+  products**, one sheet at a time with **Skip the rest**. A muted line on the
+  sheet says the photos come from a public product lookup and are for use
+  inside Loadout. The photo is fetched with the person's sign-in and shown
+  from a blob, so nothing else can load it.
 
 Roles: the account named in the rules as the project owner becomes admin on
 its first sign-in; everyone else lands as Tech until an admin changes the role
 under Office, People. Warehouse and admin change stock, audit shelves, and build,
 pull, and close jobs; techs scan, check out, check in, record box readings,
 and stage, pick up, and deliver job lines; accounting and board only read.
+The role shows under the name in the header (0.10.0), and the Account sheet
+says in one sentence what it can do. Only admin and warehouse can look a
+photo up from a UPC; the worker checks the role on the roster itself.
 
 ### Demo mode
 
@@ -367,8 +448,19 @@ Backups tab after a failed night, `&backups=many` gives 45 days so Show older
 appears, and `&backups=empty`, `&backups=denied`, and `&backups=offline` show
 those states (the plain demo has three days, the oldest one stopped at 9
 files, and its Download links are dead `#` links marked Demo); `&print=1` opens a label sheet
-preview. The New job sheet has a Load sample button with a made-up Portal
-CSV in demo mode only. The fixture has four purchase orders (a draft with no
+preview. The New job sheet has a **Use the sample file** button (a made-up
+proposal file) in demo mode only. 0.10.0: Photo for this UPC answers from
+three fixture UPCs with no network call: the Ubiquiti U6-Pro's
+(810010074409) finds four drawn pictures marked "Demo photo", so Find a
+photo on it shows Keep versus Replace; the Leviton keystone's
+(078477581138) finds two under another brand's name, so the mismatch
+warning shows with Use this photo and None of these; the CAT6 riser's
+(612825120034) and any other code find nothing. `&upc=busy` and
+`&upc=offline` show those two states. Choosing a photo hands the refused
+write (the photo fields and `photoSource: "upc"`) to the demo hook. The
+Import done box shows in the demo too, so Review photos can be walked.
+Job #1042's wire line carries the box cut from A1026, so the Job report
+shows a box under a line. The fixture has four purchase orders (a draft with no
 vendor, a partial one with two shipments, one ordered with a late shipment,
 one received), install dates across this week, and imported rows that show the
 0.3.0 name fixes. 0.5.1 adds two POs drop-shipped to job sites (three boxes on
@@ -512,6 +604,20 @@ the **Pull sheet**. Nothing was renamed in the database. 0.8.0 adds:
   `lastExportPruned` (the dated folders deleted), `lastExportError` (empty
   after a good run), `lastExportErrorAt`, and `updatedAt`.
 - The printed pull sheet's QR carries `loadout:job:<id>`.
+
+0.10.0 adds, on `loadout_products` (PLAN 21.4):
+
+- `photoSource`: where the current photo came from, `camera` (taken or
+  picked on a phone or computer) or `upc` (chosen from the UPC lookup).
+  Written with every photo from now on; photos from before 0.10.0 have none.
+- `upcLookupAt`, `upcLookupResult`, and `upcLookupUpc`: when someone last
+  answered Photo for this UPC, the answer (`used`, `none`, `kept`, or
+  `not_found`), and the UPC it was about. The sheet does not open on its own
+  again for the same UPC; Find a photo always asks. `upcLookupUpc` is the one
+  field beyond the plan's list: without it "the same UPC" could not be told
+  apart from a UPC that changed after the answer.
+- Nothing else changes: New job writes the same ids and fields as 0.9.1 for
+  the same input, and the Job report only reads.
 
 Firestore project `watchtower-6fbe1`, collections `loadout_users`,
 `loadout_settings`, `loadout_products`, `loadout_locations`, `loadout_stock`,
@@ -988,6 +1094,41 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.10.0 (2026-11-11)
+
+Five changes the owner asked for after walking the app by role.
+
+- **A photo from the UPC.** Photographing a boxed switch that a retailer has
+  already photographed is wasted time, so the moment a UPC goes onto a
+  product Loadout now asks whether the public lookup's photo is the right
+  one. A person always decides, the photo is copied into the shop's own
+  storage like a camera photo, and a busy or missing lookup just says so;
+  the UPC is saved either way. Products that already carry a UPC get Find a
+  photo, and an inventory import that adds UPCs offers to review them one at
+  a time. The lookup runs through loadout-worker 0.3.0, so it needs that
+  deploy before it works outside the demo.
+- **New job, made plain.** "Import a Portal CSV" lost the people who have
+  never seen Portal or a CSV file. The sheet now says what a job is and
+  offers two choices in plain words: make the list yourself (three short
+  steps, with what the shelf holds beside each line) or use the proposal
+  file the office sends. The column-mapping table only appears when the
+  file needs it. What gets written is exactly what 0.9.1 wrote.
+- **More for techs.** A tech's last tab holds labels, movements, this
+  phone, and About, none of it office work, so for techs it now reads More.
+  Everyone else still reads Office, and links are unchanged.
+- **A report for one job.** Accounting could not see everything on one
+  proposal, and the job page does not export. The Job report shows every
+  line of one job with its units, boxes, PO, and costs, and exports or
+  prints like the other reports.
+- **Who is signed in, up top.** The role sat in the footer where nobody
+  looked, and Sign out sat one stray tap from a pull. The header now shows
+  the name and role, and Sign out moved into the Account sheet behind them.
+  The Loadout mark at the top left now goes Home from any screen, the way
+  people already expected it to.
+
+No rules change: admin and warehouse could already write every product
+field, and every role on the domain can already read job lines and units.
 
 ### 0.9.1 (2026-11-11)
 
