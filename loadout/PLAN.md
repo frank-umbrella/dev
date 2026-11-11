@@ -858,6 +858,7 @@ Build T0 first. T1 and T2 are worker work and need the plan tier known.
 | 0.5.0 | Offline (sw.js + persistent cache + sync pill), PWA manifest, photos on products. |
 | 0.6.0 | loadout-worker: T1 Zapier intake (if Premium) or T2 API intake and note push (if Unlimited and approved); nightly CSV export to the project's Storage bucket, listed under Console > Backups (0.6.1); carrier tracking poll if wanted. Settings shows the tier and last sync. |
 | 0.8.0 | Simple mode (section 18): Home with the doors (Pick up, Deliver, Pull, Audit), Job and Pull sheet words, Shelf (Stock and Units), Office (More and the Console), the Pick up step and Confirm a delivery screens, Audit a shelf, one strip and one next step per job card, the wall board as a six-card grid, every old address kept as an alias. Built 2026-11-05, not committed. |
+| 0.9.0 | Section 20: the focused Pull screen (`#pull/<jobId>`) in pick order, the Pull door split into pullable and waiting on orders, Bring back from a van with the Close job van rule, Receive a shipment as the fourth door (serial or MAC on shipment receive), Arrived for carrier drops, the non-zero progress line, the QR on the printed pull sheet, the board's phone layout (20.3), the leftover-words sweep, `loadout_settings/worker` in the data dictionary, and the tech rules run in the emulator (14 of 14). Built 2026-11-11, not committed, rules not deployed. |
 
 Each version is a release: bump the version everywhere, README changelog entry
 with the why, small commits.
@@ -1557,3 +1558,136 @@ attributes already do this), prices on every row (costs are off per D7
 until the owner wants them), folders as the data model (locations and
 jobs stay flat per section 16), and the red accent (the door colors and
 Ledger tokens stay).
+
+## 20. Review of 0.8.2 by role, and release 0.9.0 (2026-11-11)
+
+The user asked what else the design needs. I walked the demo as warehouse,
+tech and admin on a phone and read the code behind each door. The doors are
+simple; what sits behind two of them is not, and two jobs the shop does
+every week have no door at all.
+
+### 20.1 Findings
+
+1. **The Pull door leads to the office page.** Pick up and Confirm a
+   delivery each open a focused screen (the lines, a tick each, one button).
+   Pull opens the full job page: nine header buttons, six info blocks, a
+   five-tile summary, a four-chip summary, five numbers per line, the
+   timeline, the Portal note. That page is right for the office and wrong
+   for the person with a box in one hand. This is the confusion the user
+   named after the first test drive, one level down.
+2. **Product in a van has no way back.** Pick up takes product out of the
+   bay onto a person. If the job is postponed or a line is not needed, the
+   only exits are Deliver and the "Left in the van" note. Close job returns
+   or writes off what is left in the bay and ignores what is in a van.
+   Inventory would drift on the first postponed job.
+3. **Receiving has no door.** Receiving a shipment is the first SOP and the
+   only way stock gets in, and it sits at Office > Orders and tracking >
+   Tracking, behind a purchase-order table.
+4. **"Delivery" means two things.** The door says Confirm a delivery (to the
+   client); the carrier status says "Delivered, not received" (to the shop).
+5. **The progress line reads zeros.** "Pulled 2 of 9, Staged 2, Picked up 0,
+   Delivered 0" makes a person read four numbers to learn one.
+6. **The Pull count mixes two things.** Jobs with something to pull now and
+   jobs only waiting on orders count the same.
+7. **The printed pull sheet has no QR.** Paper on a clipboard is how a pull
+   starts; the phone should open that job from the paper.
+8. Carried: shipment Receive does not ask for serial or MAC; the data
+   dictionary lacks `loadout_settings/worker`; the tech rules from 0.8.0
+   were never run in the emulator.
+
+### 20.2 Decisions (Fable, for 0.9.0)
+
+- **Pull gets its own focused screen**, `#pull/<jobId>`, the same shape as
+  Pick up and Deliver: client, job, bay; the progress line; lines grouped by
+  **where to pull from, in pick order** (the TV board's order), not by the
+  client's room; each line is the product, the quantity, and one button
+  ("Pull 4"). A line the shelf cannot cover sits in a quiet "Waiting on
+  orders" group with its PO status and no button. Pulled lines drop to a
+  ticked "In the bay" group. "Open the job" goes to the full page, which
+  stays as it is for the office. Every "Keep pulling" goes here.
+- **Bring back.** Out with me and the Deliver screen gain "Bring back to
+  the shop": tick the lines, pick where they go (the job's bay by default,
+  or a shelf), and they leave the person's name. Close job lists what is
+  still in a van beside what is in the bay and will not close until each is
+  delivered, brought back, or written off.
+- **Receive a shipment** becomes a door for warehouse and admin, fourth,
+  above Audit: "2 arrived, 3 on the way". Its screen lists arrived
+  shipments first, then in transit; Receive asks where it goes (the job's
+  bay when the line belongs to a job) and, for a serialized product, the
+  serial or MAC of each unit.
+- **One word, one meaning.** A carrier drop at the shop is **Arrived**:
+  "Arrived, not received". Deliver and Delivered mean the client's site
+  everywhere.
+- **Progress line names only what is non-zero**: "Pulled 2 of 9, Staged 2";
+  "Delivered 2 of 2" when a job is done. The bar keeps all four segments.
+- **Pull door and list split**: "3 jobs to pull, 2 waiting on orders"; the
+  list shows pullable jobs first and the waiting ones under a quiet heading.
+  A job with nothing pulled says "Start pulling".
+- **QR on the printed pull sheet** (`loadout:job:<id>`): Scan opens that
+  job's Pull screen.
+- Carried items 8 are done in the same release; the rules for tech pick-up,
+  delivery and bring-back get an emulator run.
+
+Not in 0.9.0: chain scanning, the admin summary strip, the desktop location
+tree (section 19 items 2 to 4), and any change to sign-in, which waits on
+the user's iPhone home-screen test.
+
+**Built in 0.9.0 (2026-11-11), with these notes:**
+
+- Pull screen: built as decided. A line's share per shelf follows Pull
+  everything in stock (the product's own shelf first, then the most stock),
+  and two lines of one product share a shelf's count. Groups sort with the
+  board's pick order, now one shared function (`pickOrder`). Non-catalog
+  lines sit under Waiting on orders. Waiting cards on the Pull list say
+  "See what is waiting". Pull list card headers also open the Pull screen.
+- Bring back: built, with one narrowing. A **tech brings back to the job's
+  bay only**; the shelf choice is warehouse and admin. The rules let a tech
+  raise a count only in a location of kind `bay`, so "a tech cannot write
+  stock on a shelf" stays provable. Serialized units in a van are taken as
+  the line's checked-out units less those already delivered (units stay
+  checked out until close, so the app cannot tell which unit was delivered).
+  Close job: warehouse sees the block sentence and a disabled Close job;
+  admin gets Not yet / Write off radios.
+- Receive door: the colour is the neutral pill grey `--m-pilltext` (#4f5a68;
+  white 7.01:1, the quiet grey 5.65:1). There is no teal token, and the
+  only purple is the FedEx carrier chip, which would read as FedEx. The
+  serial and MAC fields are optional, as on Shelf; more lines than units
+  is refused. Only boxes coming to the office are listed (a site box is
+  never received).
+- Arrived: the job-site Mark delivered is also Mark arrived (a carrier drop
+  at the site), and the site pill reads "Arrived at the site", so no carrier
+  status uses Delivered. "Out for delivery" stays: it is the carrier's own
+  status word.
+- Progress line order: Pulled N of M, then Delivered, Picked up, Staged,
+  furthest along first, matching "Pulled 3 of 3, Picked up 2, Staged 1".
+- Emulator: Pick up, Confirm a delivery, and Bring back ran as the exact
+  batches the demo app wrote, 14 of 14 checks passed. The 0.7.0 unit
+  check-in fields were not part of the run.
+
+### 20.3 The wall board on a phone (owner, 2026-11-11, built in 0.9.0)
+
+The board was built for a 16:9 TV: a 3 by 2 grid, 32 px titles, paging. On a
+phone it is unreadable. On a narrow screen (under 760 px wide, or a coarse
+pointer in portrait) it switches to a phone layout:
+
+- One column of job cards, full width, scrolling like a page: no paging,
+  rotation bar, page dots, auto-scroll, or burn-in shift; every line of
+  every job (no "+N more lines").
+- Phone type: card title 18 px, lines 16 px, nothing under 14 px. Same
+  themes (dark and light) as the TV, the progress line and the amber band
+  on each card, lines grouped by shelf in pick order, picked-up lines grey
+  as "In the van", on-order amber.
+- Order: the board's own list (pinned jobs first, then by install date in
+  Every open job mode).
+- A slim sticky header: "Board", the mode name, and Live or "Not live since
+  8:14 AM" (the red TV strip does not show), with safe-area insets top and
+  bottom.
+- Read-only. A signed-in role other than Board gets one "Open in Loadout"
+  link per card: `#pull/<id>`, or `#job/<id>` for a role that does not pull.
+- The TV layout is unchanged at 760 px and wider; a resize or rotation
+  switches layout. `?board=1`, `?demo=1&board=1`, and `&mode=` keep working;
+  `&layout=tv|phone` forces either, in the demo and in the real app.
+
+Built in 0.9.0: checked at 360, 375, and 412 wide (no horizontal scroll, all
+seven demo jobs reachable, smallest text 14 px, dark and light), and at
+1600 by 900 (3 by 2 grid, page 1 of 2, rotation bar on).

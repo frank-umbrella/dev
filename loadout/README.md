@@ -3,15 +3,15 @@
 Loadout is the shop's inventory tool: what is on each shelf, how many feet are
 left in each wire box, who has each expensive unit, and the jobs whose pull
 sheets turn an accepted Portal proposal into a staged bay, a van load, and a
-confirmed delivery. Since 0.8.0 it opens on the jobs the shop does (audit a
-shelf, pull for a job, pick up from staging, confirm a delivery) rather than
-on data types. Phone first for the
+confirmed delivery. Since 0.8.0 it opens on the jobs the shop does (pick up
+from staging, confirm a delivery, pull for a job, receive a shipment, audit a
+shelf) rather than on data types. Phone first for the
 warehouse, desktop for the office. Internal: no hub tile, no links from other
 pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.8.2**.
+Current version: **0.9.0**.
 
 ## Files
 
@@ -32,30 +32,55 @@ Current version: **0.8.2**.
 Words (0.8.0, PLAN 18): a **Job** is what was called a ticket (same number,
 same record); its lines are the **Pull sheet**. A job goes **Pull** (shelf to
 bay), **Stage** (in the bay), **Pick up** (out of the bay into a person's
-van), **Deliver** (confirmed on site). **Shelf** is what were Stock and
+van), **Deliver** (confirmed at the client's site). **Shelf** is what were Stock and
 Units; **Office** is what were More and the Console; **Audit** is counting a
-shelf. The tab bar on the phone and the nav on the desktop are the same five:
+shelf. A carrier's box at the shop has **Arrived** (since 0.9.0); Deliver and
+Delivered only ever mean the client's site. The tab bar on the phone and the nav on the desktop are the same five:
 Home, Jobs, Scan (the raised button), Shelf, Office.
 
-- **Home**: four colored doors for warehouse and admin, most used on top,
+- **Home**: five colored doors for warehouse and admin, most used on top,
   each with the verb and one line that leads with how much waits behind it:
   **Pick up from staging** (dark slate, "3 jobs waiting"), **Confirm a
   delivery** (green, "2 in vans, 1 in the bay"), **Pull for a job** (amber,
-  "4 jobs to pull"), and **Audit a shelf** (blue, "5 shelves due", never
+  "3 jobs to pull, 2 waiting on orders"), **Receive a shipment** (slate grey,
+  "2 arrived, 3 on the way"), and **Audit a shelf** (blue, "5 shelves due", never
   audited or over 60 days) last. The count is the length of the list the
   door opens; a door with nothing behind it reads in grey (Nothing staged,
-  Nothing to deliver, Nothing to pull, All shelves audited). Hovering a door
+  Nothing to deliver, Nothing to pull, Nothing on the way, All shelves audited). Hovering a door
   shows when to use it. Under them, every open job as a card with one progress
-  strip (Pulled 3 of 8, Staged 1, Picked up 1, Delivered 1) and one button,
-  its next step: Keep pulling, Pick up, Confirm delivery, or Close job.
-  Admins also get New job and a Week link there. A tech's Home is **Out
-  with me** (picked-up lines by job, then the units checked out to them,
-  each with its job and since when) and the Pick up and Confirm a delivery
-  doors, with the same counts. Accounting lands on Office, Reports; the board account on the wall
+  line that names only the steps above zero ("Pulled 2 of 9, Staged 2";
+  "Pulled 3 of 3, Picked up 2, Staged 1"; "Delivered 2 of 2" when it is done)
+  and one button, its next step: Start pulling (nothing pulled yet), Keep
+  pulling, Pick up, Confirm delivery, or Close job. Admins also get New job and a Week link there. A tech's Home is **Out
+  with me** (picked-up lines by job with Confirm delivery and **Bring back**,
+  then the units checked out to them, each with its job and since when) and
+  the Pick up and Confirm a delivery doors, with the same counts. Accounting lands on Office, Reports; the board account on the wall
   board. A door's color runs as a thin band along the top of its screens
-  (the job page is the Pull screen) and nowhere else.
-- **Pull for a job**: the open jobs with lines still on a shelf, soonest
-  install first; each opens the job.
+  (the job page and the Pull screen take the Pull amber) and nowhere else.
+- **Pull for a job** (0.9.0): the jobs a shelf can feed now, soonest install
+  first, then a quiet **Waiting on orders** group for jobs whose lines only
+  an order can cover. A card opens the job's **Pull screen** (`#pull/<jobId>`),
+  the same shape as Pick up and Confirm a delivery: client, job, bay, install
+  date, Open the job, and the progress line; then the lines grouped by the
+  shelf to pull from, in the board's pick order. Each line is the product
+  (with the wire box label for a box), how much is needed from that shelf,
+  and one button, "Pull 4", which opens the pull sheet with that shelf and
+  quantity filled in. A line split across two shelves shows under each with
+  its share. **Waiting on orders** lists what the shelves cannot cover with
+  its PO status or "Not ordered yet", and warehouse and admin get **Order
+  what is short** there. **In the bay** lists the pulled lines, ticked. With
+  nothing left on a shelf the screen says "Everything on the shelf is
+  pulled." with a Pick up button. The full job page stays as it was for the
+  office.
+- **Receive a shipment** (0.9.0, warehouse and admin): boxes coming to the
+  shop, arrived first ("Arrived, not received", the box is in the building),
+  then on the way with the expected date. Each card has the vendor, the PO,
+  the carrier and tracking link, each line with where it goes (the job's bay
+  when the line serves a job, else the product's own shelf), and **Receive**.
+  A product worth its own QR (cost at or above the QR threshold) asks for
+  each unit's serial number or MAC address on the receive sheet, the same
+  two fields and MAC check as Receive and Serialize on Shelf. Office, Orders
+  and tracking keeps its Tracking tab with every package.
 - **Pick up from staging**: the jobs with product in a bay. On a job, every
   staged line is ticked; untick what stays and press **Pick up**. One
   `pickup` movement per line, serialized units check out to you (the check-out
@@ -67,6 +92,16 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   the deliver movements for the ticked lines in one batch and stamps who and
   when on the job. An unticked line stays where it is, with an optional note
   ("Left in the van") on the line. The done box says who confirmed it and when.
+- **Bring back** (0.9.0): on Out with me and on the Confirm a delivery
+  screen when a line is in a van. For a postponed job or a line that is not
+  needed: tick the lines coming back (none are ticked to start), pick where
+  they go (the job's bay, preselected; warehouse and admin can also pick a
+  shelf), add a note if you like. Per line it lowers what is picked up, puts
+  the count back on that location, writes one `move` movement ("Brought back
+  from the van, job #1058"), checks the line's serialized units in there
+  (staged in the bay, or in stock with the job cleared on a shelf, where the
+  line then needs pulling again), and stamps who and when on the line. A tech
+  brings back to the job's bay; the warehouse puts it on a shelf from there.
 - **Audit a shelf**: every location (shelves, bays, vans, vehicles) with
   "Last audited Nov 2" or "Never audited", the longest since an audit first;
   over 60 days reads amber. On a location: each product with stock there, the
@@ -97,20 +132,23 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   with PO, carrier, and dates); Print pull sheet; Show on board; Pick up and
   Confirm delivery when they apply; and Close job,
   which returns or writes off what is left in the bay and marks units out on
-  the job installed. The header carries the install date and the strip.
+  the job installed. Since 0.9.0 Close job also lists what is **Still in a
+  van** and with whom, and will not close until each of those lines is
+  delivered or brought back; only an admin may write it off there instead,
+  with a reason. The header carries the install date and the strip.
   Each line leads with its state: Pull, Staged (or "Staged 2 of 4"), Picked
-  up, Delivered, On order (with the ETA, or "Delivered, not received"), or Short
+  up, Delivered, On order (with the ETA, or "Arrived, not received"), or Short
   (red: the shelves and open POs do not cover it). **Order missing** and a
   line's **Order** put the Short quantity on a draft purchase order, and each
   line shows a chip per PO, for example "PO 7731, UPS 1Z999AA1: Shipped,
-  Oct 23". The Tickets list, its "Has items to order" filter, the ticket's
-  strip, the board, and Week all count Short the same way. A ticket flagged for review has a
+  Oct 23". The Jobs list, its "Has items to order" filter, the job's
+  strip, the board, and Week all count Short the same way. A job flagged for review has a
   **Mark reviewed** button (warehouse and admin) that clears the flag and logs who
   did it.
 - **Orders**: purchase orders with filters for status and vendor. A draft's
   empty Vendor select glows until one is picked; a vendor typed there joins the
   list in Settings. An order shows its lines (ordered, backordered with the
-  vendor's ETA, shipped, delivered, received, and the ticket line each serves)
+  vendor's ETA, shipped, arrived, received, and the job line each serves)
   and its shipments. **Mark ordered** needs the vendor and the vendor's order
   number, and asks where it ships: the office, or straight to the job's site
   (the select glows until picked; left alone it means the office; a stock PO
@@ -121,28 +159,29 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   changed), carries some or all of the lines, takes the expected date, and
   can send that one box somewhere other than the PO says. **Receive** walks a shipment
   line by line: tap to take the quantity, or scan each unit's UPC to count it;
-  lines for a ticket go into its staging bay and count as staged, the rest go
+  lines for a job go into its staging bay and count as staged, the rest go
   on a shelf; units at or above the QR threshold become serialized units
-  ("Product name #n") with a prompt to print their labels.
+  ("Product name #n"), with a serial and a MAC field on the sheet (0.9.0)
+  and a prompt to print their labels.
 - **Tracking**: split down the middle. Left, packages coming to the office;
   right, packages going straight to a client's site, grouped by client and job;
-  along the bottom, Recently delivered, the last 30 days newest first (a
+  along the bottom, Recently received or arrived, the last 30 days newest first (a
   sortable table with Columns). Each package is a card with the carrier, the
   tracking number as a link (a 44 px target), what is in it, the PO and vendor,
   who it is for, and its status with the date and time of that status. Late
-  packages say "Expected Oct 30, 3 days late" in amber; a box delivered to the
-  office and not received floats to the top in amber. Office cards have
-  Receive, job-site cards have **Mark delivered** (the lines count as received
-  on the PO and staged on the ticket; nothing goes into stock), and both have
+  packages say "Expected Oct 30, 3 days late" in amber; a box that arrived at the
+  office and is not received floats to the top in amber. Office cards have
+  Receive, job-site cards have **Mark arrived** (the lines count as received
+  on the PO and staged on the job; nothing goes into stock), and both have
   Note. Lines no shipment carries yet show as one card per PO (Ordered or
   Backordered, with Add shipment). Filters for client and job, vendor,
   carrier, status, and late apply to all three parts, and each column header
   counts its packages. Under 900 px the columns stack, office first.
 - **Week**: the staging schedule as a timesheet, one block per day with a card
-  per ticket by its install date and each line's status on the right. Previous
+  per job by its install date and each line's status on the right. Previous
   week, This week, Next week; a Work week toggle (remembered per person) hides
   the weekend and shows a chip when a hidden day has work. Past days are faded,
-  today has a soft blue border, and tickets with no install date sit in an
+  today has a soft blue border, and jobs with no install date sit in an
   Unscheduled list with a date field. On the phone the days stack, today first.
 - **Board** (`?board=1`, and the landing view for the board role): the
   warehouse TV, since 0.8.0 a grid of up to six job cards, three across and
@@ -159,7 +198,18 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   AM" strip shows when the connection drops. Against burn-in the whole board
   steps 2 px on every page turn (once a minute when nothing turns), and the
   idle screen walks its clock. The Today mode shows the jobs whose install
-  date is today, from the Week view.
+  date is today, from the Week view. **On a phone** (0.9.0, PLAN 20.3:
+  under 760 px wide, or a touch screen held upright) the board becomes one
+  column of the same job cards, full width, scrolling like a page: every
+  line of every job (no "+N more"), no paging, rotation bar, dots, or 2 px
+  shift, card titles 18 px and lines 16 px with nothing under 14 px, the
+  same theme and progress line and amber band. A slim sticky header reads
+  "Board", the mode, and Live or "Not live since 8:14 AM", clear of the
+  notch and the home bar. It stays read-only; a signed-in person who is not
+  the Board account gets one "Open in Loadout" link per card (the Pull
+  screen, or the job page for a role that does not pull). A resize or a
+  turn of the phone switches layout. `&layout=tv` or `&layout=phone` forces
+  one for checking.
 - **Shelf** (Stock and Units, one screen since 0.8.0): the catalog with
   search (brand, model, UPC, box label, and now a unit's serial or MAC),
   sorting, a Columns manager, and tabs for All, Low (with Reorder), Out with
@@ -170,7 +220,7 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   has it, since when, Check in or Check out, and Open unit. All units opens
   the full Units list (`#shelf/units`). A product or location row opens in place under itself: fields in
   two columns, on hand by location, boxes, and one row of buttons (Save,
-  Receive or Receive a box, Pull for ticket, Move, Count, Adjust, Serialize,
+  Receive or Receive a box, Pull for job, Move, Count, Adjust, Serialize,
   Reorder, Print label, Show history); the Scan card shows the first of the
   same buttons, in the same order. One is open at a time, marked by a blue
   bar down its left edge; Escape or the chevron at its top right closes it,
@@ -181,8 +231,10 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   Shelf labels set the active location; box labels open the box sheet (mark
   now, cut this time, quick -50 / -100 / -250, Empty, recount); unit labels
   show who has it with Check out and Check in. Product and unit cards have
-  Pull for ticket, the box sheet a For ticket chip, and a bay's label shows
-  the ticket staged there. On a phone or tablet, a label that explains itself
+  Pull for job, the box sheet a For job chip, and a bay's label shows
+  the job staged there. The QR on a printed pull sheet (0.9.0,
+  `loadout:job:<id>`) opens that job's Pull screen, or the job page for a
+  role that does not pull. On a phone or tablet, a label that explains itself
   has a ? beside it that opens the explanation (a mouse shows it on hover).
 - **Units** (Shelf, All units; called Items before 0.6.0): every serialized unit, with Out as
   the Friday list, and a search that finds a unit by serial, MAC address
@@ -208,14 +260,14 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   Delivered (every Deliver to site, by delivery or by client and job), Units
   out (who held which unit and for how long), Wire usage (box cuts by cut, job,
   person, or both), Movements (the raw trail for the range, filtered by type
-  and person), and Aging (open tickets, open POs, and delivered-not-received
+  and person), and Aging (open jobs, open POs, and arrived-not-received
   shipments in age bands). Reports read the range fresh from the database, not
   the latest-500 list. **People** (admin): confirm newcomers, change a role
   (including the wall board TV's Board account), deactivate or reactivate.
   **Settings** (admin): show costs, QR threshold, week start, the Work week
   default for the Week view, label sheet, box start lengths, carriers,
   vendors, the Portal tier, and the wall board (mode, rotation, grouping,
-  theme, picked lines, pinned tickets), all saved by one button. **About**:
+  theme, picked lines, pinned jobs), all saved by one button. **About**:
   the data dictionary for every collection, rendered from `DATA_DICTIONARY`
   in the code, with the readability rules. **Export everything**: every
   collection as one workbook or as zipped CSVs, file names stamped with the
@@ -240,8 +292,9 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   opens: `#tickets`, `#ticket/<id>`, `#stock/...`, `#items/...`,
   `#more/...`, and `#console/...` land on the 0.8.0 screen and the address
   is rewritten to `#jobs`, `#job/<id>`, `#shelf/...`, `#shelf/units/...`, or
-  `#office/...`. The 0.8.0 screens are `#home`, `#pull`, `#pickup`,
-  `#pickup/<jobId>`, `#deliver`, `#deliver/<jobId>`, `#audit`,
+  `#office/...`. The 0.8.0 screens are `#home`, `#pull`, `#pull/<jobId>`
+  (0.9.0), `#pickup`, `#pickup/<jobId>`, `#deliver`, `#deliver/<jobId>`,
+  `#receive` (0.9.0), `#audit`,
   `#audit/<locationId>` (`#count` lands there too), `#shelf/out`, and
   `#shelf/locations`.
 - **Offline**: Loadout opens and works with no signal once it has been opened
@@ -261,7 +314,7 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   by side from 900 px up and one below; the first field takes focus, Enter
   saves a form that has one text field, and a required field that is not a
   choice says "required". `/` jumps to the view's search field.
-- **Photos**: a product's panel (Stock, open a row) has a Photo slot with Add
+- **Photos**: a product's panel (Shelf, open a row) has a Photo slot with Add
   photo, Replace photo, and Remove photo for admin and warehouse. The photo
   is shrunk to 1200 px and saved as JPEG before upload, and shows on the Scan
   product card and in an optional Photo column (off by default; turn it on in
@@ -282,29 +335,34 @@ Pick up, Confirm a delivery, and Audit screens still show their done state,
 marked "Demo mode: nothing was saved", so the flow can be walked end to end.
 `?demo=1` opens on Home with the doors. `&role=tech`,
 `&role=warehouse`, `&role=accounting`, or `&role=board` shows that role's
-view (`&role=accounting` is the read-only Console); `&costs=1` turns Show
+view (`&role=accounting` reads everything and changes nothing); `&costs=1` turns Show
 costs on so the reports show values; `&board=1` opens the wall board (`&mode=today`, `&mode=pinned`, or
 `&mode=all_open` overrides the saved board mode on that screen); `&empty=1`
-loads no tickets or orders, for the
+loads no jobs or orders, for the
 empty states and the board's idle screen; (0.6.1) `&backups=error` shows the
 Backups tab after a failed night, `&backups=many` gives 45 days so Show older
 appears, and `&backups=empty`, `&backups=denied`, and `&backups=offline` show
 those states (the plain demo has three days, the oldest one stopped at 9
 files, and its Download links are dead `#` links marked Demo); `&print=1` opens a label sheet
-preview. The New ticket sheet has a Load sample button with a made-up Portal
+preview. The New job sheet has a Load sample button with a made-up Portal
 CSV in demo mode only. The fixture has four purchase orders (a draft with no
 vendor, a partial one with two shipments, one ordered with a late shipment,
 one received), install dates across this week, and imported rows that show the
 0.3.0 name fixes. 0.5.1 adds two POs drop-shipped to job sites (three boxes on
 the client side for two clients, one late, one out for delivery, and one
-already delivered to the site), a draft PO 7739 with its vendor picked for
+already arrived at the site), a draft PO 7739 with its vendor picked for
 trying Mark ordered, unit costs on the ordered lines, status logs with clock
 times on the newer shipments (the older ones read through the migration), and
-ticket #1056, made by Zapier from Portal and still flagged for review. 0.8.0 adds job #1058, picked up by Tech (two lines in the van, one still in
+job #1056, made by Zapier from Portal and still flagged for review. 0.8.0 adds job #1058, picked up by Tech (two lines in the van, one still in
 Bay 3), job #1061 with lines to pull, seven open jobs pinned to the board so
 it turns to a second page, and two locations with an audit date (Warehouse
 over 60 days ago, so it reads amber) while the rest were never audited.
-0.4.0 adds costs on the catalog, a closed ticket and four
+0.9.0 pulls job #1056's keystones, so it sits under Waiting on orders on
+the Pull list, and adds PO 7740, a restock box that arrived this morning
+with two UDM-SE gateways (over the QR threshold, so Receive asks for their
+serials or MACs) and 50 keystones; job #1058 is the one to try Bring back
+and the Close job van rule on. `&board=1&layout=phone` (or `layout=tv`)
+forces the board's phone or TV layout. 0.4.0 adds costs on the catalog, a closed job and four
 more POs from last month and this month (one still open and backordered), and
 the deliveries, box cuts, and check-outs around them, dated inside this month
 and last month so every report has rows on any day, plus a roster with Lead
@@ -321,8 +379,8 @@ the home screen state), and (0.5.2) `window.Loadout.exportTables()`
 to read the Export everything tables without downloading, and (0.6.0)
 `window.Loadout.boardRotate(6)` to set the board's rotation for watching the
 scroll and the 2 px shift. 0.5.2 adds a Short
-line with stock elsewhere (ticket #1053 needs 80 keystones; 64 are on the
-shelves and 24 ride in Van 1, which a ticket never pulls from, so 16 are
+line with stock elsewhere (job #1053 needs 80 keystones; 64 are on the
+shelves and 24 ride in Van 1, which a job never pulls from, so 16 are
 Short), a draft started with no connection (no PO number until Mark ordered
 numbers it), and PO 7738 with an office box out for delivery, so every
 shipment state shows. `sync({online: false})` also makes the demo act offline
@@ -412,6 +470,23 @@ the **Pull sheet**. Nothing was renamed in the database. 0.8.0 adds:
   note "Audit" is an audit correction; `deliver` is unchanged and now means
   confirmed on site.
 
+0.9.0 adds:
+
+- Job lines: `broughtBackAt`, `broughtBackBy` (email), `broughtBackByName`,
+  the latest Bring back of the line from a van. Bring back lowers
+  `qtyPickedUp`, and `qtyStaged` too when it goes to a shelf, and writes one
+  `move` movement per line ("Brought back from the van, job #N").
+- A shipment's stored `status` stays `delivered`; the screens, reports, and
+  exports call it Arrived (a carrier drop), and `deliveredAt` is when it
+  arrived. The `poline` status `delivered` reads the same way.
+- `loadout_settings/worker` (written by loadout-worker since 0.6.1, now in
+  the data dictionary): `lastExportAt`, `lastExportFolder` (the day),
+  `lastExportBucket`, `lastExportPrefix` (the day's path, as
+  `loadout/backups/2026-11-11/`), `lastExportFiles`, `lastExportRows`,
+  `lastExportPruned` (the dated folders deleted), `lastExportError` (empty
+  after a good run), `lastExportErrorAt`, and `updatedAt`.
+- The printed pull sheet's QR carries `loadout:job:<id>`.
+
 Firestore project `watchtower-6fbe1`, collections `loadout_users`,
 `loadout_settings`, `loadout_products`, `loadout_locations`, `loadout_stock`,
 `loadout_containers`, `loadout_items`, `loadout_movements`, `loadout_clients`,
@@ -442,7 +517,7 @@ saved on their own `/users/{uid}` doc under `loadoutLayout`. Settings
 loadout-worker after each nightly backup (`lastExportAt`, `lastExportFolder`
 (the day), `lastExportBucket`, `lastExportPrefix`, `lastExportFiles`,
 `lastExportRows`, `lastExportPruned`, `lastExportError`,
-`lastExportErrorAt`); the Console's Backups tab reads it. Products gained `imageUrl` (the photo's
+`lastExportErrorAt`); Office, Backups reads it. Products gained `imageUrl` (the photo's
 download link), `imagePath` (`loadout/products/{id}.jpg` in Firebase Storage),
 and `imageAt` in 0.5.0. In 0.5.1 purchase orders gained `shipTo` ("office"
 or "client") and `shipToAddress`; order lines gained `unitCost`, fixed at
@@ -512,7 +587,7 @@ gained `reviewedAt`, `reviewedBy`, and `reviewedByName` beside the worker's
 - Pulled units get one `checkout` movement by Import, dated from Pull Date
   (else the count date), with an `importKey` ending in `:checkout`.
 
-The Console's About tab lists every field of every collection.
+Office, About lists every field of every collection.
 
 ## Rules
 
@@ -539,6 +614,22 @@ and an audit writes stock, boxes, and `lastAuditedAt` on a location, which
 warehouse and admin could already write. Not checked in the emulator yet and
 **not deployed**; until it is, a tech's Pick up and Confirm a delivery are
 refused and a warehouse or admin account can do both.
+0.9.0 (PLAN 20.2) adds `broughtBackAt`, `broughtBackBy`, and
+`broughtBackByName` to a tech's line update, and lets a tech raise (or start)
+a stock count in a location whose `kind` is `bay`, which Bring back needs to
+put counted units from a van back in the job's bay. A tech still cannot raise
+a count on a shelf, so Bring back to a shelf is warehouse and admin. On
+2026-11-11 this whole block ran in the Firestore emulator (`firebase
+emulators:start --only firestore --project demo-loadout`) with a browser
+script that replayed the exact batches the app writes: a tech's Pick up (13
+writes), Confirm a delivery (9), and Bring back to the bay (9, one of them a
+new bay count) were allowed; a tech raising or starting a count on a shelf,
+bringing back to a shelf, or changing `qtyNeeded` was refused; a warehouse
+audit (`lastAuditedAt` on a location, an `adjust` movement, the count) was
+allowed; accounting writing a movement, a count, a location, a job, a job
+line, or a product was refused. 14 of 14 checks passed, so the 0.8.0 tech
+Pick up and Confirm a delivery rules below are now checked too (the 0.7.0
+unit check-in fields were not in this run). Still **not deployed**.
 0.7.0 adds `clientId` and `holderNote` to a tech's unit update: a check-out
 or check-in clears them on a unit that came in pulled on the inventory sheet,
 and only writes them when the unit has them. Not checked in the emulator yet
@@ -672,16 +763,29 @@ match /loadout_tickets/{tid} {
   // and why a line was left undelivered.
   allow update: if loadoutTechOnly(['status', 'summary', 'updatedAt',
     'pickedUpAt', 'pickedUpBy', 'pickedUpByName', 'deliveredAt', 'deliveredBy', 'deliveredByName']);
+  // 0.9.0 (PLAN 20.2): Bring back lowers qtyPickedUp and stamps who and when.
   match /lines/{lineId} {
     allow update: if loadoutTechOnly(['qtyStaged', 'qtyDelivered', 'updatedAt',
-      'qtyPickedUp', 'pickedUpAt', 'pickedUpBy', 'pickedUpByName', 'deliveryNote']);
+      'qtyPickedUp', 'pickedUpAt', 'pickedUpBy', 'pickedUpByName', 'deliveryNote',
+      'broughtBackAt', 'broughtBackBy', 'broughtBackByName']);
   }
 }
-// Pick up (0.8.0) and Deliver to site take counted units out of the bay: a tech may only
-// lower a stock count, never raise it or change anything else.
+// Pick up (0.8.0) and Deliver to site take counted units out of the bay: a tech may
+// lower a stock count and change nothing else. 0.9.0 (PLAN 20.2): Bring back puts
+// counted units from a van back into the job's bay, so a tech may also raise a count
+// (or start one) in a location of kind bay, and nowhere else. Shelves stay with
+// warehouse and admin through the wildcard below.
+function loadoutIsBay(locId) {
+  return get(/databases/$(database)/documents/loadout_locations/$(locId)).data.get('kind', '') == 'bay';
+}
 match /loadout_stock/{id} {
   allow update: if loadoutTechOnly(['qty', 'updatedAt'])
-    && request.resource.data.qty < resource.data.qty;
+    && (request.resource.data.qty < resource.data.qty || loadoutIsBay(resource.data.locationId));
+  allow create: if isMSPAdmin() && loadoutRole() == 'tech'
+    && request.resource.data.keys().hasOnly(['productId', 'productName', 'locationId', 'locationName', 'qty', 'updatedAt'])
+    && id == request.resource.data.productId + '__' + request.resource.data.locationId
+    && request.resource.data.qty > 0
+    && loadoutIsBay(request.resource.data.locationId);
 }
 // Warehouse may pin tickets to the wall board (Show on board) and save
 // the CSV column mapping; the rest of settings stays admin-only above.
@@ -847,17 +951,64 @@ service firebase.storage {
 
 `worker/` is loadout-worker, a Cloudflare Worker on the umbrella account. It
 takes accepted Portal proposals from a Zap (PLAN section 6, T1) and writes the
-proposal, the pick ticket, and its lines with the same ids the CSV import uses,
+proposal, the job, and its lines with the same ids the CSV import uses,
 flagged `needsReview` until someone looks. Every night at 09:00 UTC it writes
 one CSV per collection to this project's Storage bucket under
 `loadout/backups/YYYY-MM-DD/` and deletes days older than 90 (PLAN section 16
-rule 7); the Console's Backups tab lists them for admin and accounting. It
+rule 7); Office, Backups lists them for admin and accounting. It
 writes through a service account, so the Firestore rules do not change and
 the Storage rules only need to let the two roles read. The
 Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.9.0 (2026-11-11)
+
+A walk through 0.8.2 as warehouse, tech, and admin on a phone found that the
+doors were simple but two of the screens behind them were not, and that two
+jobs the shop does every week had no door at all (PLAN 20).
+
+- **Pull has its own screen.** Pick up and Confirm a delivery each opened a
+  short list with one button; Pull opened the full office job page with nine
+  buttons and five numbers per line. The new Pull screen (`#pull/<jobId>`)
+  shows only what to take from each shelf, in the board's walking order, with
+  one "Pull 4" button per line. What the shelves cannot cover waits in its
+  own group with its PO, and what is pulled drops to "In the bay". Every Keep
+  pulling button lands here, and a job with nothing pulled says Start
+  pulling. The job page is unchanged for the office.
+- **Product can come back from a van.** A postponed job used to leave stock
+  stuck on a person, and Close job ignored it, so counts would drift on the
+  first postponed job. **Bring back** on Out with me and on the delivery
+  screen returns ticked lines to the job's bay (or, for the warehouse, a
+  shelf). Close job now lists what is still in a van and will not close until
+  it is delivered or brought back; only an admin can write it off there.
+- **Receiving has a door.** Receiving was the only way stock got in and sat
+  four taps deep under Office. **Receive a shipment** is now the fourth door
+  for warehouse and admin ("2 arrived, 3 on the way"), arrived boxes first.
+  A unit worth its own QR now asks for its serial or MAC when it comes off a
+  shipment, which it never did before.
+- **One word, one meaning.** "Delivered, not received" was a carrier's box at
+  the shop, while Confirm a delivery was ours at the client. A carrier's box
+  is now **Arrived** everywhere ("Arrived, not received", Mark arrived);
+  Deliver means the client's site. Stored values did not change.
+- **The progress line reads one number, not four.** "Pulled 2 of 9, Staged
+  2" instead of "Pulled 2 of 9, Staged 2, Picked up 0, Delivered 0", and
+  "Delivered 2 of 2" when a job is done.
+- **The Pull door splits.** "3 jobs to pull, 2 waiting on orders", and the
+  list puts the ones you can work on first.
+- **The printed pull sheet has a QR.** Scan it and the phone opens that
+  job's Pull screen, so a pull can start from the clipboard.
+- **The wall board reads on a phone.** Opened on a phone it becomes one
+  scrolling column with every line of every job at phone type sizes, and a
+  signed-in person gets an Open in Loadout link per card. The TV layout is
+  unchanged.
+- **Leftover words.** Messages that still said More, the Console, Units view,
+  or ticket now say Office, Shelf, and job.
+- **Carried items.** The data dictionary now lists `loadout_settings/worker`
+  and the new line fields, and the tech rules from 0.8.0 plus the new Bring
+  back rule ran in the Firestore emulator for the first time (14 of 14
+  checks). The rules are still not deployed.
 
 ### 0.8.2 (2026-11-09)
 

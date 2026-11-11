@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.8.2</title>
+<title>Loadout v0.9.0</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.8.2">
+<meta name="loadout-version" content="0.9.0">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -590,6 +590,35 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
   .bd-line .bd-st{grid-column:1/-1}
   .bd-idle h1{font-size:36px}.bd-idle p,.bd-low{font-size:24px}.bd-clock{font-size:64px}
 }
+/* 0.9.0 (PLAN 20.3): the board on a phone (renderBoard sets data-layout). One
+   column that scrolls like a page, every line shown, phone type sizes with
+   nothing under 14px, a slim sticky header that clears the notch and the
+   home bar. Same theme tokens as the TV, so the same contrast pairs. */
+#board[data-layout="phone"]{display:block;overflow-x:hidden;overflow-y:auto;cursor:auto;overscroll-behavior:contain}
+#board[data-layout="phone"] .bd-main{display:block;transform:none;padding:0 calc(12px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left))}
+.bdp-head{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px;margin:0 calc(-12px - env(safe-area-inset-right)) 12px calc(-12px - env(safe-area-inset-left));padding:calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));background:var(--b-bg);border-bottom:1px solid var(--b-line);font-size:14px;color:var(--b-muted)}
+.bdp-head b{font-size:18px;color:var(--b-text)}
+.bdp-live{margin-left:auto;font-weight:700;color:var(--b-ok)}
+.bdp-live.off{color:var(--b-red)}
+.bdp-list{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.bdp-empty p{font-size:16px;color:var(--b-muted);margin:24px 0}
+#board[data-layout="phone"] .bdc{overflow:visible;border-width:1px}
+#board[data-layout="phone"] .bdc-band{height:6px;border-radius:10px 10px 0 0}
+#board[data-layout="phone"] .bdc-in{padding:10px 12px 4px}
+#board[data-layout="phone"] .bdc-client{font-size:18px}
+#board[data-layout="phone"] .bdc-bay,#board[data-layout="phone"] .bdc-sub,#board[data-layout="phone"] .bdc-strip{font-size:14px}
+#board[data-layout="phone"] .bdc-bar{height:8px;margin:8px 0 4px}
+#board[data-layout="phone"] .bdc-list{flex:none;overflow:visible}
+#board[data-layout="phone"] .bd-grp{font-size:14px;padding:10px 0 4px;border-bottom-width:1px}
+#board[data-layout="phone"] .bd-line{grid-template-columns:minmax(0,1fr) auto;gap:0 12px;padding:6px 0}
+#board[data-layout="phone"] .bd-st{grid-column:1/-1;font-size:14px}
+#board[data-layout="phone"] .bd-name{font-size:16px}
+#board[data-layout="phone"] .bd-meta{font-size:14px}
+#board[data-layout="phone"] .bd-qty{font-size:18px}
+#board[data-layout="phone"] .bd-qty small{font-size:14px}
+.bdp-open{display:flex;align-items:center;min-height:44px;margin-top:4px;border-top:1px solid var(--b-line);font-size:16px;font-weight:600;color:var(--b-text);text-decoration:underline}
+.bdp-open:focus-visible{outline:2px solid var(--b-text);outline-offset:2px}
+#board[data-layout="phone"] .bd-idle{transform:none}
 
 /* ---------- expand in place (0.3.0, PLAN 12b item 5) ----------
    A record opens in a panel under its row instead of a modal. The row
@@ -1121,6 +1150,46 @@ a.textbtn{display:inline-flex;align-items:center}
 .punits .pua{display:flex;gap:6px;flex-wrap:wrap}
 @media (min-width:721px){.tbl .jstrip{min-width:170px}}
 @media (max-width:640px){.punitsbtn{min-height:44px}}
+/* ---------- 0.9.0 (PLAN 20.2): the Pull screen, Bring back, the Receive door ----------
+   Receive takes the neutral grey of the status pills (--m-pilltext): the
+   palette has no teal, and the FedEx purple belongs to a carrier. White on
+   it is 7.01:1, the quiet grey #e3e7ec 5.65:1. */
+:root{--job-receive:var(--m-pilltext)}
+.band.receive,.door.receive{background:var(--job-receive)}
+.pgrp{margin-top:var(--s3)}
+.pgrp > .ph{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s1) var(--s2);margin:0 0 var(--s1)}
+.pgrp > .ph h3{margin:0;font-size:16px;font-weight:700;overflow-wrap:anywhere;min-width:0}
+.pgrp > .ph .n{font-size:13px;color:var(--m-muted)}
+.pgrp > .ph .btn{margin-left:auto}
+.prow{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s1) var(--s2);padding:var(--s1) 0;border-bottom:1px solid var(--m-line);min-width:0}
+.prow .pw{flex:1 1 220px;min-width:0}
+.prow .pw b{display:block;overflow-wrap:anywhere}
+.prow .pw small{display:block;color:var(--m-muted);font-size:13px;overflow-wrap:anywhere}
+.prow .btn{min-height:44px;min-width:96px}
+.prow .chips{margin-top:4px}
+/* the waiting and in-the-bay groups step back: muted heading, no buttons on the rows */
+.pgrp.quiet > .ph h3{color:var(--m-muted);font-size:14px}
+.prow.done .pw b{font-weight:400;color:var(--m-muted)}
+.prow .tick{flex:none;width:22px;height:22px;color:var(--m-ok-text)}
+.bbline{display:flex;gap:var(--s1);align-items:flex-start}
+.vanlist{list-style:none;margin:0;padding:0}
+.vanlist li{display:flex;justify-content:space-between;gap:var(--s2);padding:6px 0;border-bottom:1px solid var(--m-line);min-width:0}
+.vanlist li span{min-width:0;overflow-wrap:anywhere}
+.rcard{background:var(--m-card);border:1px solid var(--m-line);border-radius:var(--m-radius);padding:var(--s2);min-width:0;display:flex;flex-direction:column;gap:6px}
+.rcard.arr{background:var(--m-dnrbg)}
+.rcard .rh{display:flex;flex-wrap:wrap;gap:6px var(--s1);align-items:center}
+.rcard .rh b{font-size:15px;overflow-wrap:anywhere}
+.rcard ul{margin:0;padding-left:18px}
+.rcard li{overflow-wrap:anywhere}
+.rcard li small{color:var(--m-muted);font-size:13px}
+.rcard .btn{min-height:44px;align-self:flex-start;min-width:120px}
+.rcards{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s1)}
+@media (min-width:760px){.rcards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* a one-word crumb (Pull) is still a whole tap target */
+.crumb .textbtn{min-width:44px;justify-content:center}
+.picksheet .phead{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.picksheet .pqr{flex:none;width:1.1in;text-align:center;font-size:8pt}
+.picksheet .pqr svg{display:block;width:1.1in;height:1.1in}
 </style>
 </head>
 <body>
@@ -1151,7 +1220,7 @@ a.textbtn{display:inline-flex;align-items:center}
   <header class="top">
     <div class="brand">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.8.2</span>
+      Loadout <span class="v" id="verBadge">v0.9.0</span>
     </div>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
@@ -1172,6 +1241,7 @@ a.textbtn{display:inline-flex;align-items:center}
     <section id="v-pull" class="view" hidden></section>
     <section id="v-pickup" class="view" hidden></section>
     <section id="v-deliver" class="view" hidden></section>
+    <section id="v-receive" class="view" hidden></section>
     <section id="v-audit" class="view" hidden></section>
     <section id="v-office" class="view" hidden></section>
     <section id="v-tickets" class="view" hidden></section>
@@ -1186,7 +1256,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.8.2</span>
+    <span id="footVer">Loadout v0.9.0</span>
     <span id="footWho"></span>
     <span id="footRole"></span>
     <span id="footSync"></span>
@@ -1215,7 +1285,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.8.2";
+const VERSION = "0.9.0";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -1276,14 +1346,16 @@ const TK_LABEL = { open: "Open", picking: "Pulling", staged: "Staged", picked_up
    by every view, the board, Week, Tracking, the exports, and the tooltips.
    [label, class]: "" grey, info blue, ok green, warn amber, bad red,
    done green outline, off grey outline. */
-const DNR = "Delivered, not received";
+/* 0.9.0 (PLAN 20.2): a carrier's drop at the shop is Arrived; Deliver and
+   Delivered mean the client's site only. The stored status stays "delivered". */
+const DNR = "Arrived, not received";
 const PILL = {
   ticket: { open: ["Open", ""], picking: ["Pulling", "info"], staged: ["Staged", "ok"], picked_up: ["Picked up", "info"], delivered: ["Delivered", "done"], closed: ["Closed", "off"] },
   line: { pull: ["Pull", ""], staged: ["Staged", "ok"], picked_up: ["Picked up", "info"], delivered: ["Delivered", "done"], on_order: ["On order", "warn"], short: ["Short", "bad"] },
   po: { draft: ["Draft", ""], ordered: ["Ordered", "info"], partial: ["Partial", "warn"], received: ["Received", "ok"], cancelled: ["Cancelled", "off"] },
   /* a PO line reads in the PO and shipment words */
   poline: { draft: ["Draft", ""], ordered: ["Ordered", "info"], backordered: ["Backordered", "warn"], shipped: ["Shipped", "info"], out_for_delivery: ["Out for delivery", "info"], delivered: [DNR, "warn"], received: ["Received", "ok"] },
-  ship: { shipped: ["Shipped", "info"], out_for_delivery: ["Out for delivery", "info"], delivered: [DNR, "warn"], received: ["Received", "ok"], site: ["Delivered to site", "done"] },
+  ship: { shipped: ["Shipped", "info"], out_for_delivery: ["Out for delivery", "info"], delivered: [DNR, "warn"], received: ["Received", "ok"], site: ["Arrived at the site", "done"] },
   unit: { in_stock: ["In stock", ""], staged: ["Staged", "ok"], checked_out: ["Checked out", "info"], installed: ["Installed", "done"], returned: ["Returned", "warn"], retired: ["Retired", "off"] }
 };
 function pillLabel(kind, st) { const e = PILL[kind] && PILL[kind][st]; return e ? e[0] : String(st || ""); }
@@ -1922,7 +1994,8 @@ function qrSvg(text) {
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += "M" + (c + m) + " " + (r + m) + "h1v1h-1z";
   return '<svg viewBox="0 0 ' + (n + m * 2) + " " + (n + m * 2) + '" shape-rendering="crispEdges" aria-hidden="true"><rect width="100%" height="100%" fill="#fff"/><path d="' + d + '" fill="#000"/></svg>';
 }
-const PAYLOAD = { loc: id => "loadout:loc:" + id, ctr: id => "loadout:ctr:" + id, item: id => "loadout:item:" + id, prod: id => "loadout:prod:" + id };
+/* 0.9.0: job is the QR on a printed pull sheet; Scan opens that job's Pull screen */
+const PAYLOAD = { loc: id => "loadout:loc:" + id, ctr: id => "loadout:ctr:" + id, item: id => "loadout:item:" + id, prod: id => "loadout:prod:" + id, job: id => "loadout:job:" + id };
 
 /* ==============================================================
    DATA LAYER
@@ -2485,7 +2558,7 @@ function toOrderCache(t, y, adj) {
 }
 /* the line's state, one word from the pill map (Pull, Staged, Delivered,
    On order, Short). Partly staged reads "Staged 2 of 4"; a line waiting on
-   a box that was delivered and not scanned in reads "Delivered, not received". */
+   a box that arrived and was not scanned in reads "Arrived, not received" (0.9.0). */
 function lineState(t, l, stock) {
   const need = num(l.qtyNeeded), staged = num(l.qtyStaged);
   if (need > 0 && num(l.qtyDelivered) >= need) return { k: "delivered", tip: "Confirmed on site" };
@@ -2497,7 +2570,7 @@ function lineState(t, l, stock) {
   const open = olinksFor(t, l).filter(x => x.ol && olOpen(x.ol) > 0);
   if (open.length && shelves < lineLeft(l)) {
     const here = open.find(x => olStatus(x.o, x.ol) === "delivered"), pos = open.map(x => poLabel(x.o)).join(", ");
-    if (here) { const s = olShipment(here.o, here.ol); return { k: "on_order", label: DNR, date: s && s.deliveredAt, tip: DNR + " on " + poLabel(here.o) + ". Receive it from Tracking." }; }
+    if (here) { const s = olShipment(here.o, here.ol); return { k: "on_order", label: DNR, date: s && s.deliveredAt, tip: DNR + " on " + poLabel(here.o) + ". Receive it from Receive a shipment on Home." }; }
     const eta = open.map(x => olEta(x.o, x.ol)).filter(Boolean)[0], draft = open.every(x => x.o.status === "draft");
     return { k: "on_order", label: "On order" + (eta ? ", ETA " + eta : ""), tip: "On " + pos + (draft ? ", a draft not ordered yet" : "") };
   }
@@ -2675,12 +2748,25 @@ async function doClose(t, o) {
       }
     });
   });
-  installsFor(t).forEach(it => {
+  /* 0.9.0 (PLAN 20.2): a van line is delivered or brought back before a close; only the admin's write-off passes one here */
+  const van = ticketLines(t.id).filter(l => lineInVan(l) > 0), gone = new Set();
+  if (van.length && !o.vanReason) { toast("Product is still in a van on job #" + t.number + ". Deliver it or bring it back first.", true); return false; }
+  van.forEach(l => {
+    const p = lineProduct(l), q = lineInVan(l), units = vanUnits(t, l), counted = p && p.unit !== "ft" ? Math.max(0, q - units.length) : 0, why = "Written off from the van at close of job #" + t.number + ": " + o.vanReason;
+    /* on hand already dropped at the pick-up; the write-off is the record of where it went */
+    if (counted > 0 || !p) ops.push(mv("writeoff", Object.assign({ productId: l.productId || null, productName: lineName(l), qty: -(p ? counted : q), holderName: l.pickedUpByName || null, note: why }, tf(l))));
+    units.forEach(it => {
+      gone.add(it.id);
+      ops.push({ op: "update", coll: "loadout_items", id: it.id, data: { status: "retired", locationId: null, locationName: null, holderUid: null, holderName: null, retiredReason: o.vanReason, updatedAt: NOW } });
+      ops.push(mv("writeoff", Object.assign({ productId: it.productId, itemId: it.id, itemLabel: itemLabel(it), qty: -1, holderName: it.holderName || null, note: why }, tf(l))));
+    });
+  });
+  installsFor(t).filter(it => !gone.has(it.id)).forEach(it => {
     ops.push({ op: "update", coll: "loadout_items", id: it.id, data: { status: "installed", locationId: null, locationName: null, jobId: t.jobId || null, jobName: t.jobName || null, clientName: t.clientName || null, ticketNumber: t.number || null, updatedAt: NOW } });
     ops.push(mv("adjust", Object.assign({ productId: it.productId, itemId: it.id, itemLabel: itemLabel(it), qty: 0, holderName: it.holderName, note: "Installed at " + (t.jobName || "the job") + " (job #" + t.number + " closed)" }, tf({ id: it.ticketLineId }))));
   });
   drop.forEach((n, pid) => ops.push(productInc(pid, -n)));
-  ops.push(mv("edit", Object.assign({ note: "Job #" + t.number + " closed" + (lo.length ? ", leftovers " + (ret ? "returned to " + locName(o.locId) : "written off: " + o.reason) : "") + (o.note ? ". " + o.note : "") }, tf(null))));
+  ops.push(mv("edit", Object.assign({ note: "Job #" + t.number + " closed" + (lo.length ? ", leftovers " + (ret ? "returned to " + locName(o.locId) : "written off: " + o.reason) : "") + (van.length ? ", what was in the van written off: " + o.vanReason : "") + (o.note ? ". " + o.note : "") }, tf(null))));
   ops.push({ op: "update", coll: "loadout_tickets", id: t.id, data: { status: "closed", summary: summarize(ticketLines(t.id), Object.assign({}, t, { status: "closed" })), closedAt: NOW, closedBy: S.user.email, closedByName: S.user.name, closeNote: o.note || null, updatedAt: NOW } });
   return commitChunks(ops, "Close of job #" + t.number);
 }
@@ -2757,7 +2843,7 @@ function ordSummary(o) { return S.olinesLoaded.has(o.id) ? orderSummaryOf(orderL
 /* an office shipment marked delivered with lines not received (a job-site box is done when delivered) */
 function ordDnr(o) { return o.status !== "received" && o.status !== "cancelled" && shipmentsFor(o.id).some(s => s.status === "delivered" && shipOpen(s) && shipSide(s, o) === "office"); }
 function ordPill(o, big) {
-  if (ordDnr(o)) return pill("ship", "delivered", { big, tip: "A shipment on this PO is marked delivered and has not been received in Loadout. Find the box and press Receive." });
+  if (ordDnr(o)) return pill("ship", "delivered", { big, tip: "A shipment on this PO arrived at the shop and has not been received in Loadout. Find the box and press Receive." });
   return pill("po", o.status, { big });
 }
 /* 0.5.2 (finding 8): a draft started with no connection has an id of
@@ -2809,7 +2895,7 @@ function onOrderQty(t, l) { return olinksFor(t, l).reduce((a, x) => a + (x.ol ? 
 function tkHasBackorder(t) { let b = false; S.olines.forEach((m, oid) => m.forEach(ol => { if (ol.ticketId === t.id && olOpen(ol) > 0 && olStatus(S.orders.get(oid), ol) === "backordered") b = true; })); return b; }
 function olEta(o, ol) { const e = olExpected(o, ol); return e ? fmtShort(e) : ""; }
 /* the chip on a ticket line, in the pill map's words with the date beside:
-   "PO 7731, UPS 1Z999AA1: Delivered, not received, Nov 1" (finding 10, 25) */
+   "PO 7731, UPS 1Z999AA1: Arrived, not received, Nov 1" (finding 10, 25) */
 function olChipText(o, ol) {
   if (!ol) return poLabel(o) + ": " + pillLabel("po", o.status) + (o.status === "received" && o.receivedAt ? ", " + fmtShort(o.receivedAt) : "");
   const st = olStatus(o, ol), s = olShipment(o, ol), head = poLabel(o) + (s && (st === "shipped" || st === "out_for_delivery" || st === "delivered") ? ", " + (s.carrier || "Other") + " " + String(s.tracking || "").slice(0, 8) : "");
@@ -2836,7 +2922,7 @@ function shipLegacyAt(s) {
 function shipLog(s) { return Array.isArray(s.statusLog) && s.statusLog.length ? s.statusLog : [{ status: s.status || "shipped", at: shipLegacyAt(s), by: null, byName: null, note: null }]; }
 function shipLast(s) { const l = shipLog(s); return l[l.length - 1]; }
 /* the shipment's word in the pill map: a job-site box that is delivered is
-   "Delivered to site" (done); an office box is "Delivered, not received" until scanned in */
+   "Arrived at the site" (done); an office box is "Arrived, not received" until scanned in */
 function shipKey(s, o) { const st = shipLast(s).status; return st === "delivered" && shipSide(s, o) === "client" ? "site" : st; }
 /* the first write to a pre-0.5.1 shipment seeds the log from its dates, so its history keeps its start */
 function logSeed(s) {
@@ -2958,7 +3044,7 @@ async function doAddShipment(o, d) {
   ops.push(orderMv(o, "Shipment " + d.carrier + " " + d.tracking + " added to PO " + o.number + ", " + d.lines.length + " line" + (d.lines.length > 1 ? "s" : "") + ", to " + (st === "client" ? "the job site" : "the office"), { shipmentId: id }));
   return DB.commit(ops, "the shipment on PO " + o.number);
 }
-/* Mark delivered on a package to a job site (PLAN 4, Tracking). It is never
+/* Mark arrived (stored as delivered) on a package to a job site (PLAN 4, Tracking). It is never
    received into stock: each line counts as received on the PO and staged on
    the ticket it serves, with a stage movement naming the site. The tech's
    Deliver to site later takes from the bay only what is really in the bay. */
@@ -2976,17 +3062,17 @@ async function doMarkDelivered(s, at, note) {
     ops.push({ op: "update", coll: olColl(o.id), id: y.id, data: Object.assign({ qtyReceived: INC(q), updatedAt: NOW }, y.qtyReceived >= num(y.qtyOrdered) ? { status: "received", receivedAt: NOW } : {}) });
     const t = y.ticketId ? S.tickets.get(y.ticketId) : null, l = t && S.lines.get(t.id) ? S.lines.get(t.id).get(y.ticketLineId) || null : null;
     ops.push(mv("stage", Object.assign({ productId: y.productId || null, productName: olName(y), qty: q, toLocationId: null,
-      note: "Delivered to " + where + " on PO " + o.number + (s.carrier ? ", " + s.carrier + " " + (s.tracking || "") : "") + ". Staged on the job, not counted into stock" }, t && l ? tkBaseFields(t, l) : { jobName: o.jobName || null }, base)));
+      note: "Arrived at " + where + " on PO " + o.number + (s.carrier ? ", " + s.carrier + " " + (s.tracking || "") : "") + ". Staged on the job, not counted into stock" }, t && l ? tkBaseFields(t, l) : { jobName: o.jobName || null }, base)));
     if (t && l) {
       if (!tkbs.has(t.id)) tkbs.set(t.id, tkBatch(t));
       tkbs.get(t.id).bump(l, { qtyStaged: q }, { pickedFromName: "PO " + o.number + ", at the job site", pickedByName: S.user.name, pickedAt: NOW }, { po: -q });
     }
   });
   tkbs.forEach(b => ops.push(...b.finish()));
-  ops.push({ op: "update", coll: "loadout_shipments", id: s.id, data: Object.assign({ status: "delivered", deliveredAt: at, deliveredBy: S.user.email, deliveredByName: S.user.name, lines: sl, updatedAt: NOW }, logOp(s, "delivered", at, note || "Delivered to " + where)) });
+  ops.push({ op: "update", coll: "loadout_shipments", id: s.id, data: Object.assign({ status: "delivered", deliveredAt: at, deliveredBy: S.user.email, deliveredByName: S.user.name, lines: sl, updatedAt: NOW }, logOp(s, "delivered", at, note || "Arrived at " + where)) });
   const lines = Array.from(after.values()), st = orderStatusFrom(o, lines);
   ops.push({ op: "update", coll: "loadout_orders", id: o.id, data: Object.assign({ status: st, summary: orderSummaryOf(lines), updatedAt: NOW }, st === "received" ? { receivedAt: NOW } : {}) });
-  ops.push(orderMv(o, "Shipment " + (s.carrier || "Other") + " " + (s.tracking || "") + " marked delivered at " + where + (note ? ": " + note : ""), { shipmentId: s.id }));
+  ops.push(orderMv(o, "Shipment " + (s.carrier || "Other") + " " + (s.tracking || "") + " marked arrived at " + where + (note ? ": " + note : ""), { shipmentId: s.id }));
   return commitChunks(ops, "the delivery on PO " + o.number);
 }
 async function doShipNote(s, text) { return DB.commit([{ op: "update", coll: "loadout_shipments", id: s.id, data: { note: text || null, updatedAt: NOW } }], "the note on " + (s.carrier || "the") + " " + (s.tracking || "shipment")); }
@@ -3058,10 +3144,11 @@ async function doReceiveShipment(s, rows) {
       /* finding 18: a unit takes the cost on its PO line, not the product's last cost */
       const cost = olUnitCost(r.ol);
       for (let i = 0; i < r.q; i++) {
-        const id = rid() + i, label = labels[i];
-        ops.push(itemDoc(r.p, Object.assign({ id, label, cost, status: staged ? "staged" : "in_stock", locationId: r.dest, orderId: o.id, orderNumber: o.number, shipmentId: s.id },
+        /* 0.9.0: the serial and MAC typed on the sheet, one per unit in order (doReceiveUnits does the same) */
+        const id = rid() + i, label = labels[i], serial = ((r.serials || [])[i] || "").trim() || null, mac = macOf((r.macs || [])[i]) || null;
+        ops.push(itemDoc(r.p, Object.assign({ id, label, serial, mac, cost, status: staged ? "staged" : "in_stock", locationId: r.dest, orderId: o.id, orderNumber: o.number, shipmentId: s.id },
           r.t ? { jobId: r.t.jobId || null, jobName: r.t.jobName || null, clientName: r.t.clientName || null } : {}, staged ? { ticketId: r.t.id, ticketNumber: r.t.number || null, ticketLineId: r.l ? r.l.id : null } : {})));
-        ops.push(mv("receive", Object.assign({ productId: r.p.id, itemId: id, itemLabel: label, qty: 1, toLocationId: r.dest, note }, tf, of)));
+        ops.push(mv("receive", Object.assign({ productId: r.p.id, itemId: id, itemLabel: serial || label, qty: 1, toLocationId: r.dest, note }, tf, of)));
         newItems.push({ id, label });
       }
       seq.set(r.p.id, (seq.get(r.p.id) || 0) + r.q);
@@ -3105,7 +3192,7 @@ function portalBlock(t) {
   const head = "[Loadout " + stamp + "] Job #" + t.number + ", " + (tkWho(t) || "no client");
   const bits = ["Staged " + s.staged + "/" + s.lines + " lines" + (t.stagingLocationId ? " in " + tkBay(t) : "") + ".", "Delivered " + s.delivered + "/" + s.lines + "."];
   const onPo = [];
-  lines.forEach(l => olinksFor(t, l).forEach(x => onPo.push(lineName(l) + (x.ol ? " x" + fmtN(x.ol.qtyOrdered) + (lineIsFt(l) ? " ft" : "") : "") + ", " + olChipText(x.o, x.ol))));
+  lines.forEach(l => olinksFor(t, l).forEach(x => onPo.push(lineName(l) + (x.ol ? " x" + fmtN(x.ol.qtyOrdered) + (lineIsFt(l) ? " ft" : "") : "") + ", " + olChipText(x.o, x.ol).replace(DNR, "arrived at the shop, not received yet"))));
   if (onPo.length) bits.push("On order: " + onPo.join("; ") + ".");
   const stock = shelfStock(), order = t.status === "closed" ? [] : lines.filter(l => uncoveredFor(l, stock, t) > 0);
   if (order.length) bits.push("To order: " + order.length + " line" + (order.length > 1 ? "s" : "") + ", no PO yet: " + order.map(l => lineName(l) + " x" + fmtN(uncoveredFor(l, stock, t)) + (lineIsFt(l) ? " ft" : "")).join(", ") + ".");
@@ -3340,7 +3427,9 @@ function loadDemoTickets(t, ST) {
   T("1056", "harbor-clinic--harbor-clinic-network", "open", "bay-1", 0, { updatedAt: t(0), source: "zapier", needsReview: true, createdBy: "Zapier", createdByName: "Zapier", installAt: null });
   Object.assign(S.proposals.get("1056"), { importSource: "zapier", acceptedAt: t(0) });
   Ln("1056", "Exam rooms", "ubiquiti-u6-pro", 2, { qtyToOrder: 2, portalItemId: "pi-88213" });
-  Ln("1056", "Exam rooms", "leviton-61110-be6", 12, { portalItemId: "pi-88214" });
+  /* 0.9.0: the keystones are pulled already, so 1056 waits on orders only (the Pull list's second group) */
+  Ln("1056", "Exam rooms", "leviton-61110-be6", 12, { portalItemId: "pi-88214", qtyFromStock: 12, qtyStaged: 12, pickedFromName: "Warehouse", pickedByName: "Warehouse", pickedAt: t(0.05) });
+  setQty("leviton-61110-be6", "bay-1", 12);
   /* 0.8.0 (PLAN 18.7): a job picked up by the tech and not yet delivered (two
      lines in the van, one still in the bay), and one more open job, so the
      wall board has seven jobs and turns to a second page */
@@ -3446,7 +3535,7 @@ function loadDemoOrders(t) {
   SH("dship7736a", "7736", "FedEx", "748912349901", { status: "out_for_delivery", shippedAt: t(2), expectedAt: at(0), shipTo: "client", shipToAddress: k1050.shipToAddress,
     statusLog: [lg("shipped", hm(2, 15, 5), "Warehouse", "Added by hand"), lg("out_for_delivery", hm(0, 8, 14), "Warehouse", "Typed by hand")] }, [[e1, 2, 0]]);
   SH("dship7736b", "7736", "USPS", "9400111899223344559911", { status: "delivered", shippedAt: t(5), expectedAt: t(3), deliveredAt: hm(3, 13, 40), deliveredBy: "warehouse@example.com", deliveredByName: "Warehouse", shipTo: "client", shipToAddress: k1050.shipToAddress,
-    statusLog: [lg("shipped", hm(5, 11, 0), "Warehouse", "Added by hand"), lg("delivered", hm(3, 13, 40), "Warehouse", "Delivered to the job site at 210 Main St, Suite 4")] }, [[e2, 2, 2]]);
+    statusLog: [lg("shipped", hm(5, 11, 0), "Warehouse", "Added by hand"), lg("delivered", hm(3, 13, 40), "Warehouse", "Arrived at the job site at 210 Main St, Suite 4")] }, [[e2, 2, 2]]);
   const k1053 = { ticketId: "1053", ticketNumber: "1053", jobId: "ridge-family-practice--waiting-room-tvs", jobName: "Waiting room TVs", clientId: "ridge-family-practice", clientName: "Ridge Family Practice", proposalId: "1053", shipTo: "client", shipToAddress: "9 Ridge Ave" };
   O("7737", Object.assign({ vendor: "Keystone Distribution", orderNumber: "KD-21007", status: "ordered", orderedAt: t(7), orderedBy: "warehouse@example.com", orderedByName: "Warehouse", createdAt: t(7) }, k1053));
   const g1 = OL("7737", "middle-atlantic-u2v", 1, { t: "1053", l: line("1053", "middle-atlantic-u2v"), x: { qtyShipped: 1, status: "shipped", unitCost: 40.5 } });
@@ -3466,6 +3555,14 @@ function loadDemoOrders(t) {
   const h1 = OL("7738", "splitter-2-way-coaxial-splitter-coaxial-m-1-coaxial-m-2", 4, { x: { qtyShipped: 4, status: "out_for_delivery", unitCost: 3.6 } });
   SH("dship7738", "7738", "FedEx", "748912347738", { status: "out_for_delivery", shippedAt: t(2), expectedAt: at(0), shipTo: "office",
     statusLog: [lg("shipped", hm(2, 9, 30), "Warehouse", "Added by hand"), lg("out_for_delivery", hm(0, 7, 45), "Warehouse", "Typed by hand")] }, [[h1, 4, 0]]);
+  /* 0.9.0: a restock box that arrived this morning and is not received. The two
+     gateways cost over the QR threshold, so Receive asks for their serials or
+     MACs (PLAN 20.1 item 8); the keystones are counted. */
+  O("7740", { vendor: "Northline Supply", orderNumber: "SO 4421907", status: "ordered", orderedAt: t(4), orderedBy: "warehouse@example.com", orderedByName: "Warehouse", createdAt: t(4) });
+  const r1 = OL("7740", "ubiquiti-udm-se", 2, { x: { qtyShipped: 2, status: "delivered", unitCost: 489 } });
+  const r2 = OL("7740", "leviton-61110-be6", 50, { x: { qtyShipped: 50, status: "delivered", unitCost: 2.95 } });
+  SH("dship7740", "7740", "UPS", "1Z999AA10123457740", { status: "delivered", shippedAt: t(3), expectedAt: at(0), deliveredAt: hm(0, 9, 10), shipTo: "office",
+    statusLog: [lg("shipped", hm(3, 15, 0), "Warehouse", "Added by hand"), lg("delivered", hm(0, 9, 10), "Warehouse", "Typed by hand")] }, [[r1, 2, 0], [r2, 50, 0]]);
   S.orders.forEach(o => o.summary = orderSummaryOf(orderLines(o.id)));
   S.tickets.forEach(tk => { tk.summary = summarize(ticketLines(tk.id), tk); });
   /* the order trail */
@@ -3474,11 +3571,12 @@ function loadDemoOrders(t) {
    ["edit", 5, { orderId: "7733", note: "PO 7733 marked ordered with Keystone Distribution, vendor order KD-20931" }],
    ["edit", 0, { orderId: "7735", note: "Draft PO 7735 started: CAT5E Riser, 24/4, Gray x1,000 ft, HDMI patch x6" }],
    ["edit", 5, { orderId: "7736", ticketId: "1050", note: "PO 7736 marked ordered with Northline Supply, vendor order SO 4420114, ships to the job site at 210 Main St, Suite 4" }],
-   ["stage", 3, { orderId: "7736", shipmentId: "dship7736b", ticketId: "1050", ticketLineId: line("1050", "connector-xlr-female-3").id, productId: "connector-xlr-female-3", qty: 2, note: "Delivered to the job site at 210 Main St, Suite 4 on PO 7736, USPS 9400111899223344559911. Staged on the job, not counted into stock" }],
+   ["stage", 3, { orderId: "7736", shipmentId: "dship7736b", ticketId: "1050", ticketLineId: line("1050", "connector-xlr-female-3").id, productId: "connector-xlr-female-3", qty: 2, note: "Arrived at the job site at 210 Main St, Suite 4 on PO 7736, USPS 9400111899223344559911. Staged on the job, not counted into stock" }],
    ["edit", 7, { orderId: "7737", ticketId: "1053", note: "PO 7737 marked ordered with Keystone Distribution, vendor order KD-21007, ships to the job site at 9 Ridge Ave" }],
    ["edit", 0, { orderId: "7739", ticketId: "1056", note: "Draft PO 7739 started: Ubiquiti U6-Pro x2" }],
    ["edit", 0, { orderId: "draft-k7q2m9", orderNumber: null, note: "Started a draft with no number yet: Power cable, Edison-M to C13-F, Black, 6 ft x6" }],
-   ["edit", 3, { orderId: "7738", note: "PO 7738 marked ordered with Harbor AV Supply, vendor order HAV-5531, ships to the office" }]].forEach(([type, d, f], i) => {
+   ["edit", 3, { orderId: "7738", note: "PO 7738 marked ordered with Harbor AV Supply, vendor order HAV-5531, ships to the office" }],
+   ["edit", 4, { orderId: "7740", note: "PO 7740 marked ordered with Northline Supply, vendor order SO 4421907, ships to the office" }]].forEach(([type, d, f], i) => {
     const pr = f.productId ? S.products.get(f.productId) : null, tk = f.ticketId ? S.tickets.get(f.ticketId) : null;
     S.movements.push(Object.assign({ id: "do" + i, type, productName: pr ? pr.name : null, by: "warehouse@example.com", byName: "Warehouse", at: new Date(Date.now() - d * day + i * 60000), orderNumber: f.orderId,
       toLocationName: f.toLocationId ? locName(f.toLocationId) : null, unit: pr ? pr.unit : null, ticketNumber: f.ticketId || null, jobName: tk ? tk.jobName : null }, f));
@@ -3754,7 +3852,7 @@ function render(force) {
   let s0 = null, s1 = null; try { if (fid) { s0 = ae.selectionStart; s1 = ae.selectionEnd; } } catch (e) {}
   /* 0.8.0: five places in the nav and the tab bar (Home, Jobs, Scan, Shelf,
      Office); every other screen lights the one it belongs to */
-  const navView = { ticket: "tickets", pull: "home", pickup: "home", deliver: "home", audit: "home", items: "stock", orders: "office", order: "office", tracking: "office", week: "office" }[S.view] || S.view;
+  const navView = { ticket: "tickets", pull: "home", pickup: "home", deliver: "home", receive: "home", audit: "home", items: "stock", orders: "office", order: "office", tracking: "office", week: "office" }[S.view] || S.view;
   const mark = (b, on) => { b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); };
   $$(".nav [data-go], .tabbar [data-go]").forEach(b => mark(b, b.dataset.go === navView));
   $$(".view").forEach(v => v.hidden = v.id !== "v-" + S.view);
@@ -3763,6 +3861,7 @@ function render(force) {
   if (S.view === "home") renderHome();
   else if (S.view === "pull") renderPull();
   else if (S.view === "pickup" || S.view === "deliver") renderFlow(S.view);
+  else if (S.view === "receive") renderReceive();
   else if (S.view === "audit") renderAudit();
   else if (S.view === "office") renderOffice(force);
   else if (S.view === "tickets") renderTickets();
@@ -3782,6 +3881,7 @@ function go(view, sub) {
   if (S.view === "scan" && view !== "scan") stopCamera();
   if (view === "office") S.officeSec = sub || null;
   if (view === "pickup" || view === "deliver") { S.flowJob = sub || null; if (!sub) S.flow = null; }
+  if (view === "pull") S.pullJob = sub || null;
   if (view === "audit") { S.auditLoc = sub || null; if (!sub) S.aud = null; }
   if (S.x && (xView(S.x.kind) !== view || sub)) S.x = null;
   S.view = view;
@@ -3895,8 +3995,8 @@ function renderTickets() {
     '<div><label class="lab" for="tfClient">Client</label><select class="fld" id="tfClient" data-tf="client"><option value="">Every client</option>' +
       Array.from(clients.entries()).sort((a, b) => a[1].localeCompare(b[1])).map(([id, n]) => '<option value="' + esc(id) + '"' + (f.client === id ? " selected" : "") + ">" + esc(n) + "</option>").join("") + "</select></div>" +
     '<div><label class="lab" for="tfInstall" title="The install date set on the job header, the import sheet, or the Week view">' + '<abbr>Install date</abbr></label><select class="fld" id="tfInstall" data-tf="install">' + [["", "Any date"], ["week", "This week"], ["next", "Next week"], ["past", "Past and not delivered"], ["none", "No date yet"]].map(([k, l]) => '<option value="' + k + '"' + (f.install === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" +
-    '<label class="chk" title="Tickets with at least one Short line: the shelves cannot cover it and no PO carries it yet"><input type="checkbox" id="tfOrder" data-tf="toOrder"' + (f.toOrder ? " checked" : "") + "> Has items to order</label>" +
-    '<label class="chk" title="Tickets with a line on a purchase order the vendor has backordered"><input type="checkbox" id="tfBack" data-tf="backorders"' + (f.backorders ? " checked" : "") + "> Has backorders</label></div>";
+    '<label class="chk" title="Jobs with at least one Short line: the shelves cannot cover it and no PO carries it yet"><input type="checkbox" id="tfOrder" data-tf="toOrder"' + (f.toOrder ? " checked" : "") + "> Has items to order</label>" +
+    '<label class="chk" title="Jobs with a line on a purchase order the vendor has backordered"><input type="checkbox" id="tfBack" data-tf="backorders"' + (f.backorders ? " checked" : "") + "> Has backorders</label></div>";
   if (S.errors.tickets) h += errorBox("tickets", "tickets");
   else if (!S.loaded.tickets) h += skelTable(ticketCols().filter(c => c.def !== false), "Loading jobs");
   else if (!all.length) h += '<div class="empty"><p>No jobs yet. Import a Portal CSV or build one by hand.</p>' + (isWriter() ? '<button type="button" class="btn acc" data-act="newTicket">New job</button>' : "") + "</div>";
@@ -4024,7 +4124,7 @@ function renderTicket() {
   }
   h += "</div>";
   const tl = ticketTimeline(t);
-  h += '<div class="two"><div class="mcard"><h4>Timeline</h4>' + (tl.length ? timelineHTML(tl.slice(0, 40)) + (tl.length > 40 ? '<p class="hint">Showing the latest 40 of ' + tl.length + ". More, Movements holds the rest.</p>" : "") : '<p class="hint">Nothing has moved yet.</p>') + "</div>" +
+  h += '<div class="two"><div class="mcard"><h4>Timeline</h4>' + (tl.length ? timelineHTML(tl.slice(0, 40)) + (tl.length > 40 ? '<p class="hint">Showing the latest 40 of ' + tl.length + ". Office, Movements holds the rest.</p>" : "") : '<p class="hint">Nothing has moved yet.</p>') + "</div>" +
     '<div class="mcard"><div class="thead"><h4>Portal note</h4><span class="sp"><button type="button" class="btn sm acc" data-act="tkCopy">Copy</button></span></div><pre class="note">' + esc(portalBlock(t)) + '</pre><p class="hint">Paste into the proposal\'s internal notes. The order lines read from the purchase orders. Loadout writes it there itself once the Portal API is on.</p></div></div>';
   el.innerHTML = h;
   /* the Week view's line buttons land here with the line in view */
@@ -4070,11 +4170,13 @@ function openPull(t, l, preset = {}) {
   const picked = new Set(preset.itemIds || []);
   const err = m => { const e = $("#plErr", w); e.textContent = m; e.hidden = !m; };
   const src = () => ft ? null : srcs.find(e => e.locationId === $("#plFrom", w).value);
+  /* 0.9.0: the Pull screen hands over its share for that shelf or box (preset.qty) */
+  const pq = (match, cap) => preset.qty && match ? Math.min(preset.qty, cap) : cap;
   const paintUnits = (resetQty) => {
-    if (ft) { const c = S.containers.get($("#plBox", w).value); if (c && resetQty) $("#plQty", w).value = Math.min(left, num(c.ftLeft)); return; }
+    if (ft) { const c = S.containers.get($("#plBox", w).value); if (c && resetQty) $("#plQty", w).value = pq(c.id === preset.box, Math.min(left, num(c.ftLeft))); return; }
     const e = src(), box = $("#plUnits", w);
     if (!e) { box.innerHTML = ""; return; }
-    if (resetQty) $("#plQty", w).value = Math.min(left, e.qty);
+    if (resetQty) $("#plQty", w).value = pq(e.locationId === preset.from, Math.min(left, e.qty));
     const q = Math.floor(num($("#plQty", w).value));
     if (!e.items.length) { box.innerHTML = ""; return; }
     if (resetQty && !Array.from(picked).some(id => e.items.some(i => i.id === id))) e.items.slice(0, Math.max(0, q - e.counted)).forEach(i => picked.add(i.id));
@@ -4201,8 +4303,16 @@ function openPullAll(t) {
   });
 }
 function openClose(t) {
-  const lo = closeLeftovers(t), inst = installsFor(t);
-  const body = '<p class="hint" style="margin-top:0">Closing ends the job. It drops off the board, and its lines stay as they are for the record.</p>' +
+  const lo = closeLeftovers(t), van = ticketLines(t.id).filter(l => lineInVan(l) > 0), A = isAdmin();
+  const vanIds = new Set(van.flatMap(l => vanUnits(t, l).map(i => i.id))), inst = installsFor(t).filter(i => !vanIds.has(i.id));
+  /* 0.9.0 (PLAN 20.2): what is still in a van sits beside what is left in the bay. The job closes once
+     each van line is delivered or brought back; only the admin may write it off here instead. */
+  const vanHTML = !van.length ? "" : '<div class="sect"><h4 class="h4">Still in a van</h4><ul class="vanlist">' + van.map(l => "<li><span>" + esc(lineName(l)) + ' <span class="z">with ' + esc(l.pickedUpByName || "whoever picked it up") + "</span></span><b>" + esc(lqty(l, lineInVan(l))) + "</b></li>").join("") + "</ul>" +
+    (A ? '<div role="radiogroup" aria-label="What happens to what is in the van"><label class="radio"><input type="radio" name="clVan" value="wait" checked><span><b>Not yet</b><br><span class="z">Deliver it or bring it back first, then close the job.</span></span></label>' +
+      '<label class="radio"><input type="radio" name="clVan" value="writeoff"><span><b>Write off</b><br><span class="z">Takes it off the books with a reason, for example lost from the van.</span></span></label></div>' +
+      '<div id="clVanWo" hidden><label class="lab" for="clVanWhy">Reason <span class="req">required</span></label><input class="fld" id="clVanWhy" placeholder="Lost, stolen, used up"></div>'
+      : '<p class="err">This job cannot close while product is in a van. Confirm the delivery or bring it back to the shop first.</p>') + "</div>";
+  const body = '<p class="hint" style="margin-top:0">Closing ends the job. It drops off the board, and its lines stay as they are for the record.</p>' + vanHTML +
     '<div class="sect"><h4 class="h4">Left in ' + esc(tkBay(t) || "the bay") + "</h4>" + (lo.length ? '<ul class="onhand">' + lo.map(x => "<li><span>" + esc(productName(x.p)) + (x.items.length ? ' <span class="z mono">' + esc(x.items.map(itemLabel).join(", ")) + "</span>" : "") + "</span><b>" + fmtN(x.counted + x.items.length) + "</b></li>").join("") + "</ul>" +
       '<div role="radiogroup" aria-label="What happens to the leftovers"><label class="radio"><input type="radio" name="clMode" value="return" checked><span><b>Back to stock</b><br><span class="z">Moves it back to a shelf, logged as a move.</span></span></label>' +
       '<label class="radio"><input type="radio" name="clMode" value="writeoff"><span><b>Write off</b><br><span class="z">Takes it out of on hand with a reason, for example damaged on site.</span></span></label></div>' +
@@ -4211,16 +4321,24 @@ function openClose(t) {
       : '<p class="hint" style="margin-top:0">Nothing is left in the bay.</p>') + "</div>" +
     '<div class="sect"><h4 class="h4">Marked installed at ' + esc(t.jobName || "the job") + "</h4>" + (inst.length ? '<ul class="onhand">' + inst.map(i => "<li><span>" + esc(i.productName || "") + ' <span class="z mono">' + esc(itemLabel(i)) + "</span></span><span>" + esc(i.holderName || "") + "</span></li>").join("") + "</ul>" : '<p class="hint" style="margin-top:0">No serialized units are out on this job.</p>') + "</div>" +
     '<label class="lab" for="clNote">Note</label><input class="fld" id="clNote" placeholder="Optional"><p class="err" id="clErr" hidden></p>';
-  const w = openModal("Close job #" + t.number, body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Close job</button>', { wide: true });
+  const blocked = van.length && !A;
+  const w = openModal("Close job #" + t.number, body, '<button type="button" class="btn" data-close>Cancel</button>' + (blocked ? '<span title="Product is still in a van"><button type="button" class="btn acc" disabled aria-describedby="clBlk">Close job</button><span class="sr" id="clBlk">Product is still in a van. Deliver it or bring it back first.</span></span>' : '<button type="button" class="btn acc" data-ok>Close job</button>'), { wide: true });
   wireGlow(w);
-  w.addEventListener("change", e => { if (e.target.name === "clMode") { $("#clRet", w).hidden = e.target.value !== "return"; $("#clWo", w).hidden = e.target.value !== "writeoff"; } });
-  w.querySelector("[data-ok]").addEventListener("click", async () => {
+  w.addEventListener("change", e => {
+    if (e.target.name === "clMode") { $("#clRet", w).hidden = e.target.value !== "return"; $("#clWo", w).hidden = e.target.value !== "writeoff"; }
+    if (e.target.name === "clVan") $("#clVanWo", w).hidden = e.target.value !== "writeoff";
+  });
+  const ok = w.querySelector("[data-ok]"); if (!ok) return;
+  ok.addEventListener("click", async () => {
     const mode = lo.length ? (w.querySelector("input[name=clMode]:checked") || {}).value : "return", err = $("#clErr", w);
     const locId = lo.length && mode === "return" ? $("#clLoc", w).value : null, reason = lo.length && mode === "writeoff" ? $("#clWhy", w).value.trim() : "";
+    const vanMode = van.length ? (w.querySelector("input[name=clVan]:checked") || {}).value : null, vanReason = vanMode === "writeoff" ? $("#clVanWhy", w).value.trim() : "";
+    if (van.length && vanMode !== "writeoff") { err.textContent = "Product is still in a van. Deliver it or bring it back first, or choose Write off."; err.hidden = false; return; }
+    if (van.length && !vanReason) { err.textContent = "Give a reason for writing off what is in the van."; err.hidden = false; return; }
     if (lo.length && mode === "return" && !locId) { err.textContent = "Pick where the leftovers go back."; err.hidden = false; return; }
     if (lo.length && mode === "writeoff" && !reason) { err.textContent = "Give a reason for the write-off."; err.hidden = false; return; }
     closeModal(w);
-    if (await doClose(t, { mode, locId, reason, note: $("#clNote", w).value.trim() || null })) toast("Job #" + t.number + " closed");
+    if (await doClose(t, { mode, locId, reason, vanReason: van.length ? vanReason : null, note: $("#clNote", w).value.trim() || null })) toast("Job #" + t.number + " closed");
   });
 }
 function printTicket(t) {
@@ -4230,8 +4348,10 @@ function printTicket(t) {
   const rows = areas.map(a => '<tr class="ga"><td colspan="6">' + esc(a) + "</td></tr>" + lines.filter(l => (l.area || "No area") === a).map(l =>
     '<tr><td><span class="box"></span></td><td><b>' + esc(lineName(l)) + "</b>" + (l.description ? "<br>" + esc(l.description) : "") + (l.notes ? "<br><i>" + esc(l.notes) + "</i>" : "") + '</td><td class="r">' + esc(lqty(l, l.qtyNeeded)) + '</td><td class="r">' + esc(lqty(l, l.qtyStaged)) + '</td><td class="r">' + esc(lqty(l, lineLeft(l))) + "</td><td>" + esc(from(l)) + "</td></tr>").join("")).join("");
   $("#printSheet").innerHTML = '<div class="pvbar"><button type="button" class="btn acc" id="pvPrint">Print</button><button type="button" class="btn" id="pvClose">Close preview</button><span>Pull sheet for job #' + esc(t.number) + ", letter paper.</span></div>" +
-    '<div class="picksheet"><h1>Pull sheet, job #' + esc(t.number) + "</h1>" +
-    '<div class="pmeta"><span><b>Client:</b> ' + esc(t.clientName || "") + "</span><span><b>Job:</b> " + esc(t.jobName || "") + "</span><span><b>Bay:</b> " + esc(tkBay(t) || "none yet") + "</span><span><b>Status:</b> " + esc(TK_LABEL[tkStatus(t)]) + "</span><span><b>Printed:</b> " + esc(fmtWhen(new Date())) + " by " + esc(S.user.name) + "</span></div>" +
+    /* 0.9.0 (PLAN 20.2): the QR top right opens this job's Pull screen from the clipboard */
+    '<div class="picksheet"><div class="phead"><div><h1>Pull sheet, job #' + esc(t.number) + "</h1>" +
+    '<div class="pmeta"><span><b>Client:</b> ' + esc(t.clientName || "") + "</span><span><b>Job:</b> " + esc(t.jobName || "") + "</span><span><b>Bay:</b> " + esc(tkBay(t) || "none yet") + "</span><span><b>Status:</b> " + esc(TK_LABEL[tkStatus(t)]) + "</span><span><b>Printed:</b> " + esc(fmtWhen(new Date())) + " by " + esc(S.user.name) + "</span></div></div>" +
+    '<div class="pqr" data-qr="' + esc(PAYLOAD.job(t.id)) + '">' + qrSvg(PAYLOAD.job(t.id)) + "<div>Scan to open this job</div></div></div>" +
     (lines.length ? '<table><thead><tr><th style="width:22px"></th><th>Product</th><th class="r">Needed</th><th class="r">Staged</th><th class="r">To pull</th><th>Pull from</th></tr></thead><tbody>' + rows + "</tbody></table>" : "<p>This job has no lines.</p>") +
     '<div class="sign"><span>Pulled by ______________________</span><span>Date __________</span><span>Checked by ______________________</span></div></div>';
   $("#printSheet").setAttribute("aria-hidden", "false");
@@ -4334,7 +4454,7 @@ function openNewTicket(opts = {}) {
     client: addTo ? addTo.clientId : "", newClient: "", job: addTo ? addTo.jobId : "", newJob: "", newAddr: "", proposal: "", proposalTouched: false, bay: "" };
   const prodList = '<datalist id="ntProducts">' + Array.from(S.products.values()).map(p => '<option value="' + esc(productName(p)) + '">').sort().join("") + "</datalist>";
   /* finding 30: plain buttons with aria-pressed, not a tab pattern without its keys */
-  const body = '<div class="seg" role="group" aria-label="How to build the ticket"><button type="button" data-nt="csv">Import a Portal CSV</button><button type="button" data-nt="hand">Build by hand</button></div>' +
+  const body = '<div class="seg" role="group" aria-label="How to build the job"><button type="button" data-nt="csv">Import a Portal CSV</button><button type="button" data-nt="hand">Build by hand</button></div>' +
     '<div id="ntCsv"><div class="step"><b>1</b>The proposal CSV</div>' +
       /* finding 5: a visible button opens the picker; the input itself is out of the tab order */
       '<div class="drop" id="ntDrop"><button type="button" class="btn acc" id="ntPick">Choose a CSV file</button><p>or drop it here. In Portal: open the accepted proposal and download the CSV.</p></div><input type="file" id="ntFile" accept=".csv,.txt,text/csv" class="filehide" tabindex="-1" aria-hidden="true">' +
@@ -4387,7 +4507,7 @@ function openNewTicket(opts = {}) {
     const ex = existing(), el = $("#ntTk", w), step = I.tab === "csv" ? 4 : 2;
     const clients = Array.from(S.clients.values()).filter(c => !c.archived).sort((a, b) => a.name.localeCompare(b.name));
     const jobs = Array.from(S.jobs.values()).filter(j => j.clientId === I.client && j.status !== "closed").sort((a, b) => a.name.localeCompare(b.name));
-    let h = '<div class="step"><b>' + step + "</b>Ticket</div>";
+    let h = '<div class="step"><b>' + step + "</b>Job</div>";
     if (ex) {
       const have = S.lines.get(ex.id) || new Map(), ls = Array.from(curLines().values());
       const nNew = ls.filter(l => !have.has(l.id)).length, nChg = ls.filter(l => have.has(l.id) && num(have.get(l.id).qtyNeeded) !== num(l.qtyNeeded)).length;
@@ -4691,7 +4811,10 @@ function boardTickets() {
 function paintBoardLive() {
   const el = $("#bdLive"); if (!el) return;
   const lost = S.liveLostAt || (!navigator.onLine ? new Date() : null);
-  el.hidden = !lost;
+  /* the phone layout says it in its sticky header instead of the red strip */
+  const ph = $("#bdpLive"), phone = $("#board").dataset.layout === "phone";
+  if (ph) { ph.textContent = lost ? "Not live since " + fmtTime(lost) : "Live"; ph.classList.toggle("off", !!lost); }
+  el.hidden = !lost || phone;
   if (lost) el.textContent = "Not live since " + fmtTime(lost) + ". Showing the last data.";
 }
 /* 0.5.2: the board reads lines with the same words and the same "to order"
@@ -4728,12 +4851,15 @@ function boardRows(t) {
   rows.forEach(r => { r.group = byArea ? (r.l.area || "No area") : r.shelf; });
   return rows;
 }
+/* the pick path: shelf names in walking order (A to Z, numbers as numbers),
+   the groups that are not a shelf last. The board and the Pull screen share it. */
+const PICK_LAST = new Set(["To order", "On order", "Not on a shelf", "Staged", "No location yet"]);
+const pickOrder = (a, b) => (PICK_LAST.has(a) - PICK_LAST.has(b)) || a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
 function boardListHTML(t) {
   const rows = boardRows(t), show = S.board.showStaged !== false, byArea = S.board.groupBy === "area";
   const groups = new Map(); rows.forEach(r => { if (!groups.has(r.group)) groups.set(r.group, []); groups.get(r.group).push(r); });
-  const last = k => k === "To order" || k === "On order" || k === "Not on a shelf" || k === "Staged";
   const keys = Array.from(groups.keys());
-  if (!byArea) keys.sort((a, b) => (last(a) - last(b)) || a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+  if (!byArea) keys.sort(pickOrder);
   const lab = { pull: "Pull", order: "On order", short: "Short" }, cls = { pull: "", picked: "picked", order: "amber", short: "red" };
   const q = r => fmtN(r.qty) + (r.ft ? "<small> ft</small>" : "");
   return keys.map(k => {
@@ -4753,14 +4879,14 @@ function boardListHTML(t) {
    A card's lines never overflow: the last ones fold into "+N more lines". */
 const BD_PER = 6;
 function boardPages(list) { const out = []; for (let i = 0; i < list.length; i += BD_PER) out.push(list.slice(i, i + BD_PER)); return out; }
-function boardCardHTML(t) {
+function boardCardHTML(t, extra) {
   const s = tkSummary(t), n = s.lines || 0, w = x => (n ? x / n * 100 : 0).toFixed(1) + "%";
   return '<section class="bdc" aria-label="Job ' + esc(t.number) + '"><div class="bdc-band" aria-hidden="true"></div><div class="bdc-in">' +
     '<div class="bdc-head"><div class="bdc-client">' + esc(t.clientName || "No client") + '</div><div class="bdc-bay">' + esc(tkBay(t) || "No bay") + "</div></div>" +
     '<div class="bdc-sub">' + esc(t.jobName || "") + ' <span class="mono">#' + esc(t.number) + "</span></div>" +
     '<div class="bdc-bar" aria-hidden="true"><i class="bd" style="width:' + w(s.delivered || 0) + '"></i><i class="bv" style="width:' + w(s.pickedUp || 0) + '"></i><i class="bs" style="width:' + w(s.inBay || 0) + '"></i></div>' +
-    '<div class="bdc-strip">Pulled <b>' + (s.pulled || 0) + " of " + n + "</b>, Staged " + (s.inBay || 0) + ", Picked up " + (s.pickedUp || 0) + ", Delivered " + (s.delivered || 0) + "</div>" +
-    '<div class="bdc-list">' + (S.linesLoaded.has(t.id) ? boardListHTML(t) || '<div class="bd-line picked"><span class="bd-st">Done</span><span class="bd-name">Every line is pulled</span><span></span></div>' : '<div class="bd-line"><span class="bd-name">Loading lines</span></div>') + "</div></div></section>";
+    '<div class="bdc-strip">' + esc(progressText(s)) + "</div>" +
+    '<div class="bdc-list">' + (S.linesLoaded.has(t.id) ? boardListHTML(t) || '<div class="bd-line picked"><span class="bd-st">Done</span><span class="bd-name">Every line is pulled</span><span></span></div>' : '<div class="bd-line"><span class="bd-name">Loading lines</span></div>') + "</div>" + (extra || "") + "</div></section>";
 }
 /* fold the lines that do not fit into "+N more lines", so nothing is cut mid-line */
 function boardFit() {
@@ -4776,11 +4902,34 @@ function boardFit() {
     }
   });
 }
+/* 0.9.0 (PLAN 20.3): the board on a phone. Under 760 px wide, or a coarse
+   pointer held upright, the TV grid gives way to one column of job cards
+   that scrolls like a page: every line of every job, phone type sizes, no
+   paging, rotation bar, dots, or burn-in shift. &layout=tv|phone forces one
+   for checking. */
+const BOARD_LAYOUT = ["tv", "phone"].includes(QUERY.get("layout")) ? QUERY.get("layout") : null;
+const MQ_NARROW = matchMedia("(max-width:759.98px)"), MQ_UPRIGHT = matchMedia("(pointer:coarse) and (orientation:portrait)");
+function boardPhone() { return BOARD_LAYOUT ? BOARD_LAYOUT === "phone" : MQ_NARROW.matches || MQ_UPRIGHT.matches; }
+const BOARD_MODE_LABEL = { pinned: "Pinned jobs", all_open: "All open jobs", today: "Today's installs" };
+/* a signed-in person (not the board account) gets one way into the app per card */
+function boardOpenHref(t) {
+  const q = new URLSearchParams(location.search); ["board", "layout", "mode"].forEach(k => q.delete(k));
+  return location.pathname + (q.toString() ? "?" + q : "") + "#" + (isWriter() ? "pull" : "job") + "/" + encodeURIComponent(t.id);
+}
+function boardPhoneHTML(list) {
+  const link = S.role !== "board";
+  const head = '<header class="bdp-head"><b>Board</b><span>' + esc(BOARD_MODE_LABEL[boardMode()] || "") + '</span><span class="bdp-live" id="bdpLive"></span></header>';
+  if (!list.length) return head + '<div class="bdp-empty"><p>' + (boardMode() === "today" ? "Nothing installs today." : "No jobs on the board.") + "</p></div>";
+  return head + '<div class="bdp-list">' + list.map(t => boardCardHTML(t, link ? '<a class="bdp-open" href="' + esc(boardOpenHref(t)) + '">Open in Loadout</a>' : "")).join("") + "</div>";
+}
 function renderBoard() {
   const root = $("#board"); if (!root || root.hidden) return;
   root.dataset.theme = S.board.theme === "light" ? "light" : "dark";
+  const phone = boardPhone();
+  root.dataset.layout = phone ? "phone" : "tv";
   paintBoardLive();
   const list = boardTickets(), main = $("#bdMain"), rot = $("#bdRot");
+  if (phone) { BD.flipAt = 0; rot.hidden = true; main.innerHTML = boardPhoneHTML(list); paintBoardLive(); return; }
   if (!list.length) {
     BD.tid = null; rot.hidden = true;
     const mode = boardMode(), pinnedMode = mode === "pinned", anyOpen = openTickets().length > 0;
@@ -4821,6 +4970,7 @@ function boardShift() {
 function boardTick() {
   const c = $("#bdClock"); if (c) c.textContent = fmtTime(new Date());
   paintBoardLive();
+  if (boardPhone()) return;
   const n = boardPages(boardTickets()).length;
   if (n > 1 && Date.now() >= BD.flipAt) { BD.idx = (BD.idx + 1) % n; restartRot(n); boardShift(); renderBoard(); }
   else if (n <= 1 && BD.flipAt) BD.flipAt = 0;
@@ -4852,11 +5002,21 @@ const DOORS = {
   audit: { label: "Audit a shelf", when: "When a shelf looks off, or it is due for a check.", why: "a check every " + AUDIT_OLD_DAYS + " days", icon: ICON('<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 12.5l2.5 2.5 4.5-5"/>') },
   pull: { label: "Pull for a job", when: "When a job is waiting for its product.", why: "shelf to bay", icon: ICON('<path d="M4 10h16v10H4zM12 3v10M8.5 6.5 12 3l3.5 3.5"/>') },
   pickup: { label: "Pick up from staging", when: "Take a job's staged product into your van; it is yours until it is delivered.", why: "bay to your van", icon: ICON('<path d="M3 9h10v10H3z"/><path d="M13 14h8M18 11l3 3-3 3"/>') },
-  deliver: { label: "Confirm a delivery", when: "When the product is on site with the client.", why: "van or bay to the client", icon: ICON('<path d="M2 6h11v10H2zM13 9h4l3 3.5V16h-7"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>') }
+  deliver: { label: "Confirm a delivery", when: "When the product is on site with the client.", why: "van or bay to the client", icon: ICON('<path d="M2 6h11v10H2zM13 9h4l3 3.5V16h-7"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>') },
+  /* 0.9.0 (PLAN 20.2): a box with the arrow going in */
+  receive: { label: "Receive a shipment", when: "When a carrier drops a box at the shop.", why: "box to bay or shelf", icon: ICON('<path d="M4 10h16v10H4z"/><path d="M12 2v10M8.5 8.5 12 12l3.5-3.5"/>') }
 };
 /* 0.8.2 (PLAN 19 item 1): the list behind each door. The door count and the
-   door's screen both read these, so the number on Home is the list you get */
-const pullJobs = () => liveJobs().filter(t => ticketLines(t.id).some(l => lineLeft(l) > 0));
+   door's screen both read these, so the number on Home is the list you get.
+   0.9.0 (PLAN 20.2): Pull splits in two. now = jobs with a line a shelf can
+   cover today; waiting = the rest of the jobs with lines left, which only
+   an order (or a Stage) can cover. */
+const shelfCovers = l => { const p = lineProduct(l); return lineLeft(l) > 0 && !!p && availableFor(p) > 0; };
+function pullJobs() {
+  const now = [], waiting = [];
+  liveJobs().forEach(t => { const ls = ticketLines(t.id); if (ls.some(shelfCovers)) now.push(t); else if (ls.some(l => lineLeft(l) > 0)) waiting.push(t); });
+  return { now, waiting };
+}
 const pickupJobs = () => liveJobs().filter(t => ticketLines(t.id).some(l => lineInBay(l) > 0));
 function deliverJobs() {
   const van = liveJobs().filter(t => ticketLines(t.id).some(l => lineInVan(l) > 0));
@@ -4876,7 +5036,20 @@ function doorCount(k) {
   if (S.errors.tickets) return { h: "Could not load jobs", q: 1, nw: 1 };
   if (!S.loaded.tickets) return { h: "Loading jobs", q: 1, nw: 1 };
   if (k === "pickup") { const n = pickupJobs().length; return n ? { h: n1(n, "job waiting", "jobs waiting") } : { h: "Nothing staged", q: 1 }; }
-  if (k === "pull") { const n = pullJobs().length; return n ? { h: n1(n, "job to pull", "jobs to pull") } : { h: "Nothing to pull", q: 1 }; }
+  if (k === "pull") {
+    const pj = pullJobs(), parts = [];
+    if (pj.now.length) parts.push(n1(pj.now.length, "job to pull", "jobs to pull"));
+    if (pj.waiting.length) parts.push(n1(pj.waiting.length, "waiting on orders", "waiting on orders"));
+    return parts.length ? { h: parts.join(", ") } : { h: "Nothing to pull", q: 1 };
+  }
+  if (k === "receive") {
+    if (S.errors.shipments || S.errors.orders) return { h: "Could not load shipments", q: 1, nw: 1 };
+    if (!S.loaded.shipments || !S.loaded.orders) return { h: "Loading shipments", q: 1, nw: 1 };
+    const r = receivePkgs(), parts = [];
+    if (r.arrived.length) parts.push(n1(r.arrived.length, "arrived", "arrived"));
+    if (r.coming.length) parts.push("<b>" + fmtN(r.coming.length) + "</b> on the way");
+    return parts.length ? { h: parts.join(", ") } : { h: "Nothing on the way", q: 1 };
+  }
   const d = deliverJobs(), parts = [];
   if (d.van.length) parts.push(n1(d.van.length, "in a van", "in vans"));
   if (d.bay.length) parts.push(n1(d.bay.length, "in the bay", "in the bay"));
@@ -4899,11 +5072,25 @@ addEventListener("resize", () => { if (S.view === "home" && !BOARD) fitDoors(); 
 const bandHTML = k => '<div class="band ' + k + '" aria-hidden="true"></div>';
 const jobHref = (t, v) => "#" + (v || "job") + "/" + encodeURIComponent(t.id);
 
-/* the strip: Pulled 3 of 8, Staged 1, Picked up 1, Delivered 1 (PLAN 18.2, 18.7) */
+/* the progress line (0.9.0, PLAN 20.2): the one builder for job cards, the
+   focused screens, the job page, and the board. Only steps above zero are
+   named, furthest along first: "Pulled 2 of 9, Staged 2", "Pulled 3 of 3,
+   Picked up 2, Staged 1". A job delivered in full reads "Delivered 2 of 2". */
+function progressText(s) {
+  const n = s.lines || 0;
+  if (!n) return "No lines yet";
+  if ((s.delivered || 0) >= n) return "Delivered " + n + " of " + n;
+  const out = ["Pulled " + (s.pulled || 0) + " of " + n];
+  if (s.delivered) out.push("Delivered " + s.delivered);
+  if (s.pickedUp) out.push("Picked up " + s.pickedUp);
+  if (s.inBay) out.push("Staged " + s.inBay);
+  return out.join(", ");
+}
+/* the strip: the bar keeps its four segments (delivered, in a van, in the bay, still to go) */
 function jobStripHTML(s, big) {
   const n = s.lines || 0, w = x => (n ? x / n * 100 : 0).toFixed(1) + "%";
   return '<div class="jstrip' + (big ? " big" : "") + '"><div class="jbar" aria-hidden="true"><i class="bd" style="width:' + w(s.delivered || 0) + '"></i><i class="bv" style="width:' + w(s.pickedUp || 0) + '"></i><i class="bs" style="width:' + w(s.inBay || 0) + '"></i></div>' +
-    "<p>Pulled " + (s.pulled || 0) + " of " + n + ", Staged " + (s.inBay || 0) + ", Picked up " + (s.pickedUp || 0) + ", Delivered " + (s.delivered || 0) + "</p></div>";
+    "<p>" + esc(progressText(s)) + "</p></div>";
 }
 function jobMeta(t) { return [t.jobName, tkBay(t) || "No bay yet", t.installAt ? "Install " + fmtShort(t.installAt) : "No install date"].filter(Boolean).join(", "); }
 /* the one next step for a job card: something in a van is confirmed first,
@@ -4913,19 +5100,21 @@ function jobNext(t) {
   const lines = ticketLines(t.id);
   if (!lines.length) return { label: "Open job", href: jobHref(t) };
   if (isTech() && lines.some(l => lineInVan(l) > 0)) return { label: "Confirm delivery", href: jobHref(t, "deliver") };
-  if (isWriter() && lines.some(l => { const p = lineProduct(l); return lineLeft(l) > 0 && p && availableFor(p) > 0; })) return { label: "Keep pulling", href: jobHref(t) };
+  if (isWriter() && lines.some(shelfCovers)) return pullNext(t);
   if (isTech() && lines.some(l => lineInBay(l) > 0)) return { label: "Pick up", href: jobHref(t, "pickup") };
   if (st === "delivered" && isWriter()) return { label: "Close job", act: "jobClose", id: t.id, tip: "Asks what to do with anything left in the bay, then marks units out on this job installed" };
   return { label: isWriter() && lines.some(l => uncoveredFor(l, null, t) > 0) ? "Order what is short" : "Open job", href: jobHref(t) };
 }
+/* 0.9.0: every pull button opens the Pull screen; a job with nothing pulled yet starts */
+const pullNext = t => ({ label: ticketLines(t.id).some(l => num(l.qtyStaged) > 0) ? "Keep pulling" : "Start pulling", href: jobHref(t, "pull") });
 function nextBtnHTML(nx) {
   if (!nx) return "";
   const tip = nx.tip ? ' title="' + esc(nx.tip) + '"' : "";
   return nx.act ? '<button type="button" class="btn" data-act="' + nx.act + '" data-id="' + esc(nx.id) + '"' + tip + ">" + esc(nx.label) + "</button>" : '<a class="btn" href="' + nx.href + '"' + tip + ">" + esc(nx.label) + "</a>";
 }
-function jobCardHTML(t, nx, extra) {
+function jobCardHTML(t, nx, extra, headHref) {
   if (nx === undefined) nx = jobNext(t);
-  return '<div class="jcard"><a class="jhead" href="' + jobHref(t) + '"><span class="jt"><b>' + esc(t.clientName || "No client") + '</b><span class="jn">Job ' + esc(t.number) + '</span></span><span class="jj">' + esc(jobMeta(t)) + "</span></a>" +
+  return '<div class="jcard"><a class="jhead" href="' + (headHref || jobHref(t)) + '"><span class="jt"><b>' + esc(t.clientName || "No client") + '</b><span class="jn">Job ' + esc(t.number) + '</span></span><span class="jj">' + esc(jobMeta(t)) + "</span></a>" +
     jobStripHTML(tkSummary(t)) + (extra || "") + nextBtnHTML(nx) + "</div>";
 }
 const byInstall = (a, b) => (toDate(a.installAt) ? 0 : 1) - (toDate(b.installAt) ? 0 : 1) || (toDate(a.installAt) || 0) - (toDate(b.installAt) || 0) || String(a.number).localeCompare(String(b.number), undefined, { numeric: true });
@@ -4936,10 +5125,10 @@ function jobsStateHTML() {
   if (!S.loaded.tickets) return '<div class="empty"><p>Loading jobs</p></div>';
   return "";
 }
-function jobCardsHTML(list, empty, nxFn, extraFn) {
+function jobCardsHTML(list, empty, nxFn, extraFn, headFn) {
   const st = jobsStateHTML(); if (st) return st;
   if (!list.length) return '<div class="empty">' + empty + "</div>";
-  return '<div class="jcards">' + list.map(t => jobCardHTML(t, nxFn ? nxFn(t) : undefined, extraFn ? extraFn(t) : "")).join("") + "</div>";
+  return '<div class="jcards">' + list.map(t => jobCardHTML(t, nxFn ? nxFn(t) : undefined, extraFn ? extraFn(t) : "", headFn ? headFn(t) : null)).join("") + "</div>";
 }
 
 /* ---------------- Home ---------------- */
@@ -4948,7 +5137,8 @@ function renderHome() {
   if (S.role === "tech") { el.innerHTML = techHomeHTML(); fitDoors(); return; }
   let h = "";
   /* the doors in the order the shop uses them most, Audit last (PLAN 18.7) */
-  if (isTech()) h += '<h2 class="sr">What are you doing?</h2><div class="doors">' + ["pickup", "deliver", "pull", "audit"].filter(k => k !== "audit" || isWriter()).map(doorHTML).join("") + "</div>";
+  /* 0.9.0: Receive a shipment is fourth, above Audit, for warehouse and admin */
+  if (isTech()) h += '<h2 class="sr">What are you doing?</h2><div class="doors">' + ["pickup", "deliver", "pull", "receive", "audit"].filter(k => (k !== "audit" && k !== "receive") || isWriter()).map(doorHTML).join("") + "</div>";
   const list = liveJobs().sort(byInstall);
   h += '<div class="mcard"' + (isTech() ? ' style="margin-top:var(--s3)"' : "") + '><div class="thead"><h2 class="vt">Jobs</h2><span class="sp">' +
     (isAdmin() ? '<a class="btn sm" href="#week" title="The install schedule a week at a time. It also sits under Office, Orders and tracking.">Week</a>' : "") +
@@ -4969,8 +5159,10 @@ function techHomeHTML() {
   if (st) h += st;
   else if (!vanJobs.length && !units.length) h += '<p class="hint" style="margin-top:0">Nothing is out with you. A pick-up or a check-out puts it here until it is delivered or checked in.</p>';
   else {
-    if (vanJobs.length) h += '<h3 class="h4">In the van, by job</h3><div class="jcards">' + vanJobs.map(t => jobCardHTML(t, { label: "Confirm delivery", href: jobHref(t, "deliver") },
-      '<ul class="flowlist">' + ticketLines(t.id).filter(l => vanLine.has(l.id)).map(l => '<li class="fl"><span>' + esc(lineName(l)) + "<small>" + esc(lqty(l, lineInVan(l))) + (l.pickedUpAt ? ", picked up " + esc(fmtShort(l.pickedUpAt)) : "") + "</small></span></li>").join("") + "</ul>")).join("") + "</div>";
+    /* 0.9.0 (PLAN 20.2): Bring back sits under Confirm delivery, for a postponed job or a line not needed */
+    if (vanJobs.length) h += '<h3 class="h4">In the van, by job</h3><div class="jcards">' + vanJobs.map(t => jobCardHTML(t, null,
+      '<ul class="flowlist">' + ticketLines(t.id).filter(l => vanLine.has(l.id)).map(l => '<li class="fl"><span>' + esc(lineName(l)) + "<small>" + esc(lqty(l, lineInVan(l))) + (l.pickedUpAt ? ", picked up " + esc(fmtShort(l.pickedUpAt)) : "") + "</small></span></li>").join("") + "</ul>" +
+      '<a class="btn acc" href="' + jobHref(t, "deliver") + '">Confirm delivery</a>' + bringBackBtn(t, true))).join("") + "</div>";
     if (units.length) h += '<h3 class="h4" style="margin-top:var(--s3)">Units checked out to me</h3><div class="outme">' + units.map(i => '<div class="om"><b>' + esc(i.productName || "") + '</b> <span class="mono">' + esc(unitShort(i)) + "</span><small>" + esc(i.jobName || "No job") + (i.checkedOutAt ? ", since " + esc(fmtShort(i.checkedOutAt)) : "") + "</small></div>").join("") + "</div>";
   }
   h += "</div>";
@@ -4985,11 +5177,90 @@ function unitShort(i) {
 }
 
 /* ---------------- Pull for a job ---------------- */
+/* 0.9.0 (PLAN 20.2): the list splits into jobs the shelves can feed now and
+   jobs only waiting on orders; every card opens the focused Pull screen */
 function renderPull() {
   const el = $("#v-pull");
-  const list = pullJobs().sort(byInstall);
-  el.innerHTML = bandHTML("pull") + '<div class="mcard"><div class="thead"><h2 class="vt">Pull for a job</h2></div><p class="hint" style="margin:0 0 var(--s2)">Jobs with lines still on the shelf, soonest install first. Open one to work down its pull sheet.</p>' +
-    jobCardsHTML(list, '<p>Nothing to pull. Every open job is pulled, or waiting on an order.</p><a class="btn" href="#jobs">See all jobs</a>', t => ({ label: "Keep pulling", href: jobHref(t) })) + "</div>";
+  if (S.pullJob) { el.innerHTML = pullJobHTML(); return; }
+  const pj = pullJobs(), now = pj.now.sort(byInstall), waiting = pj.waiting.sort(byInstall), st = jobsStateHTML(), toPull = t => jobHref(t, "pull");
+  let h = bandHTML("pull") + '<div class="mcard"><div class="thead"><h2 class="vt">Pull for a job</h2></div><p class="hint" style="margin:0 0 var(--s2)">Jobs with lines on the shelf, soonest install first. Open one and pull it shelf by shelf.</p>';
+  if (st) h += st;
+  else if (!now.length && !waiting.length) h += '<div class="empty"><p>Nothing to pull. Every open job is pulled.</p><a class="btn" href="#jobs">See all jobs</a></div>';
+  else {
+    h += now.length ? jobCardsHTML(now, "", pullNext, null, toPull) : '<p class="hint" style="margin-top:0">Nothing the shelves can cover right now.</p>';
+    if (waiting.length) h += '<h3 class="h4" style="margin-top:var(--s4)">Waiting on orders</h3><p class="hint" style="margin:0 0 var(--s1)">What these jobs still need is not on a shelf. They come back up once the order is received.</p>' +
+      jobCardsHTML(waiting, "", t => ({ label: "See what is waiting", href: toPull(t) }), null, toPull);
+  }
+  el.innerHTML = h + "</div>";
+}
+/* what one job still needs from the shelves, split by where to pull it from.
+   A line split across two shelves gets a row under each with its share; the
+   share uses the same order as Pull everything in stock (the product's own
+   shelf first, then the most stock), and two lines of one product share a
+   shelf's count instead of both claiming it. */
+function pullPlan(t) {
+  const used = new Map(), groups = new Map(), waiting = [], inBay = [];
+  const add = (k, row) => { if (!groups.has(k)) groups.set(k, []); groups.get(k).push(row); };
+  ticketLines(t.id).forEach(l => {
+    let left = lineLeft(l);
+    if (left <= 0) { inBay.push(l); return; }
+    const p = lineProduct(l);
+    if (p) pullSources(p).forEach(e => {
+      if (left <= 0) return;
+      const k = p.id + "__" + e.locationId, have = e.qty - (used.get(k) || 0), q = Math.min(left, have);
+      if (q <= 0) return;
+      used.set(k, (used.get(k) || 0) + q); left -= q;
+      add(e.locationId ? locName(e.locationId) : "No location yet", { l, p, from: e.locationId, qty: q, boxes: e.boxes, ft: p.unit === "ft" });
+    });
+    if (left > 0) waiting.push({ l, p, qty: left });
+  });
+  const keys = Array.from(groups.keys()).sort(pickOrder);
+  keys.forEach(k => groups.get(k).sort((a, b) => num(a.l.sort) - num(b.l.sort)));
+  return { keys, groups, waiting, inBay };
+}
+function pullJobHTML() {
+  const t = S.tickets.get(S.pullJob), W = isWriter();
+  let h = bandHTML("pull") + '<div class="mcard"><div class="crumb"><a class="textbtn" href="#pull">Pull</a>';
+  if (S.errors.tickets) return h + "</div>" + errorBox("jobs", "tickets") + "</div>";
+  if (!S.loaded.tickets || (t && !S.linesLoaded.has(t.id))) return h + '</div><div class="empty"><p>Loading the job</p></div></div>';
+  if (!t) return h + '</div><div class="empty"><p>That job is not in Loadout. It may have been removed, or has not reached this device yet.</p><a class="btn" href="#pull">Back to the list</a></div></div>';
+  const lines = ticketLines(t.id), s = tkSummary(t), closed = tkStatus(t) === "closed";
+  h += " / Job " + esc(t.number) + '</div><h2 class="vt">' + esc(t.clientName || "No client") + '</h2><p class="hint" style="margin:2px 0 var(--s1)">' + esc(jobMeta(t)) + ' <a class="textbtn" href="' + jobHref(t) + '">Open the job</a></p>' + jobStripHTML(s, true);
+  if (closed) return h + '<div class="empty"><p>This job is closed. Nothing is pulled for it any more.</p><a class="btn" href="' + jobHref(t) + '">Open the job</a></div></div>';
+  if (!lines.length) return h + '<div class="empty"><p>This job has no lines yet. Add them on the job, or import its CSV.</p><a class="btn" href="' + jobHref(t) + '">Open the job</a></div></div>';
+  const pl = pullPlan(t), stock = shelfStock(), bay = tkBay(t) || "the bay";
+  if (!pl.keys.length) {
+    const canPick = isTech() && lines.some(l => lineInBay(l) > 0);
+    h += '<div class="donebox" role="status"><b>Everything on the shelf is pulled.</b>' + (pl.waiting.length ? "<br>" + pl.waiting.length + " line" + (pl.waiting.length > 1 ? "s wait" : " waits") + " on orders, below." : "") + "</div>" +
+      (canPick ? '<div class="flowfoot"><a class="btn acc" href="' + jobHref(t, "pickup") + '">Pick up</a></div>' : "");
+  }
+  pl.keys.forEach(k => {
+    const rows = pl.groups.get(k);
+    h += '<section class="pgrp" aria-label="Pull from ' + esc(k) + '"><div class="ph"><h3>' + esc(k) + '</h3><span class="n">' + rows.length + " line" + (rows.length > 1 ? "s" : "") + "</span></div>" + rows.map(r => {
+      const l = r.l, staged = num(l.qtyStaged), box = r.ft && r.boxes.length ? r.boxes[0] : null;
+      const sub = [lqty(l, r.qty) + " needed here" + (r.qty < lineLeft(l) ? " of " + lqty(l, lineLeft(l)) + " left" : ""), box ? "box " + r.boxes.map(c => c.label).join(", ") : "", staged ? lqty(l, staged) + " already in " + bay : ""].filter(Boolean).join(", ");
+      return '<div class="prow"><div class="pw"><b>' + esc(lineName(l)) + "</b><small>" + esc(sub) + "</small></div>" +
+        (W ? '<button type="button" class="btn acc" data-act="pfPull" data-id="' + esc(l.id) + '" data-from="' + esc(r.from || "") + '" data-qty="' + r.qty + '"' + (box ? ' data-box="' + esc(box.id) + '"' : "") + ' title="Opens the pull sheet for this shelf with the quantity filled in; scan the shelf or the unit there if you like">Pull ' + esc(lqty(l, r.qty)) + "</button>" : "") + "</div>";
+    }).join("") + "</section>";
+  });
+  if (pl.waiting.length) {
+    const short = pl.waiting.some(w => uncoveredFor(w.l, stock, t) > 0);
+    h += '<section class="pgrp quiet" aria-label="Waiting on orders"><div class="ph"><h3>Waiting on orders</h3><span class="n">' + pl.waiting.length + " line" + (pl.waiting.length > 1 ? "s" : "") + "</span>" +
+      (W && short ? '<button type="button" class="btn" data-act="pfOrder" title="Puts every line the shelves and open POs cannot cover on a draft purchase order">Order what is short</button>' : "") + "</div>" +
+      pl.waiting.map(w => {
+        const l = w.l, unc = uncoveredFor(l, stock, t), links = olinksFor(t, l);
+        const chips = links.map(x => '<span class="chip ' + olChipClass(x.o, x.ol) + '"><i></i>' + esc(olChipText(x.o, x.ol)) + "</span>").join("") + (unc > 0 ? '<span class="chip warn" title="The shelves cannot cover it and no PO carries it yet"><i></i>Not ordered yet' + (links.length ? ", " + esc(lqty(l, unc)) : "") + "</span>" : "");
+        return '<div class="prow"><div class="pw"><b>' + esc(lineName(l)) + "</b><small>" + esc(lqty(l, w.qty)) + " still needed" + (w.p ? "" : ", not in the catalog") + '</small><div class="chips">' + chips + "</div></div></div>";
+      }).join("") + "</section>";
+  }
+  if (pl.inBay.length) h += '<section class="pgrp quiet" aria-label="In the bay"><div class="ph"><h3>In the bay</h3><span class="n">' + pl.inBay.length + " line" + (pl.inBay.length > 1 ? "s" : "") + " pulled</span></div>" +
+    pl.inBay.map(l => {
+      const van = lineInVan(l), dl = num(l.qtyDelivered), here = lineInBay(l);
+      const where = [here ? lqty(l, here) + " in " + bay : "", van ? lqty(l, van) + " in the van" + (l.pickedUpByName ? " with " + l.pickedUpByName : "") : "", dl ? lqty(l, dl) + " delivered" : ""].filter(Boolean).join(", ") || lqty(l, l.qtyStaged) + " pulled";
+      return '<div class="prow done"><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><div class="pw"><b>' + esc(lineName(l)) + '<span class="sr">, pulled</span></b><small>' + esc(where) + "</small></div></div>";
+    }).join("") + "</section>";
+  if (!W) h += '<p class="hint">Read only for your role. The warehouse or an admin pulls from the shelves.</p>';
+  return h + "</div>";
 }
 
 /* ---------------- Pick up and Confirm a delivery ----------------
@@ -5050,7 +5321,8 @@ function renderFlow(kind) {
   }).join("") + "</ul>";
   if (!T) h += '<p class="hint">Read only for your role. A tech, the warehouse, or an admin confirms this.</p></div>';
   else h += '<div class="flowfoot"><button type="button" class="btn acc" data-act="' + (kind === "pickup" ? "flowPickup" : "flowDeliver") + '"' + (on.length ? "" : " disabled") + ">" + (kind === "pickup" ? "Pick up" : "Delivered to site") + '</button><span class="hint" style="margin:0">' +
-    (on.length ? on.length + " of " + lines.length + " line" + (lines.length > 1 ? "s" : "") + " ticked." + (kind === "pickup" ? " Serialized units check out to you." : "") : "Tick each line " + (kind === "pickup" ? "you are taking" : "that arrived") + " first.") + "</span></div></div>";
+    (on.length ? on.length + " of " + lines.length + " line" + (lines.length > 1 ? "s" : "") + " ticked." + (kind === "pickup" ? " Serialized units check out to you." : "") : "Tick each line " + (kind === "pickup" ? "you are taking" : "that arrived") + " first.") + "</span>" +
+    (kind === "deliver" && lines.some(l => lineInVan(l) > 0) ? bringBackBtn(t) : "") + "</div></div>";
   el.innerHTML = h;
 }
 async function flowCommit(kind) {
@@ -5065,6 +5337,74 @@ async function flowCommit(kind) {
     const r = await doDeliverLines(t, on, notes);
     if (r.ok || DEMO) { F.done = { by: S.user.name, at: new Date(), n: on.length, left: lines.length - on.length, demo: !r.ok }; render(true); toast((r.ok ? "" : "Demo mode, not saved: ") + "Delivered " + on.length + " line" + (on.length > 1 ? "s" : "") + " on job " + t.number); }
   }
+}
+
+/* ---------------- Bring back to the shop (0.9.0, PLAN 20.2) ----------------
+   Product in a van goes back when a job is postponed or a line is not
+   needed. Per ticked line: qtyPickedUp drops to what stays out, the count
+   goes back onto the chosen location, one move movement, and the line's
+   serialized units are checked in there: staged when it is the job's bay,
+   in stock with the job fields cleared on a shelf (and qtyStaged drops, so
+   the line needs pulling again). A tech brings back to the job's bay only;
+   the rules let a tech raise a count in a bay and nowhere else. */
+function bringBackBtn(t, mine) {
+  return '<button type="button" class="btn" data-act="bringBack" data-id="' + esc(t.id) + '"' + (mine ? ' data-mine="1"' : "") + ' title="Takes what is in the van back to the job\'s bay or a shelf, for a postponed job or a line that is not needed. It leaves your name.">Bring back</button>';
+}
+/* the units of a line still in the van: checked out on the line, less those already delivered (units stay out until the job closes) */
+function vanUnits(t, l) {
+  const all = Array.from(S.items.values()).filter(i => i.ticketId === t.id && i.ticketLineId === l.id && i.status === "checked_out").sort((a, b) => (toDate(b.checkedOutAt) || 0) - (toDate(a.checkedOutAt) || 0));
+  return all.slice(0, Math.min(lineInVan(l), Math.max(0, all.length - num(l.qtyDelivered))));
+}
+function vanLinesOf(t, mine) { return ticketLines(t.id).filter(l => lineInVan(l) > 0 && (!mine || l.pickedUpBy === S.user.email)); }
+function bringBackTargets(t) {
+  const W = isWriter(), bay = t.stagingLocationId && S.locations.has(t.stagingLocationId) ? t.stagingLocationId : "";
+  if (!W) return { bay, opts: bay ? '<option value="' + esc(bay) + '" selected>' + esc(locName(bay)) + " (this job's bay)</option>" : "" };
+  const shelves = Array.from(S.locations.values()).filter(l => l.kind !== "bay" && l.kind !== "van" && l.kind !== "vehicle").sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  return { bay, opts: (bay ? '<option value="' + esc(bay) + '" selected>' + esc(locName(bay)) + " (this job's bay)</option>" : '<option value="">Choose where it goes</option>') +
+    '<optgroup label="Shelves">' + shelves.map(l => '<option value="' + esc(l.id) + '">' + esc(l.name) + "</option>").join("") + "</optgroup>" };
+}
+function openBringBack(t, mine) {
+  const lines = vanLinesOf(t, mine), tg = bringBackTargets(t), W = isWriter();
+  if (!lines.length) { toast("Nothing on job " + t.number + " is in a van.", true); return; }
+  const body = '<p class="hint" style="margin-top:0">Job ' + esc(t.number) + ", " + esc(tkWho(t)) + ". Tick what is coming back. Nothing is ticked until you choose.</p>" +
+    '<ul class="flowlist">' + lines.map(l => { const u = vanUnits(t, l).length;
+      return '<li class="fl"><label class="chk"><input type="checkbox" data-bb="' + esc(l.id) + '"><span>' + esc(lineName(l)) + "<small>" + esc(lqty(l, lineInVan(l))) + " in the van" + (l.pickedUpByName ? " with " + esc(l.pickedUpByName) : "") + (u ? ", " + u + " serialized unit" + (u > 1 ? "s" : "") : "") + "</small></span></label></li>"; }).join("") + "</ul>" +
+    (tg.opts ? '<label class="lab" for="bbTo" title="The job\'s bay keeps it with the job for the next pick-up. A shelf puts it back in stock, and the line needs pulling again.">' + "<abbr>Back to</abbr></label><select class=\"fld\" id=\"bbTo\"" + (tg.bay ? "" : " data-decide") + ">" + tg.opts + "</select>" +
+      (W ? "" : '<p class="hint">It goes to the job\'s bay. The warehouse puts it back on a shelf if the job is off.</p>')
+      : '<p class="err">This job has no bay to bring it back to. Ask the warehouse to give it one, or to take it back to a shelf.</p>') +
+    '<label class="lab" for="bbNote">Note</label><input class="fld" id="bbNote" placeholder="Optional, for example: job moved to next week"><p class="err" id="bbErr" hidden></p>';
+  const w = openModal("Bring back to the shop", body, '<button type="button" class="btn" data-close>Cancel</button>' + (tg.opts ? '<button type="button" class="btn acc" data-ok>Bring back</button>' : ""), { wide: true });
+  wireGlow(w);
+  const ok = w.querySelector("[data-ok]"); if (!ok) return;
+  ok.addEventListener("click", async () => {
+    const err = $("#bbErr", w), fail = m => { err.textContent = m; err.hidden = false; };
+    const ids = $$("input[data-bb]", w).filter(i => i.checked).map(i => i.dataset.bb), dest = $("#bbTo", w).value;
+    if (!ids.length) return fail("Tick at least one line that is coming back.");
+    if (!dest) return fail("Pick where it goes back to.");
+    const picked = lines.filter(l => ids.includes(l.id));
+    closeModal(w);
+    const r = await doBringBack(t, picked, dest, $("#bbNote", w).value.trim() || null);
+    if (r.ok || DEMO) toast((r.ok ? "" : "Demo mode, not saved: ") + "Brought back " + r.n + " line" + (r.n > 1 ? "s" : "") + " to " + locName(dest));
+  });
+}
+async function doBringBack(t, lines, dest, note) {
+  const me = meNow(), b = tkBatch(t), ops = b.ops, shelf = !isBay(dest), where = locName(dest);
+  let n = 0;
+  lines.forEach(l => {
+    const q = lineInVan(l); if (q <= 0) return;
+    n++;
+    const p = lineProduct(l), units = vanUnits(t, l), counted = p && p.unit !== "ft" ? Math.max(0, q - units.length) : 0;
+    if (counted > 0) ops.push(stockInc(p, dest, counted));
+    if (p && counted + units.length > 0) ops.push(productInc(p.id, counted + units.length));
+    units.forEach(it => ops.push({ op: "update", coll: "loadout_items", id: it.id, data: Object.assign({ status: shelf ? "in_stock" : "staged", holderUid: null, holderName: null, locationId: dest, locationName: where, checkedInAt: NOW, updatedAt: NOW },
+      shelf ? { ticketId: null, ticketNumber: null, ticketLineId: null, jobId: null, jobName: null, clientName: null } : {}) }));
+    ops.push(mv("move", Object.assign({ productId: l.productId || null, productName: lineName(l), qty: q, toLocationId: dest, holderName: l.pickedUpByName || null,
+      note: "Brought back from the van, job #" + t.number + (units.length ? ". Units " + units.map(itemLabel).join(", ") + (shelf ? " back in stock" : " staged again") : "") + (note ? ". " + note : "") }, tkBaseFields(t, l))));
+    b.bump(l, shelf ? { qtyPickedUp: -q, qtyStaged: -q } : { qtyPickedUp: -q }, { broughtBackAt: NOW, broughtBackBy: me.email, broughtBackByName: me.name }, { shelf: shelf && p ? q : 0 });
+  });
+  if (!n) return { ok: false, n: 0 };
+  const ok = await DB.commit(b.finish(), "Bring back on job #" + t.number);
+  return { ok, n };
 }
 
 /* ---------------- Audit a shelf (PLAN 18.1, 18.7) ----------------
@@ -5496,7 +5836,7 @@ function oldestShipHTML(o) {
   const open = shipmentsFor(o.id).filter(shipOpen);
   if (!open.length) return o.status === "received" ? '<span class="z">-</span>' : '<span class="z">No shipment yet</span>';
   const s = open[0];
-  if (s.status === "delivered") return '<span style="color:var(--m-warn-text);font-weight:600">' + esc(s.carrier || "Other") + ", delivered " + esc(fmtShort(s.deliveredAt)) + ", " + (daysSince(s.deliveredAt) || 0) + " day" + ((daysSince(s.deliveredAt) || 0) === 1 ? "" : "s") + " ago</span>";
+  if (s.status === "delivered") return '<span style="color:var(--m-warn-text);font-weight:600">' + esc(s.carrier || "Other") + ", arrived " + esc(fmtShort(s.deliveredAt)) + ", " + (daysSince(s.deliveredAt) || 0) + " day" + ((daysSince(s.deliveredAt) || 0) === 1 ? "" : "s") + " ago</span>";
   return esc(s.carrier || "Other") + ", " + (s.status === "out_for_delivery" ? "out for delivery" : "shipped " + esc(fmtShort(s.shippedAt)));
 }
 function orderCols() {
@@ -5539,7 +5879,7 @@ function renderOrders() {
       empty: '<p>No POs match these filters.</p><button type="button" class="btn" data-act="ofClear">Clear filters</button>',
       defaultSort: (a, b) => (a.status === "draft" ? 0 : 1) - (b.status === "draft" ? 0 : 1) || ordDnr(b) - ordDnr(a) || num(b.number) - num(a.number),
       rowClass: o => (o.status === "draft" && !o.vendor) || ordDnr(o) ? "need" : o.status === "cancelled" ? "dim" : ""
-    }) + (list.length ? '<p class="hint">' + list.length + " of " + all.length + " POs. Drafts first, then anything delivered and not received.</p>" : "");
+    }) + (list.length ? '<p class="hint">' + list.length + " of " + all.length + " POs. Drafts first, then anything arrived and not received.</p>" : "");
   }
   el.innerHTML = h + "</div>";
   wireGlow(el);
@@ -5573,18 +5913,18 @@ function shipCardHTML(o, s) {
   const W = isWriter(), open = shipOpen(s), client = shipSide(s, o) === "client", dnr = !client && s.status === "delivered" && open, last = shipLast(s);
   const goes = (s.lines || []).filter(e => num(e.qty) - num(e.qtyReceived) > 0).map(e => { const ol = orderLines(o.id).find(x => x.id === e.orderLineId); const t = ol && ol.ticketId ? S.tickets.get(ol.ticketId) : null; return t ? (t.stagingLocationId ? tkBay(t) + " for #" + t.number : "the bay for #" + t.number) : "stock"; });
   const where = client ? ["the job site" + (shipAddress(s, o) ? " at " + shipAddress(s, o) : "")] : Array.from(new Set(goes));
-  const doneTxt = client && s.status === "delivered" ? "Delivered to the job site " + esc(fmtShort(s.deliveredAt)) + (s.deliveredByName ? ", marked by " + esc(s.deliveredByName) : "") + ". Staged on the job, not in stock." : "Received " + esc(fmtShort(s.receivedAt)) + (s.receivedByName ? " by " + esc(s.receivedByName) : "");
+  const doneTxt = client && s.status === "delivered" ? "Arrived at the job site " + esc(fmtShort(s.deliveredAt)) + (s.deliveredByName ? ", marked by " + esc(s.deliveredByName) : "") + ". Staged on the job, not in stock." : "Received " + esc(fmtShort(s.receivedAt)) + (s.receivedByName ? " by " + esc(s.receivedByName) : "");
   const sk = shipKey(s, o);
   return '<div class="ship' + (dnr ? " dnr" : "") + '"><div class="sh">' + carrierChip(s.carrier) + trackLink(s) + pill("ship", sk, { tip: fmtStamp(last.at) }) + "</div>" +
     "<dl><div><dt>Shipped</dt><dd class=\"n\">" + esc(fmtShort(s.shippedAt)) + "</dd></div>" +
-    (s.status === "received" ? "<div><dt>Received</dt><dd class=\"n\">" + esc(fmtShort(s.receivedAt)) + "</dd></div>" : s.deliveredAt ? "<div><dt>Delivered</dt><dd class=\"n\">" + esc(fmtShort(s.deliveredAt)) + "</dd></div>" : "<div><dt>Expected</dt><dd class=\"n\">" + (s.expectedAt ? esc(fmtShort(s.expectedAt)) : '<span class="z">Not given</span>') + "</dd></div>") +
+    (s.status === "received" ? "<div><dt>Received</dt><dd class=\"n\">" + esc(fmtShort(s.receivedAt)) + "</dd></div>" : s.deliveredAt ? "<div><dt>Arrived</dt><dd class=\"n\">" + esc(fmtShort(s.deliveredAt)) + "</dd></div>" : "<div><dt>Expected</dt><dd class=\"n\">" + (s.expectedAt ? esc(fmtShort(s.expectedAt)) : '<span class="z">Not given</span>') + "</dd></div>") +
     "<div><dt>Ships to</dt><dd>" + (client ? "Job site" : "Office") + "</dd></div>" +
     "<div><dt>Lines</dt><dd class=\"n\">" + (s.lines || []).length + "</dd></div></dl>" +
-    "<ul>" + (s.lines || []).map(e => { const ol = orderLines(o.id).find(x => x.id === e.orderLineId); return "<li>" + esc(ol ? olName(ol) : e.productName || "") + " x" + esc(ol ? olQty(ol, e.qty) : fmtN(e.qty)) + (num(e.qtyReceived) ? ", " + fmtN(e.qtyReceived) + (client ? " delivered" : " received") : "") + "</li>"; }).join("") + "</ul>" +
+    "<ul>" + (s.lines || []).map(e => { const ol = orderLines(o.id).find(x => x.id === e.orderLineId); return "<li>" + esc(ol ? olName(ol) : e.productName || "") + " x" + esc(ol ? olQty(ol, e.qty) : fmtN(e.qty)) + (num(e.qtyReceived) ? ", " + fmtN(e.qtyReceived) + (client ? " arrived at the site" : " received") : "") + "</li>"; }).join("") + "</ul>" +
     (s.note ? '<div class="lnote" style="margin:0 0 10px">' + esc(s.note) + "</div>" : "") +
-    '<div class="sf"><div class="sfb">' + (W && open ? (client ? '<button type="button" class="btn acc" data-act="trDeliver" data-id="' + esc(s.id) + '" title="The box reached the job site. Its lines count as received on this PO and staged on the job; nothing goes into stock.">Mark delivered</button>'
+    '<div class="sf"><div class="sfb">' + (W && open ? (client ? '<button type="button" class="btn acc" data-act="trDeliver" data-id="' + esc(s.id) + '" title="The carrier left the box at the job site. Its lines count as received on this PO and staged on the job; nothing goes into stock.">Mark arrived</button>'
       : '<button type="button" class="btn acc" data-act="shipRecv" data-id="' + esc(s.id) + '" title="Walks each line: tap or scan the UPC, the quantity, then into the bay or onto the shelf">Receive</button>') +
-      '<button type="button" class="btn" data-act="shipUpd" data-id="' + esc(s.id) + '" title="Shipped, out for delivery, or delivered, and the expected date. Each change is logged with the time.">Update</button>' : "") + "</div>" +
+      '<button type="button" class="btn" data-act="shipUpd" data-id="' + esc(s.id) + '" title="Shipped, out for delivery, or arrived, and the expected date. Each change is logged with the time.">Update</button>' : "") + "</div>" +
     '<span class="hint">' + (open ? "Goes to " + esc(where.join(" and ")) + ". " + esc(pillLabel("ship", sk)) + ", " + esc(fmtStamp(last.at)) + "." : doneTxt) + "</span></div></div>";
 }
 function renderOrder() {
@@ -5765,7 +6105,7 @@ function shipToField(o) {
 }
 function shipToHint(o, v) {
   const j = jobOf(o);
-  return v === "client" ? "Drop-shipped to " + (j && j.name ? j.name : "the job") + (j && j.address ? " at " + j.address : "") + ". Mark it delivered from Tracking when it arrives." : v === "office" ? "Comes to the office and is received into the bay for job #" + (o.ticketNumber || o.ticketId || "") + "." : "Left unpicked, it ships to the office.";
+  return v === "client" ? "Drop-shipped to " + (j && j.name ? j.name : "the job") + (j && j.address ? " at " + j.address : "") + ". Mark it arrived from Tracking when the carrier leaves it there." : v === "office" ? "Comes to the office and is received into the bay for job #" + (o.ticketNumber || o.ticketId || "") + "." : "Left unpicked, it ships to the office.";
 }
 /* unit cost per line at Mark ordered, from the product's last cost; editable only with Show costs on */
 function costLinesHTML(o) {
@@ -5788,7 +6128,7 @@ function openAddShipment(o) {
     '<div><label class="lab" for="shExp" title="Optional. Tracking shows the package as late, in amber, once this day passes.">' + '<abbr>Expected</abbr></label><input class="fld" id="shExp" type="date"></div></div>' +
     (jobOf(o) ? '<label class="lab" for="shTo" title="Starts at what the PO says. Change it when the vendor split the order, for example one box to the office and one to the site.">' + "<abbr>Ships to</abbr></label>" +
       '<select class="fld" id="shTo"><option value="office"' + (o.shipTo !== "client" ? " selected" : "") + ">Office</option><option value=\"client\"" + (o.shipTo === "client" ? " selected" : "") + ">Job site, " + esc(jobAddress(o) || "no address on the job") + "</option></select>" +
-      '<p class="hint" id="shToHint">' + (o.shipTo === "client" ? "Shows under the client on Tracking. Mark it delivered when it arrives; it is never received into stock." : "Shows on the office side of Tracking until it is received.") + "</p>"
+      '<p class="hint" id="shToHint">' + (o.shipTo === "client" ? "Shows under the client on Tracking. Mark it arrived when the carrier leaves it at the site; it is never received into stock." : "Shows on the office side of Tracking until it is received.") + "</p>"
       : '<p class="hint">Ships to the office: a stock PO has no job site.</p>') +
     '<h4 class="h4" style="margin-top:14px">Lines on this shipment</h4><div class="olpick">' + ls.map(ol => { const left = Math.max(0, num(ol.qtyOrdered) - num(ol.qtyShipped)) || olOpen(ol);
       return '<div class="row"><label class="chk"><input type="checkbox" data-sh="' + esc(ol.id) + '"' + (num(ol.qtyOrdered) - num(ol.qtyShipped) > 0 ? " checked" : "") + "> <span>" + esc(olName(ol)) + ' <span class="z">' + esc(olQty(ol, num(ol.qtyShipped))) + " of " + esc(olQty(ol, ol.qtyOrdered)) + " shipped</span></span></label>" +
@@ -5806,7 +6146,7 @@ function openAddShipment(o) {
   $("#shTrk", w).addEventListener("input", det);
   $("#shCar", w).addEventListener("change", () => { touched = true; det(); });
   const toSel = $("#shTo", w);
-  if (toSel) toSel.addEventListener("change", () => { $("#shToHint", w).textContent = toSel.value === "client" ? "Shows under the client on Tracking. Mark it delivered when it arrives; it is never received into stock." : "Shows on the office side of Tracking until it is received."; });
+  if (toSel) toSel.addEventListener("change", () => { $("#shToHint", w).textContent = toSel.value === "client" ? "Shows under the client on Tracking. Mark it arrived when the carrier leaves it at the site; it is never received into stock." : "Shows on the office side of Tracking until it is received."; });
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const e = $("#shErr", w), trk = $("#shTrk", w).value.replace(/\s+/g, "").trim(), car = $("#shCar", w).value, picked = [];
     const fail = m => { e.textContent = m; e.hidden = false; };
@@ -5828,17 +6168,17 @@ function openAddShipment(o) {
 }
 function openShipUpdate(s) {
   const body = '<p class="hint" style="margin-top:0">' + carrierChip(s.carrier) + " " + esc(s.tracking || "") + ", PO " + esc(s.orderNumber || "") + ". Typed by hand until a carrier tracking poll exists.</p>" +
-    '<div class="grid2"><div><label class="lab" for="suSt">Status</label><select class="fld" id="suSt">' + [["shipped", "Shipped"], ["out_for_delivery", "Out for delivery"], ["delivered", "Delivered"]].map(([k, l]) => '<option value="' + k + '"' + (s.status === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" +
+    '<div class="grid2"><div><label class="lab" for="suSt">Status</label><select class="fld" id="suSt">' + [["shipped", "Shipped"], ["out_for_delivery", "Out for delivery"], ["delivered", "Arrived"]].map(([k, l]) => '<option value="' + k + '"' + (s.status === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" +
     '<div><label class="lab" for="suExp">Expected</label><input class="fld" id="suExp" type="date" value="' + esc(isoDay(s.expectedAt)) + '"></div></div>' +
-    '<div id="suDelBox"><label class="lab" for="suDel" title="Delivered but not received puts the PO at the top of Tracking in amber until someone scans the box in.">' + '<abbr>Delivered on</abbr></label><input class="fld" id="suDel" type="date" value="' + esc(isoDay(s.deliveredAt || new Date())) + '"></div>';
+    '<div id="suDelBox"><label class="lab" for="suDel" title="Arrived but not received puts the PO at the top of Tracking in amber until someone scans the box in.">' + '<abbr>Arrived on</abbr></label><input class="fld" id="suDel" type="date" value="' + esc(isoDay(s.deliveredAt || new Date())) + '"></div>';
   const w = openModal("Update shipment", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Save</button>');
   const sync = () => { $("#suDelBox", w).hidden = $("#suSt", w).value !== "delivered"; };
   $("#suSt", w).addEventListener("change", sync); sync();
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const st = $("#suSt", w).value, ex = $("#suExp", w).value, dl = $("#suDel", w).value;
     closeModal(w);
-    /* a package to a job site that is delivered is done: same path as Mark delivered on Tracking */
-    if (st === "delivered" && shipSide(s) === "client" && shipOpen(s)) { if (await doMarkDelivered(s, dayAt(dl), "Typed by hand")) toast("Delivered to the job site, staged on the job"); return; }
+    /* a package to a job site that is delivered is done: same path as Mark arrived on Tracking */
+    if (st === "delivered" && shipSide(s) === "client" && shipOpen(s)) { if (await doMarkDelivered(s, dayAt(dl), "Typed by hand")) toast("Arrived at the job site, staged on the job"); return; }
     if (await doShipmentStatus(s, st, ex ? new Date(ex + "T12:00:00") : null, dl ? dayAt(dl) : null)) toast("Shipment marked " + (st === "delivered" ? DNR : pillLabel("ship", st)).toLowerCase());
   });
 }
@@ -5882,7 +6222,10 @@ function openReceiveShipment(s, focusLineId) {
       (r.ser ? '<span class="chip warn" title="Its cost on this PO is at or above the QR threshold (' + esc(money(thr)) + '), so each unit gets its own record and a label to print"><i></i>Gets its own QR</span>' : "") + (!r.p ? '<span class="chip warn" title="Not in the catalog, so it is logged and staged without a stock count"><i></i>Not in the catalog</span>' : "") + "</div>" +
       '<div class="rgrid"><div><label class="lab" for="rsLoc' + i + '">' + (r.t ? "Into the bay" : "Onto") + '</label><select class="fld" id="rsLoc' + i + '" data-decide>' + locOptions(r.dest, { blankLabel: r.t ? "Choose the staging bay" : "Choose a location" }) + "</select></div>" +
       '<div><label class="lab" for="rsQty' + i + '">Quantity' + (r.p && r.p.unit === "ft" ? " (ft)" : "") + '</label><input class="fld n" id="rsQty' + i + '" type="number" min="0" step="any" inputmode="decimal" value="' + r.open + '"></div>' +
-      (r.p && r.p.unit === "ft" ? '<div><label class="lab" for="rsBox' + i + '" title="The code written on the box; it goes on the QR sticker.">' + '<abbr>Box label</abbr></label><input class="fld mono" id="rsBox' + i + '" value="' + esc(boxLabel()) + '"></div>' : '<div><span class="hint" id="rsCnt' + i + '"></span></div>') + "</div></div>").join("") +
+      (r.p && r.p.unit === "ft" ? '<div><label class="lab" for="rsBox' + i + '" title="The code written on the box; it goes on the QR sticker.">' + '<abbr>Box label</abbr></label><input class="fld mono" id="rsBox' + i + '" value="' + esc(boxLabel()) + '"></div>' : '<div><span class="hint" id="rsCnt' + i + '"></span></div>') + "</div>" +
+      /* 0.9.0 (PLAN 20.1 item 8): a unit worth its own QR asks for its serial or MAC here, the same two fields and MAC check as Receive and Serialize on Shelf */
+      (r.ser ? '<div class="grid2"><div><label class="lab" for="rsSer' + i + '" title="The maker\'s serial numbers, for warranty claims and returns. One per line, in the order the stickers go on.">' + "<abbr>Serial numbers</abbr></label><textarea class=\"fld mono\" id=\"rsSer" + i + '" placeholder="One per line, optional"></textarea></div>' +
+        '<div><label class="lab" for="rsMac' + i + '" title="For anything that joins the network: the MAC finds the device on the client\'s network. One per line, in the same order as the serials.">' + "<abbr>MAC addresses</abbr></label><textarea class=\"fld mono\" id=\"rsMac" + i + '" placeholder="One per line, optional" spellcheck="false"></textarea></div></div>' : "") + "</div>").join("") +
     '<p class="err" id="rsErr" hidden></p>';
   const w = openModal("Receive shipment", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Receive</button>', { wide: true, noFocus: true });
   wireGlow(w);
@@ -5909,7 +6252,15 @@ function openReceiveShipment(s, focusLineId) {
       let bl = null;
       if (r.p && r.p.unit === "ft") { bl = ($("#rsBox" + i, w).value || "").trim().toUpperCase(); if (!bl) return fail(olName(r.ol) + ": give the box a label."); if (S.containers.has(slug(bl)) || out.some(x => x.boxLabel === bl)) { boxTaken(w, "#rsBox" + i, bl, out.map(x => x.boxLabel).filter(Boolean)); return; } }
       if (r.ser && q > 200) return fail("Receive at most 200 serialized units at a time.");
-      out.push({ ol: r.ol, p: r.p, t: r.t, l: r.l, q, dest, ser: r.ser, boxLabel: bl, i });
+      let serials = [], macs = [];
+      if (r.ser) {
+        serials = $("#rsSer" + i, w).value.split(/\r?\n/).map(x => x.trim()); while (serials.length && !serials[serials.length - 1]) serials.pop();
+        macs = macLines($("#rsMac" + i, w).value);
+        if (macs.bad) return fail(olName(r.ol) + ": line " + macs.bad + " of the MAC addresses is not 12 characters 0 to 9 and A to F. Fix it or leave it blank.");
+        while (macs.length && !macs[macs.length - 1]) macs.pop();
+        if (serials.length > q || macs.length > q) return fail(olName(r.ol) + ": " + Math.max(serials.length, macs.length) + " lines typed for " + fmtN(q) + " unit" + (q > 1 ? "s" : "") + ". One line per unit.");
+      }
+      out.push({ ol: r.ol, p: r.p, t: r.t, l: r.l, q, dest, ser: r.ser, boxLabel: bl, i, serials, macs });
     }
     if (!out.length) return fail("Every quantity is zero. Type what arrived, or Cancel.");
     const okBtn = w.querySelector("[data-ok]"); okBtn.disabled = true;
@@ -5965,6 +6316,45 @@ function trackPkgs() {
   });
   return out;
 }
+/* 0.9.0 (PLAN 20.2): the Receive a shipment door. Boxes coming to the shop
+   that are not received yet: arrived first (the carrier dropped them), then
+   on the way. A box going to a client's site is never received here. */
+function receivePkgs() {
+  const open = trackPkgs().filter(p => p.kind === "ship" && p.side === "office" && !p.done);
+  const byDate = (a, b) => (toDate(a.exp) || 8.64e15) - (toDate(b.exp) || 8.64e15);
+  return { arrived: open.filter(p => p.dnr).sort((a, b) => (toDate(a.at) || 0) - (toDate(b.at) || 0)), coming: open.filter(p => !p.dnr).sort(byDate) };
+}
+/* where each open line of a shipment goes: the job's bay when it serves a job, else the product's own shelf */
+function rcvLinesHTML(p) {
+  const o = p.o, s = p.s;
+  return "<ul>" + (s.lines || []).filter(e => num(e.qty) - num(e.qtyReceived) > 0).map(e => {
+    const ol = orderLines(o.id).find(x => x.id === e.orderLineId), pr = ol ? olProduct(ol) : null, t = ol && ol.ticketId ? S.tickets.get(ol.ticketId) : null;
+    const to = t ? (t.stagingLocationId ? tkBay(t) + " for job " + t.number : "a bay for job " + t.number) : pr && pr.defaultLocationId ? locName(pr.defaultLocationId) : "a shelf you choose";
+    const q = num(e.qty) - num(e.qtyReceived);
+    return "<li>" + esc(ol ? olName(ol) : e.productName || "Unnamed line") + " x" + esc(ol ? olQty(ol, q) : fmtN(q)) + " <small>to " + esc(to) + "</small></li>";
+  }).join("") + "</ul>";
+}
+function rcvCardHTML(p) {
+  const o = p.o, s = p.s, W = isWriter();
+  const when = p.dnr ? "Arrived " + fmtStamp(p.at) : p.late ? "Expected " + fmtMD(p.exp) + ", " + plDays(daysLate(p.exp)) + " late" : p.exp ? "Expected " + fmtMD(p.exp) : "No expected date";
+  return '<article class="rcard' + (p.dnr ? " arr" : "") + '" aria-label="' + esc((s.carrier || "Other") + " package " + (s.tracking || "") + ", " + trLabel(p.st)) + '"><div class="rh"><b>' + esc(o.vendor || "No vendor") + "</b>" + pill("ship", p.st) + "</div>" +
+    '<div class="rh">' + carrierChip(s.carrier) + trackLink(s) + '<button type="button" class="textbtn" data-act="order" data-id="' + esc(o.id) + '" title="Opens the purchase order">' + esc(poLabel(o)) + "</button></div>" +
+    '<p class="' + (p.late && !p.dnr ? "lateA" : "pexp") + '" style="margin:0">' + esc(when) + "</p>" + rcvLinesHTML(p) +
+    (W ? '<button type="button" class="btn' + (p.dnr ? " acc" : "") + '" data-act="trRecv" data-id="' + esc(s.id) + '" title="Walks each line into the job\'s bay or onto a shelf. A unit worth a QR asks for its serial or MAC.">Receive</button>' : "") + "</article>";
+}
+function renderReceive() {
+  const el = $("#v-receive");
+  let h = bandHTML("receive") + '<div class="mcard"><div class="thead"><h2 class="vt">Receive a shipment</h2><span class="sp"><a class="btn sm" href="#tracking" title="Every package, to the office and to client sites, under Office, Orders and tracking">Tracking</a></span></div>';
+  if (!isWriter()) { el.innerHTML = h + '<div class="empty"><p>Receiving is for the warehouse and the admin.</p><a class="btn" href="#home">Back to Home</a></div></div>'; return; }
+  h += '<p class="hint" style="margin:0 0 var(--s2)">Boxes coming to the shop. Arrived first: find the box and press Receive. Lines for a job go to its bay.</p>';
+  if (S.errors.shipments || S.errors.orders) { el.innerHTML = h + errorBox("shipments", S.errors.shipments ? "shipments" : "orders") + "</div>"; return; }
+  if (!S.loaded.shipments || !S.loaded.orders) { el.innerHTML = h + '<div class="empty"><p>Loading shipments</p></div></div>'; return; }
+  const r = receivePkgs();
+  if (!r.arrived.length && !r.coming.length) { el.innerHTML = h + '<div class="empty"><p>Nothing on the way. A shipment shows here once it is added to a PO with its tracking number.</p><a class="btn" href="#orders">Open orders</a></div></div>'; return; }
+  h += '<h3 class="h4">Arrived, not received</h3>' + (r.arrived.length ? '<div class="rcards">' + r.arrived.map(rcvCardHTML).join("") + "</div>" : '<p class="hint" style="margin-top:0">Nothing is waiting at the shop.</p>');
+  h += '<h3 class="h4" style="margin-top:var(--s4)">On the way</h3>' + (r.coming.length ? '<div class="rcards">' + r.coming.map(rcvCardHTML).join("") + "</div>" : '<p class="hint" style="margin-top:0">Nothing else is on the way.</p>');
+  el.innerHTML = h + "</div>";
+}
 function trMatches(p) {
   const f = S.trFilter;
   if (f.job && p.who !== f.job) return false;
@@ -5987,7 +6377,7 @@ function pkgCard(p) {
   let h = '<article class="pkg' + (p.dnr ? " dnr" : "") + '" aria-label="' + esc((s ? (s.carrier || "Other") + " package " + (s.tracking || "") : "PO " + o.number + ", not shipped yet") + ", " + trLabel(p.st)) + '"><div class="ph">' +
     (s ? carrierChip(s.carrier) + trackLink(s) : '<span class="z">No tracking number yet</span>') +
     '<span class="stw">' + pill(trKind(p.st), p.st) + (p.at ? '<span class="when">' + esc(fmtStamp(p.at)) + "</span>" : "") + "</span></div>";
-  if (p.dnr) { const d = s.deliveredAt || p.at, n = daysSince(d); h += '<p class="lateA">Delivered ' + esc(fmtShort(d)) + (n ? ", " + plDays(n) + " ago" : "") + ". Find the box and press Receive.</p>"; }
+  if (p.dnr) { const d = s.deliveredAt || p.at, n = daysSince(d); h += '<p class="lateA">Arrived ' + esc(fmtShort(d)) + (n ? ", " + plDays(n) + " ago" : "") + ". Find the box and press Receive.</p>"; }
   else if (p.late) h += '<p class="lateA">Expected ' + esc(fmtMD(p.exp)) + ", " + plDays(daysLate(p.exp)) + " late</p>";
   else if (p.exp && open) h += '<p class="pexp">' + (p.kind === "po" ? "Vendor ETA " : "Expected ") + esc(fmtMD(p.exp)) + "</p>";
   else if (p.kind === "po" && p.st === "backordered") h += '<p class="pexp">No ETA from the vendor yet</p>';
@@ -5999,7 +6389,7 @@ function pkgCard(p) {
   if (W && open) {
     let b = "";
     if (p.kind === "ship" && p.side === "office") b += '<button type="button" class="btn' + (p.dnr ? " acc" : "") + '" data-act="trRecv" data-id="' + esc(s.id) + '" title="Walks each line: scan or tap, the quantity, then into the bay or onto the shelf">Receive</button>';
-    if (p.kind === "ship" && p.side === "client") b += '<button type="button" class="btn" data-act="trDeliver" data-id="' + esc(s.id) + '" title="The box reached the job site. Its lines count as received on the PO and staged on the job; nothing goes into stock.">Mark delivered</button>';
+    if (p.kind === "ship" && p.side === "client") b += '<button type="button" class="btn" data-act="trDeliver" data-id="' + esc(s.id) + '" title="The carrier left the box at the job site. Its lines count as received on the PO and staged on the job; nothing goes into stock.">Mark arrived</button>';
     if (p.kind === "po" && (o.status === "ordered" || o.status === "partial")) b += '<button type="button" class="btn" data-act="trShip" data-id="' + esc(o.id) + '" title="The vendor sent tracking: add it and the lines it carries">Add shipment</button>';
     b += '<button type="button" class="btn" data-act="trNote" data-kind="' + p.kind + '" data-id="' + esc(s ? s.id : o.id) + '" title="Shows on this card and on the PO, for example: left at the front desk">Note</button>';
     h += '<div class="pf">' + b + "</div>";
@@ -6020,7 +6410,7 @@ function trColHTML(side, list, any) {
 }
 function trHistCols() {
   return [
-    { k: "when", label: "Done", title: "When it was received at the office, or delivered to the job site", cls: "nw", sort: p => toDate(p.doneAt), text: p => fmtStamp(p.doneAt) },
+    { k: "when", label: "Done", title: "When it was received at the office, or arrived at the job site", cls: "nw", sort: p => toDate(p.doneAt), text: p => fmtStamp(p.doneAt) },
     { k: "status", label: "Status", sort: p => p.side, html: p => p.side === "client" ? pill("ship", "site") : pill("ship", "received") },
     { k: "carrier", label: "Carrier", sort: p => p.carrier, html: p => carrierChip(p.carrier) },
     { k: "tracking", label: "Tracking", sort: p => p.s.tracking || "", html: p => trackLink(p.s, true) },
@@ -6035,7 +6425,7 @@ function trHistCols() {
 function renderTracking() {
   const el = $("#v-tracking"), f = S.trFilter;
   let h = '<div class="mcard"><div class="thead"><h2 class="vt">Tracking</h2><span class="sp"><button type="button" class="btn sm" data-act="go" data-view="orders">Open orders</button></span></div>' +
-    '<p class="hint" style="margin:0 0 10px">Packages coming to the office on the left, packages going straight to a client\'s site on the right. Delivered and not received floats to the top of the office side in amber: that is a box in the building nobody scanned.</p>';
+    '<p class="hint" style="margin:0 0 10px">Packages coming to the office on the left, packages going straight to a client\'s site on the right. Arrived and not received floats to the top of the office side in amber: that is a box in the building nobody scanned.</p>';
   if (S.errors.orders || S.errors.shipments || S.errors.olines) { el.innerHTML = h + errorBox("what is on order", "orders") + "</div>"; return; }
   if (!S.loaded.orders || !S.loaded.shipments) { el.innerHTML = h + skelTable([{ label: "Package" }, { label: "Status" }, { label: "For" }], "Loading what is on order") + "</div>"; return; }
   const all = trackPkgs(), since = Date.now() - 30 * 86400000;
@@ -6046,7 +6436,7 @@ function renderTracking() {
     '<div><label class="lab" for="trVendor">Vendor</label><select class="fld" id="trVendor" data-tr="vendor"><option value="">Every vendor</option>' + vendors.map(v => "<option" + (f.vendor === v ? " selected" : "") + ">" + esc(v) + "</option>").join("") + "</select></div>" +
     '<div><label class="lab" for="trCarrier">Carrier</label><select class="fld" id="trCarrier" data-tr="carrier"><option value="">Every carrier</option>' + CARRIERS.map(c => "<option" + (f.carrier === c ? " selected" : "") + ">" + c + "</option>").join("") + "</select></div>" +
     '<div><label class="lab" for="trStatus">Status</label><select class="fld" id="trStatus" data-tr="status"><option value="">Every status</option>' + TR_STATUS.map(k => '<option value="' + k + '"' + (f.status === k ? " selected" : "") + ">" + esc(trLabel(k)) + "</option>").join("") + "</select></div>" +
-    '<label class="chk" title="Past the shipment\'s expected date, or the vendor\'s ETA on a backorder, and not delivered"><input type="checkbox" id="trLate" data-tr="late"' + (f.late ? " checked" : "") + "> Late only</label></div>" +
+    '<label class="chk" title="Past the shipment\'s expected date, or the vendor\'s ETA on a backorder, and not arrived"><input type="checkbox" id="trLate" data-tr="late"' + (f.late ? " checked" : "") + "> Late only</label></div>" +
     (trFiltered() ? '<p class="hint" style="margin:-4px 0 12px"><button type="button" class="textbtn" data-act="trClear">Clear filters</button></p>' : "");
   if (!live.length) h += '<div class="empty"><p>Nothing in transit. Lines you order from a job or the low-stock list show here until they are received.</p><button type="button" class="btn" data-act="go" data-view="orders">Open Orders</button></div>';
   else {
@@ -6055,27 +6445,27 @@ function renderTracking() {
   }
   h += "</div>";
   const hv = hist.filter(trMatches);
-  h += '<div class="mcard"><div class="thead"><h3 class="trh" style="margin:0">Recently delivered, ' + hv.length + " package" + (hv.length === 1 ? "" : "s") + "</h3>" + (hv.length ? '<span class="sp"><button type="button" class="btn sm" data-act="columns" data-tbl="trackHist">Edit columns</button></span>' : "") + "</div>" +
+  h += '<div class="mcard"><div class="thead"><h3 class="trh" style="margin:0">Recently received or arrived, ' + hv.length + " package" + (hv.length === 1 ? "" : "s") + "</h3>" + (hv.length ? '<span class="sp"><button type="button" class="btn sm" data-act="columns" data-tbl="trackHist">Edit columns</button></span>' : "") + "</div>" +
     tableHTML("trackHist", trHistCols(), hv, { defaultSort: (a, b) => (toDate(b.doneAt) || 0) - (toDate(a.doneAt) || 0),
-      empty: hist.length && trFiltered() ? '<p>Nothing delivered in the last 30 days matches these filters.</p><button type="button" class="btn" data-act="trClear">Clear filters</button>' : "<p>Nothing delivered in the last 30 days. Received and delivered packages land here.</p>" }) +
-      (hv.length ? '<p class="hint">Received at the office or delivered to a job site in the last 30 days, newest first.</p>' : "") + "</div>";
+      empty: hist.length && trFiltered() ? '<p>Nothing received or arrived in the last 30 days matches these filters.</p><button type="button" class="btn" data-act="trClear">Clear filters</button>' : "<p>Nothing received or arrived in the last 30 days. Packages land here once they are received at the office or arrive at a job site.</p>" }) +
+      (hv.length ? '<p class="hint">Received at the office or arrived at a job site in the last 30 days, newest first.</p>' : "") + "</div>";
   el.innerHTML = h;
 }
-/* Mark delivered on a package to a job site: when, and an optional note */
+/* Mark arrived on a package to a job site: when, and an optional note */
 function openMarkDelivered(s) {
   const o = S.orders.get(s.orderId); if (!o) return;
   const now = new Date(), v = isoDay(now) + "T" + pad(now.getHours()) + ":" + pad(now.getMinutes()), addr = shipAddress(s, o);
   const body = '<p class="hint" style="margin-top:0">' + carrierChip(s.carrier) + " " + esc(s.tracking || "") + ", PO " + esc(o.number) + " for " + esc(pkgWho(o)) + (addr ? ", " + esc(addr) : "") + ".</p>" +
     "<p>Its lines count as received on the PO" + (o.ticketId ? " and staged on job #" + esc(o.ticketNumber || o.ticketId) : "") + ". Nothing goes into stock: the box is at the site, not in the building.</p>" +
-    '<label class="lab" for="mdAt" title="When it reached the site. The card and the shipment\'s status log show this time.">' + '<abbr>Delivered at</abbr></label><input class="fld" id="mdAt" type="datetime-local" value="' + v + '">' +
+    '<label class="lab" for="mdAt" title="When it reached the site. The card and the shipment\'s status log show this time.">' + '<abbr>Arrived at</abbr></label><input class="fld" id="mdAt" type="datetime-local" value="' + v + '">' +
     '<label class="lab" for="mdNote">Note</label><input class="fld" id="mdNote" placeholder="Optional, for example who signed for it"><p class="err" id="mdErr" hidden></p>';
-  const w = openModal("Mark delivered", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Mark delivered</button>');
+  const w = openModal("Mark arrived", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Mark arrived</button>');
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const raw = $("#mdAt", w).value, at = raw ? new Date(raw) : new Date(), e = $("#mdErr", w);
     if (isNaN(at)) { e.textContent = "Type the date and time it arrived."; e.hidden = false; return; }
     if (at.getTime() > Date.now() + 5 * 60000) { e.textContent = "That time is still ahead. Use when it actually arrived."; e.hidden = false; return; }
     closeModal(w);
-    if (await doMarkDelivered(s, at, $("#mdNote", w).value.trim() || null)) toast("Delivered to the job site" + (o.ticketId ? ", staged on job #" + (o.ticketNumber || o.ticketId) : ""));
+    if (await doMarkDelivered(s, at, $("#mdNote", w).value.trim() || null)) toast("Arrived at the job site" + (o.ticketId ? ", staged on job #" + (o.ticketNumber || o.ticketId) : ""));
   });
 }
 function openPkgNote(kind, id) {
@@ -6188,6 +6578,7 @@ function curHash() {
   if (v === "items") return S.x && S.x.kind === "i" ? "#shelf/units/i/" + e(S.x.id) : "#shelf/units/" + S.itemsTab;
   if (v === "office") return "#office" + (S.officeSec ? "/" + S.officeSec + (S.officeSec === "reports" ? "/" + S.repTab : "") : "");
   if (v === "pickup" || v === "deliver") return "#" + v + (S.flowJob ? "/" + e(S.flowJob) : "");
+  if (v === "pull") return "#pull" + (S.pullJob ? "/" + e(S.pullJob) : "");
   if (v === "audit") return "#audit" + (S.auditLoc ? "/" + e(S.auditLoc) : "");
   if (v === "week") return "#week" + (S.weekOff ? "/" + isoDay(addDays(weekStartOf(new Date()), S.weekOff * 7)) : "");
   return "#" + v;
@@ -6318,7 +6709,7 @@ function unitActions(it, where) {
   if (W && it.status === "returned") a.push(B("backToStock", "Back to stock", "You looked at it and it is fit to use again"));
   if (!scan) a.push('<button type="button" class="btn" data-act="printOne" data-kind="item" data-id="' + id + '">Print label</button>');
   if (!scan && W && it.status !== "retired") a.push(B("retire", "Retire", "", "danger"));
-  a.push(scan ? B("item", "Open details", "Opens the unit on the Units view with every action and its history") : '<button type="button" class="btn" data-act="xhist" aria-pressed="' + !!(S.x && S.x.showHist) + '">Show history</button>');
+  a.push(scan ? B("item", "Open details", "Opens the unit under Shelf, All units, with every action and its history") : '<button type="button" class="btn" data-act="xhist" aria-pressed="' + !!(S.x && S.x.showHist) + '">Show history</button>');
   return a.join("");
 }
 function itemPanel(it) {
@@ -6522,7 +6913,7 @@ function openReceive(p, presetLoc) {
     const c = cost && cost.value.trim() !== "" ? num(cost.value.replace(/[$,]/g, "")) : null;
     closeModal(w);
     const ok = await doReceiveUnits(p, loc, qty, c, ser.checked, $("#rcSerials", w).value.split(/\r?\n/), $("#rcNote", w).value.trim() || null, macs);
-    if (ok) { toast("Received " + qty + " into " + locName(loc) + (ser.checked ? ". Print their labels from More, Labels." : "")); refreshScan(); }
+    if (ok) { toast("Received " + qty + " into " + locName(loc) + (ser.checked ? ". Print their labels from Office, Labels." : "")); refreshScan(); }
   });
 }
 /* the shop's scheme: a letter plus month and year of purchase (A1126). skip
@@ -6582,7 +6973,7 @@ function openNewBox(p, presetUpc) {
     /* the write carries a create precondition: another device took the label first */
     if (r && r.exists) { boxTaken(w, "#nbLabel", label); return; }
     closeModal(w);
-    if (r && r.ok) { toast("Box " + label + " added. Print its sticker from More, Labels."); refreshScan(); }
+    if (r && r.ok) { toast("Box " + label + " added. Print its sticker from Office, Labels."); refreshScan(); }
   });
 }
 function openMoveStock(p) {
@@ -6659,7 +7050,7 @@ function openSerialize(p) {
     const macs = macLines($("#szMac", w).value);
     if (macs.bad) { err.textContent = "Line " + macs.bad + " of the MAC addresses is not 12 characters 0 to 9 and A to F. Fix it or leave it blank."; err.hidden = false; return; }
     closeModal(w);
-    if (await doSerialize(p, l, n, $("#szSer", w).value.split(/\r?\n/), macs)) toast(n + " unit" + (n > 1 ? "s" : "") + " serialized. Print the labels from More, Labels.");
+    if (await doSerialize(p, l, n, $("#szSer", w).value.split(/\r?\n/), macs)) toast(n + " unit" + (n > 1 ? "s" : "") + " serialized. Print the labels from Office, Labels.");
   });
 }
 
@@ -6695,8 +7086,8 @@ function renderScan() {
     el.dataset.built = "1";
     el.innerHTML = '<div class="scangrid"><div class="mcard"><div class="thead"><h2 class="vt">Scan</h2><span class="sp" id="locChipWrap"></span></div>' +
       '<div class="cam" id="cam"></div>' +
-      '<form class="manual" id="manualForm" autocomplete="off"><label class="sr" for="manualCode">Code</label><input class="fld" id="manualCode" placeholder="UPC, model, box label, or QR text" title="For a torn label or no camera. Type a UPC, a model like U6-Pro, a box label like A826, or the line printed under a QR."><button type="submit" class="btn acc">Look up</button></form>' +
-      '<p class="hint" id="upcPending" hidden></p></div>' +
+      '<form class="manual" id="manualForm" autocomplete="off"><label class="sr" for="manualCode">Code</label><input class="fld" id="manualCode" placeholder="UPC, model, box label, or QR text" title="For a torn label or no camera. Type a UPC, a model like U6-Pro, a box label like A826, the line printed under a QR, or loadout:job: and the number from a pull sheet."><button type="submit" class="btn acc">Look up</button></form>' +
+      '<p class="hint" id="scanHelp">Shelf, box, and unit labels open their card here. The QR on a printed pull sheet opens that job.</p><p class="hint" id="upcPending" hidden></p></div>' +
       '<div class="mcard res" id="scanResult" aria-live="polite"></div></div>';
     $("#manualForm").addEventListener("submit", e => { e.preventDefault(); const v = $("#manualCode").value.trim(); if (v) { route(v); $("#manualCode").value = ""; } });
     paintCam("idle");
@@ -6726,7 +7117,7 @@ function paintCam(state, msg) {
   } else if (state === "off") {
     cam.innerHTML = '<div class="camoff"><p>' + esc(msg || "Camera is off. Allow it in the browser, or type the code below.") + '</p><button type="button" class="btn" data-act="startCam">Try the camera again</button></div>';
   } else {
-    cam.innerHTML = '<div class="camoff"><p>Scan UPCs on boxes and Loadout QR labels with the phone camera.</p><button type="button" class="btn acc" data-act="startCam">Start camera</button></div>';
+    cam.innerHTML = '<div class="camoff"><p>Scan UPCs on boxes and Loadout QR labels with the phone camera. The QR on a printed pull sheet opens that job.</p><button type="button" class="btn acc" data-act="startCam">Start camera</button></div>';
   }
 }
 async function autoStartCamera() {
@@ -6810,6 +7201,9 @@ function onCode(raw) {
 
 /* routing on the payload prefix; a plain code is a UPC, model, or box label */
 function route(code) {
+  /* 0.9.0: a pull sheet's QR opens that job: the Pull screen for whoever pulls, the job page for everyone else */
+  const jm = /^loadout:job:(.+)$/i.exec(code.trim());
+  if (jm) { const id = jm[1]; if (S.tickets.has(id) || !S.loaded.tickets) { go(isWriter() ? "pull" : "ticket", id); return; } S.scan = { kind: "unknown", code }; paintScanResult(); return; }
   const m = /^loadout:(loc|ctr|item|prod):(.+)$/i.exec(code.trim());
   if (S.pendingUpcFor && !m) { confirmUpc(S.pendingUpcFor, code); return; }
   if (!S.loaded.products || S.errors.products) { S.scan = { kind: "retry", code }; paintScanResult(); return; }
@@ -6875,7 +7269,7 @@ function paintScanResult() {
   }
   /* unknown */
   if (/^loadout:/i.test(sc.code)) {
-    el.innerHTML = '<div class="rk"><span>Label not found</span></div><div class="rt mono">' + esc(sc.code) + '</div><p class="rm">This label points at a record that is not in Loadout any more, or has not reached this device yet. Check the sticker, or reprint it from More, Labels.</p>';
+    el.innerHTML = '<div class="rk"><span>Label not found</span></div><div class="rt mono">' + esc(sc.code) + '</div><p class="rm">This label points at a record that is not in Loadout any more, or has not reached this device yet. Check the sticker, or reprint it from Office, Labels.</p>';
     return;
   }
   const isUpc = /^\d{8,14}$/.test(sc.code);
@@ -7248,7 +7642,7 @@ function settingsHTML() {
   const tier = { t0: "T0, proposal CSV import", t1: "T1, Zapier intake", t2: "T2, Portal API" }[pt.tier || "t0"] || pt.tier;
   return '<p class="hint" style="margin-top:0">Shared by everyone. Only admins change these. One Save writes the whole tab, wall board included.</p>' +
     '<div class="setsect" style="margin-top:8px;border-top:0;padding-top:0"><h3>General</h3>' +
-    '<label class="chk" title="Off by default: the warehouse does not need prices. On shows cost fields on products and receiving, and values in the Console reports."><input type="checkbox" id="setCosts"' + (g.showCosts ? " checked" : "") + "> Show costs</label>" +
+    '<label class="chk" title="Off by default: the warehouse does not need prices. On shows cost fields on products and receiving, and values in Office, Reports."><input type="checkbox" id="setCosts"' + (g.showCosts ? " checked" : "") + "> Show costs</label>" +
     '<div class="grid2"><div><label class="lab" for="setThr" title="A unit received at or above this cost gets its own QR and record, so it can be followed one by one.">' + '<abbr>QR threshold</abbr></label><div class="money"><input class="fld" id="setThr" data-money inputmode="decimal" value="' + esc(g.qrThreshold) + '"></div></div>' +
     '<div><label class="lab" for="setWeek" title="The first day of each block of seven in the Week view and the Movements week buttons">' + '<abbr>Week starts on</abbr></label><select class="fld" id="setWeek"><option value="0"' + (num(g.weekStart) !== 1 ? " selected" : "") + '>Sunday</option><option value="1"' + (num(g.weekStart) === 1 ? " selected" : "") + ">Monday</option></select></div>" +
     '<div><label class="lab" for="setLabel" title="The sheet the Labels tab starts on. Anyone can switch sheets when they print.">' + '<abbr>Default label sheet</abbr></label><select class="fld" id="setLabel"><option value="5160"' + (g.labelSize !== "5163" ? " selected" : "") + '>Avery 5160</option><option value="5163"' + (g.labelSize === "5163" ? " selected" : "") + ">2 x 4 in</option></select></div></div>" +
@@ -7317,7 +7711,7 @@ function lastAdminBlock(u, role, active) {
   return u.role === "admin" && u.active !== false && (role !== "admin" || !active) && !admins.length;
 }
 function openUser(u) {
-  const body = '<p class="hint" style="margin-top:0">' + esc(u.name || "") + ", " + esc(u.email) + '</p><label class="lab" for="uRole" title="Admin: everything, plus the Console. Warehouse: receive, count, move, labels, jobs, orders. Tech: scan, check out and in, box readings, stage and deliver. Accounting: reads everything and the Console reports, changes nothing. Board: the wall board TV\'s own account.">' + '<abbr>Role</abbr></label><select class="fld" id="uRole">' +
+  const body = '<p class="hint" style="margin-top:0">' + esc(u.name || "") + ", " + esc(u.email) + '</p><label class="lab" for="uRole" title="Admin: everything, People and Settings in Office too. Warehouse: receive, audit, move, labels, jobs, orders. Tech: scan, check out and in, box readings, stage and deliver. Accounting: reads everything and Office, Reports, changes nothing. Board: the wall board TV\'s own account.">' + '<abbr>Role</abbr></label><select class="fld" id="uRole">' +
     ROLES.map(r => '<option value="' + r + '"' + (u.role === r ? " selected" : "") + ">" + ROLE_LABEL[r] + "</option>").join("") + '</select><label class="chk" title="A deactivated person can still sign in but only reads. Their name stays on every record they touched."><input type="checkbox" id="uActive"' + (u.active === false ? "" : " checked") + '> Active</label><p class="err" id="uErr" hidden></p>';
   const w = openModal("Change " + (u.name || u.email), body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Save</button>');
   w.querySelector("[data-ok]").addEventListener("click", async () => {
@@ -7587,7 +7981,7 @@ const DATA_DICTIONARY = [
     ["active", "false when deactivated: they still sign in, but only read"], ["confirmed", "false until an admin confirms the role of a self sign-in"],
     ["addedBy", "Who added them, or self-sign-in"], ["addedAt", "First sign-in"], ["lastSeen", "Latest sign-in or page load"],
     ["updatedBy", "Email of the admin who last changed the role"], ["updatedByName", "Name of that admin"], ["updatedAt", "When the role last changed"]] },
-  { coll: "loadout_settings/general", id: "general", about: "Shop-wide settings, changed by admins in the Console.", fields: [
+  { coll: "loadout_settings/general", id: "general", about: "Shop-wide settings, changed by admins in Office, Settings.", fields: [
     ["showCosts", "Show cost fields and report values"], ["qrThreshold", "Cost at or above which a received unit gets its own QR"], ["labelSize", "Default label sheet: 5160 or 5163 (2 x 4 in)"],
     ["weekStart", "First day of the week: 0 Sunday, 1 Monday"], ["workWeek", "Week view hides the weekend for anyone who has not chosen"],
     ["boxStart.cat, .coax, .audio, .stranded, .other", "Default start length in feet for a new box of that cable type"],
@@ -7601,6 +7995,11 @@ const DATA_DICTIONARY = [
     ["columns", "CSV header to Loadout field"], ["updatedBy", "Email of whoever imported last"], ["updatedByName", "Name of whoever imported last"], ["updatedAt", "When"]] },
   { coll: "loadout_settings/portal", id: "portal", about: "The Portal link (written by loadout-worker from 0.6.0; no secrets here).", fields: [
     ["tier", "t0 (CSV), t1 (Zapier), or t2 (API)"], ["lastPollAt", "Last time the worker read Portal"]] },
+  { coll: "loadout_settings/worker", id: "worker", about: "What loadout-worker's nightly export last did (0.6.1); Office, Backups reads it. Only the worker writes it.", fields: [
+    ["lastExportAt", "When the last nightly export finished"], ["lastExportFolder", "The dated folder it wrote, as 2026-11-11"], ["lastExportBucket", "The storage bucket it wrote to"],
+    ["lastExportPrefix", "The day's path in the bucket, as loadout/backups/2026-11-11/"], ["lastExportFiles", "How many files it wrote"], ["lastExportRows", "How many rows across those files"],
+    ["lastExportPruned", "The dated folders it deleted to keep the retention window"], ["lastExportError", "The last error, empty when the last run worked; a failed run writes only this and the next field"], ["lastExportErrorAt", "When that error happened"],
+    ["updatedAt", "When the worker last wrote here"]] },
   { coll: "loadout_settings/counters", id: "counters", about: "The shared PO number counter (0.5.2). Read and bumped in one transaction with the PO it numbers, so two people never take the same number. Warehouse and admin write it.", fields: [
     ["po", "The last PO number handed out; it starts from the highest PO in Loadout on first use"], ["updatedBy", "Email of whoever took the last number"], ["updatedByName", "Their name"], ["updatedAt", "When"]] },
   { coll: "loadout_products", id: "brand-model slug, or kind, type, and attributes slug", about: "The catalog: one document per product, whatever shelf it sits on.", fields: [
@@ -7639,7 +8038,7 @@ const DATA_DICTIONARY = [
     ["qty", "Quantity moved; negative for a cut or a write-off"], ["unit", "each or ft"], ["fromLocationId", "Where it came from"], ["fromLocationName", "Its name"],
     ["toLocationId", "Where it went"], ["toLocationName", "Its name"], ["cut.fromMark, cut.toMark, cut.length", "A box cut: mark before, mark after, feet cut"],
     ["holderUid", "Who holds a checked-out unit"], ["holderName", "Their name"], ["condition", "Condition at check-in"], ["jobName", "Job it was for"],
-    ["ticketId", "Ticket"], ["ticketNumber", "Its number"], ["ticketLineId", "Job line"], ["orderId", "Purchase order"], ["orderNumber", "Its PO number"], ["shipmentId", "Shipment"],
+    ["ticketId", "Job"], ["ticketNumber", "Its number"], ["ticketLineId", "Job line"], ["orderId", "Purchase order"], ["orderNumber", "Its PO number"], ["shipmentId", "Shipment"],
     ["note", "Free text"], ["by", "Email of the person who did it"], ["byName", "Their name"], ["at", "When it happened (the sheet's count date for imported rows)"],
     ["importTab, importRow, importKey", "Inventory sheet tab, row, and the key that stops a re-import repeating it"], ["importedAt", "When the import ran"]] },
   { coll: "loadout_clients", id: "client name slug", about: "Clients, mostly arriving with an imported proposal.", fields: [
@@ -7664,7 +8063,8 @@ const DATA_DICTIONARY = [
     ["portalItemId", "Portal item id"], ["orderLineRefs", "Order lines serving it: orderId and orderLineId (one orderId/orderLineId; column in the export)"], ["notes", "Line note"],
     ["pickedFromName", "Shelf, box, or PO it was pulled from"], ["pickedByName", "Who pulled it"], ["pickedAt", "When"],
     ["qtyPickedUp", "Taken out of the bay into a van (0.8.0). In the van = picked up minus delivered"], ["pickedUpAt, pickedUpBy, pickedUpByName", "The latest pick-up of this line (0.8.0)"],
-    ["deliveryNote", "Why a line was left unticked at Confirm a delivery, as Left in the van (0.8.0); cleared when it is delivered"]].concat(DD_WHO) },
+    ["deliveryNote", "Why a line was left unticked at Confirm a delivery, as Left in the van (0.8.0); cleared when it is delivered"],
+    ["broughtBackAt, broughtBackBy, broughtBackByName", "The latest Bring back of this line from a van to the job's bay or a shelf: when, the email, and the name (0.9.0). Bring back lowers qtyPickedUp, and qtyStaged too when it goes to a shelf"]].concat(DD_WHO) },
   { coll: "loadout_orders", id: "PO number from loadout_settings/counters, or draft-<random> for a draft started with no connection", about: "Purchase orders.", fields: [
     ["number", "PO number; empty on a draft started offline until Mark ordered numbers it"], ["vendor", "Vendor"], ["orderNumber", "The vendor's order number"], ["status", "draft, ordered, partial, received, or cancelled"],
     ["orderedAt", "When marked ordered (Spend uses this date)"], ["orderedBy", "Email of whoever marked it"], ["orderedByName", "Their name"],
@@ -7679,7 +8079,7 @@ const DATA_DICTIONARY = [
     ["ticketId, ticketNumber, ticketLineId, ticketArea", "The job line it serves"], ["jobName, clientName", "Job and client"], ["note", "Line note"], ["sort", "Order on the PO"], ["receivedAt", "When fully received"]].concat(DD_WHO) },
   { coll: "loadout_shipments", id: "random", about: "A box on its way: some or all of a PO's lines.", fields: [
     ["orderId, orderNumber", "The PO"], ["vendor", "Vendor"], ["carrier", "UPS, FedEx, USPS, or Other"], ["tracking", "Tracking number"], ["trackingUrl", "Tracking page"],
-    ["status", "shipped, out_for_delivery, delivered, or received"], ["shippedAt, expectedAt, deliveredAt, receivedAt", "The dates"], ["receivedBy, receivedByName", "Who received it"],
+    ["status", "shipped, out_for_delivery, delivered (shown as Arrived since 0.9.0: the carrier left it), or received"], ["shippedAt, expectedAt, deliveredAt, receivedAt", "The dates; deliveredAt is when it arrived"], ["receivedBy, receivedByName", "Who received it"],
     ["shipTo", "office or client, from the PO unless changed on Add shipment"], ["shipToAddress", "The job's address when shipTo is client"],
     ["statusLog", "Every status change, oldest first: status, at, by, byName, note. Tracking reads the last entry. Exported as loadout_shipments_status.csv, one row per change with the shipment id first"],
     ["deliveredBy, deliveredByName", "Who marked a job-site package delivered"], ["note", "The Note on its Tracking card"],
@@ -7845,7 +8245,7 @@ const REPORTS = [
       const tc = rows.reduce((a, r) => a + num(r.total), 0), miss = rows.filter(r => r.total == null).length, jobs = new Set(rows.map(r => r.client + "|" + r.job)).size;
       const total = plural(rows.length, "delivery", "deliveries") + " to " + plural(jobs, "job") + "." + (C ? " Cost: " + money(tc) + "." + (miss ? ' <span class="z">' + plural(miss, "delivery", "deliveries") + " with no cost " + (miss === 1 ? "counts" : "count") + " as zero.</span>" : "") : "");
       if (by === "each") {
-        const cols = [dayCol("at", "Delivered", r => r.at), txtCol("client", "Client", r => r.client), txtCol("job", "Job", r => r.job), txtCol("ticket", "Ticket", r => r.ticket ? "#" + r.ticket : "", { sort: r => r.ticket }),
+        const cols = [dayCol("at", "Delivered", r => r.at), txtCol("client", "Client", r => r.client), txtCol("job", "Job", r => r.job), txtCol("ticket", "Job #", r => r.ticket ? "#" + r.ticket : "", { sort: r => r.ticket }),
           txtCol("product", "Product", r => r.product), numCol("qty", "Qty", r => r.qty), txtCol("unit", "Unit", r => r.unit, { def: false })];
         if (C) cols.push(moneyCol("cost", "Unit cost", r => r.cost, { def: false }), moneyCol("total", "Cost", r => r.total));
         cols.push(txtCol("by", "By", r => r.by));
@@ -7929,19 +8329,19 @@ const REPORTS = [
         numCol("qty", "Qty", m => m.qty == null || m.type === "edit" ? null : num(m.qty)), txtCol("unit", "Unit", m => m.unit, { def: false }),
         numCol("cutFrom", "Cut from mark", m => m.cut ? m.cut.fromMark : null, { def: false }), numCol("cutTo", "Cut to mark", m => m.cut ? m.cut.toMark : null, { def: false }), numCol("cutLength", "Cut length", m => m.cut ? m.cut.length : null, { def: false }),
         txtCol("from", "From", m => m.fromLocationName), txtCol("to", "To", m => m.toLocationName), txtCol("by", "By", m => m.byName || m.by), txtCol("byEmail", "By email", m => m.by, { def: false }),
-        txtCol("job", "Job", m => m.jobName), txtCol("ticket", "Ticket", m => m.ticketNumber ? "#" + m.ticketNumber : "", { def: false }), txtCol("order", "PO", m => m.orderNumber, { def: false }),
+        txtCol("job", "Job", m => m.jobName), txtCol("ticket", "Job #", m => m.ticketNumber ? "#" + m.ticketNumber : "", { def: false }), txtCol("order", "PO", m => m.orderNumber, { def: false }),
         txtCol("holder", "Holder", m => m.holderName, { def: false }), txtCol("condition", "Condition", m => m.condition, { def: false }), txtCol("note", "Note", m => m.note)];
       return { id: "rep_movements", cols, rows, total: plural(rows.length, "movement") + (rows.length !== (S.rep.mvs || []).length ? " of " + fmtN((S.rep.mvs || []).length) + " in the range." : " in the range."), defaultSort: (a, b) => (toDate(b.at) || 0) - (toDate(a.at) || 0) };
     },
     empty: () => "No " + (S.rf.mvType ? (MV_LABEL[S.rf.mvType] || S.rf.mvType).toLowerCase() + " " : "") + "movements " + (S.rf.mvPerson ? "by " + S.rf.mvPerson + " " : "") + rrText() + "." },
 
-  { k: "aging", label: "Aging", file: "aging", mv: false, views: () => viewSel("aging", [["tickets", "Open jobs"], ["pos", "Open purchase orders"], ["dnr", "Delivered, not received"]]),
+  { k: "aging", label: "Aging", file: "aging", mv: false, views: () => viewSel("aging", [["tickets", "Open jobs"], ["pos", "Open purchase orders"], ["dnr", DNR]]),
     hint: () => "Everything still open today that was opened on or before the To date. From does not apply here: the oldest are the ones that matter. Age counts to today.",
     build() {
       const to = rrDates().to, which = rfv("aging", "tickets");
       if (which === "tickets") {
         const rows = Array.from(S.tickets.values()).filter(t => t.status !== "closed" && toDate(t.createdAt) && toDate(t.createdAt) <= to).map(t => { const s = tkSummary(t), age = daysSince(t.createdAt); return { t, age, bucket: ageBucket(age), st: tkStatus(t), s }; });
-        const cols = [txtCol("ticket", "Ticket", r => "#" + r.t.number, { sort: r => r.t.number }), txtCol("client", "Client", r => r.t.clientName), txtCol("job", "Job", r => r.t.jobName),
+        const cols = [txtCol("ticket", "Job #", r => "#" + r.t.number, { sort: r => r.t.number }), txtCol("client", "Client", r => r.t.clientName), txtCol("job", "Job", r => r.t.jobName),
           txtCol("status", "Status", r => TK_LABEL[r.st] || r.st), dayCol("opened", "Opened", r => r.t.createdAt), numCol("age", "Age (days)", r => r.age), txtCol("bucket", "Age band", r => r.bucket, { sort: r => r.age }),
           dayCol("install", "Install", r => r.t.installAt), txtCol("staged", "Staged", r => r.s.staged + " of " + r.s.lines + " lines", { sort: r => r.s.lines ? r.s.staged / r.s.lines : 0 })];
         return { id: "rep_aging_tickets", cols, rows, total: rows.length ? bucketLine(rows, "open job") : "", defaultSort: (a, b) => b.age - a.age, rowClass: r => r.age > 30 ? "need" : "", emptyMsg: "No open jobs opened on or before " + rrDay(to) + "." };
@@ -7950,15 +8350,15 @@ const REPORTS = [
         const rows = Array.from(S.orders.values()).filter(o => ["draft", "ordered", "partial"].includes(o.status)).map(o => ({ o, opened: o.orderedAt || o.createdAt })).filter(r => toDate(r.opened) && toDate(r.opened) <= to)
           .map(r => { const age = daysSince(r.opened), s = ordSummary(r.o); return Object.assign(r, { age, bucket: ageBucket(age), s }); });
         const cols = [txtCol("po", "PO", r => "PO " + r.o.number, { sort: r => r.o.number }), txtCol("vendor", "Vendor", r => r.o.vendor || "No vendor yet"), txtCol("for", "For", r => ordFor(r.o)),
-          txtCol("status", "Status", r => ordDnr(r.o) ? "Delivered, not received" : ORD_LABEL[r.o.status] || r.o.status), dayCol("opened", "Opened", r => r.opened), numCol("age", "Age (days)", r => r.age),
+          txtCol("status", "Status", r => ordDnr(r.o) ? DNR : ORD_LABEL[r.o.status] || r.o.status), dayCol("opened", "Opened", r => r.opened), numCol("age", "Age (days)", r => r.age),
           txtCol("bucket", "Age band", r => r.bucket, { sort: r => r.age }), txtCol("recv", "Received", r => fmtN(r.s.qtyReceived) + " of " + fmtN(r.s.qtyOrdered), { sort: r => r.s.qtyOrdered ? r.s.qtyReceived / r.s.qtyOrdered : 0 })];
         return { id: "rep_aging_pos", cols, rows, total: rows.length ? bucketLine(rows, "open PO") + ' <span class="z">Drafts age from the day they were started, the rest from the day they were marked ordered.</span>' : "", defaultSort: (a, b) => b.age - a.age, rowClass: r => r.age > 30 ? "need" : "", emptyMsg: "No open purchase orders opened on or before " + rrDay(to) + "." };
       }
       const rows = Array.from(S.shipments.values()).filter(s => s.status === "delivered" && shipOpen(s) && toDate(s.deliveredAt) && toDate(s.deliveredAt) <= to).map(s => { const age = daysSince(s.deliveredAt), o = S.orders.get(s.orderId); return { s, o, age, bucket: ageBucket(age), open: (s.lines || []).filter(e => num(e.qty) - num(e.qtyReceived) > 0).length }; });
       const cols = [txtCol("po", "PO", r => "PO " + (r.s.orderNumber || r.s.orderId), { sort: r => r.s.orderNumber }), txtCol("vendor", "Vendor", r => r.s.vendor || (r.o && r.o.vendor) || ""), txtCol("carrier", "Carrier", r => r.s.carrier),
-        txtCol("tracking", "Tracking", r => r.s.tracking, { cls: "mono" }), dayCol("delivered", "Delivered", r => r.s.deliveredAt), numCol("age", "Days waiting", r => r.age), txtCol("bucket", "Age band", r => r.bucket, { sort: r => r.age }),
+        txtCol("tracking", "Tracking", r => r.s.tracking, { cls: "mono" }), dayCol("delivered", "Arrived", r => r.s.deliveredAt), numCol("age", "Days waiting", r => r.age), txtCol("bucket", "Age band", r => r.bucket, { sort: r => r.age }),
         numCol("open", "Lines waiting", r => r.open), txtCol("for", "For", r => r.o ? ordFor(r.o) : r.s.jobName || "Stock")];
-      return { id: "rep_aging_dnr", cols, rows, total: rows.length ? bucketLine(rows, "shipment") + " Find the box and press Receive on the order." : "", defaultSort: (a, b) => b.age - a.age, rowClass: () => "need", emptyMsg: "No shipments delivered and not received on or before " + rrDay(to) + "." };
+      return { id: "rep_aging_dnr", cols, rows, total: rows.length ? bucketLine(rows, "shipment") + " Find the box and press Receive on the order." : "", defaultSort: (a, b) => b.age - a.age, rowClass: () => "need", emptyMsg: "No shipments arrived and not received on or before " + rrDay(to) + "." };
     },
     empty: () => "" }
 ];
@@ -8258,7 +8658,7 @@ function buildImportPlan(imp) {
         unit(id, d.name + " #" + k, {});
       }
       itemCounter.set(pid, base + rest);
-      if (base + rest < have) warnings.push(d.name + ": the sheet shows fewer units than were imported before. Nothing was retired; check them on the Units view.");
+      if (base + rest < have) warnings.push(d.name + ": the sheet shows fewer units than were imported before. Nothing was retired; check them under Shelf, All units.");
       rec.rep.used++;
       return;
     }
@@ -8536,6 +8936,10 @@ document.addEventListener("click", e => {
     case "jobClose": { const t = S.tickets.get(id); if (t) { go("ticket", id); openClose(t); } break; }
     case "flowPickup": flowCommit("pickup"); break;
     case "flowDeliver": flowCommit("deliver"); break;
+    /* 0.9.0: the Pull screen and Bring back */
+    case "pfPull": { const t = S.tickets.get(S.pullJob), l = t && S.lines.get(t.id) ? S.lines.get(t.id).get(id) : null; if (t && l) openPull(t, l, { from: b.dataset.from || "", qty: num(b.dataset.qty), box: b.dataset.box || "" }); break; }
+    case "pfOrder": { const t = S.tickets.get(S.pullJob); if (t) openOrderMissing(t); break; }
+    case "bringBack": { const t = S.tickets.get(id); if (t) openBringBack(t, b.dataset.mine === "1"); break; }
     case "audStep": if (S.aud) { const x = auditContents(S.aud.loc).prods.find(y => y.p.id === id); const cur = S.aud.vals[id]; const base = cur === undefined || cur === "" ? (x ? x.exp : 0) : num(cur); S.aud.vals[id] = String(Math.max(0, base + num(b.dataset.d))); render(true); } break;
     case "audMatch": if (S.aud) { const x = auditContents(S.aud.loc).prods.find(y => y.p.id === id); if (x) { S.aud.vals[id] = String(x.exp); render(true); } } break;
     case "audUnit": if (S.aud) { S.aud.units[id] = S.aud.units[id] === b.dataset.v ? undefined : b.dataset.v; render(true); } break;
@@ -8702,7 +9106,7 @@ document.addEventListener("change", e => {
 /* the attributes section in a product panel stays open across redraws */
 document.addEventListener("toggle", e => { if (e.target.matches && e.target.matches("details[data-xattr]") && S.x) S.x.attrOpen = e.target.open; }, true);
 window.addEventListener("hashchange", () => applyHash());
-const VIEWS = ["home", "pull", "pickup", "deliver", "audit", "office", "tickets", "ticket", "stock", "scan", "items", "orders", "order", "tracking", "week"];
+const VIEWS = ["home", "pull", "pickup", "deliver", "receive", "audit", "office", "tickets", "ticket", "stock", "scan", "items", "orders", "order", "tracking", "week"];
 function applyHash() {
   let parts = location.hash.replace(/^#/, "").split("/").map(x => { try { return decodeURIComponent(x); } catch (e) { return x; } });
   /* #shelf/units/... is the full Units list under Shelf */
@@ -8712,6 +9116,7 @@ function applyHash() {
   if (!VIEWS.includes(v)) return false;
   if (v === "office") { S.officeSec = sub || null; if (sub === "reports" && rest && REPORTS.some(r => r.k === rest)) S.repTab = rest; if (parts[1] === "board") setTimeout(scrollToBoard, 80); }
   if (v === "pickup" || v === "deliver") { S.flowJob = sub || null; if (!sub) S.flow = null; }
+  if (v === "pull") S.pullJob = sub || null;
   if (v === "audit") { S.auditLoc = sub || null; if (!sub) S.aud = null; }
   S.x = null;
   if (v === "stock") { if (sub === "p" && rest) { xSet("p", rest); const p = S.products.get(rest); if (S.stockTab === "locations" || !p || !stockShows(p)) { S.stockTab = "all"; S.search = ""; } } else if (sub === "l" && rest) { S.stockTab = "locations"; xSet("l", rest); } else if (sub) S.stockTab = sub; }

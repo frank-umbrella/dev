@@ -3,7 +3,7 @@
   "name": "Loadout",
   "short_name": "Loadout",
   "description": "Umbrella Automation shop inventory: shelf audits, pull sheets for jobs, deliveries, serialized units, and purchase orders.",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "start_url": "./#home",
   "scope": "./",
   "display": "standalone",
