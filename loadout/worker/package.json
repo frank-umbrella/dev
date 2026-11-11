@@ -1,8 +1,8 @@
 {
   "name": "loadout-worker",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": true,
-  "description": "Cloudflare Worker for Loadout: Portal proposals pushed by Zapier become pick tickets in Firestore, and a nightly CSV export goes to the project's Firebase Storage bucket.",
+  "description": "Cloudflare Worker for Loadout: Portal proposals pushed by Zapier become pick tickets in Firestore, a nightly CSV export goes to the project's Firebase Storage bucket, and signed-in staff can look up a product photo by UPC.",
   "type": "module",
   "main": "src/index.js",
   "scripts": {

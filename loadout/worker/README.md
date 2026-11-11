@@ -1,6 +1,6 @@
 # loadout-worker
 
-Cloudflare Worker for Loadout (`work/loadout`). It does two jobs:
+Cloudflare Worker for Loadout (`work/loadout`). It does three jobs:
 
 1. **Zapier intake (PLAN section 6, T1).** When a Portal proposal is
    accepted, a Zap posts the proposal to the worker. The worker writes the
@@ -11,18 +11,23 @@ Cloudflare Worker for Loadout (`work/loadout`). It does two jobs:
    writes one CSV per collection to the project's Firebase Storage bucket,
    under `loadout/backups/2026-11-02/`, and deletes days older than 90. The
    app lists them under Console > Backups.
+3. **Photo from a UPC (PLAN section 21.4).** When a UPC goes onto a
+   product, the app asks the worker what the free UPC lookup knows about it
+   and shows the photos it found; see "UPC photo lookup" below.
 
 The Portal API intake (T2) is a stub until PLAN D1 is answered; see
 "T2 boundary" below.
 
-Version: **0.2.1**. Worker URL once deployed:
+Version: **0.3.0**. Worker URL once deployed:
 `https://loadout-worker.umbrelladev.workers.dev`.
 
 ## Endpoints
 
 | Route | What it does |
 | --- | --- |
-| `GET /health` | Version, which intakes are configured (`csv`, `zapier`, `portalApi`), and under `export`: `configured` (the service account secret exists), `bucket` (`STORAGE_BUCKET`), and the last export time, day folder, and error, read from `loadout_settings/worker`. |
+| `GET /health` | Version, which intakes are configured (`csv`, `zapier`, `portalApi`), and under `export`: `configured` (the service account secret exists), `bucket` (`STORAGE_BUCKET`), and the last export time, day folder, and error, read from `loadout_settings/worker`. Under `upc`: `configured` (service account, project id, and at least one app origin are set) and `origins` (how many are in `APP_ORIGINS`). |
+| `GET /upc/lookup?upc=` | App only (see "UPC photo lookup"). 200 `{ ok: true, upc, found, title, brand, model, photos, remaining, cached }`; `photos` is 0 to 4, `remaining` is the service's quota left today or `null` when the answer came from the cache. Errors: 400 `That is not a UPC.`, 401 `unauthorized`, 403 `forbidden` or `origin_not_allowed`, 429 `busy`, 502 `unreachable`. |
+| `GET /upc/photo?upc=&i=` | App only. The bytes of photo `i` (0 to 3) from that UPC's lookup, with its image type and `Cache-Control: private, max-age=3600`. Errors: 400 `That is not a UPC.` or `bad_index`, 401, 403 as above, 404 `no_such_photo` (the lookup has no photo `i` or found nothing), 429 `busy`, 502 `unreachable` (the lookup) or `photo_unavailable` (the photo itself). |
 | `POST /zapier/proposal` | Needs header `X-Loadout-Secret` equal to `ZAPIER_SHARED_SECRET`. Body is the Portal "Update Proposal Status" payload. Only status `Accepted` does anything; any other status answers 200 with `ignored: true` so the Zap does not show an error. |
 | `POST /portal/webhook` | Always 501 for now: "Portal API intake is not configured (needs the Unlimited plan and PORTAL_* secrets)", or "not built yet" once the secrets exist. |
 | cron `0 9 * * *` | The nightly export to `loadout/backups/YYYY-MM-DD/` in `STORAGE_BUCKET`. Skips quietly while `FIREBASE_SERVICE_ACCOUNT` is not set. |
@@ -75,8 +80,13 @@ in this repo, or in a chat.
 | `PORTAL_APP_ID`, `PORTAL_USER_KEY`, `PORTAL_BASE_URL` | T2 only. Leave unset until the shop is on Portal's Unlimited plan with an approved API application. |
 
 Vars in `wrangler.toml` (not secret): `FIREBASE_PROJECT_ID =
-"watchtower-6fbe1"` and `STORAGE_BUCKET =
-"watchtower-6fbe1.firebasestorage.app"` (the app's `storageBucket`).
+"watchtower-6fbe1"`, `STORAGE_BUCKET =
+"watchtower-6fbe1.firebasestorage.app"` (the app's `storageBucket`), and
+`APP_ORIGINS = "https://devriz.umbrellaautomation.com"` (0.3.0; the app's
+address, comma-separated if there is ever more than one). The UPC routes
+need no new secret: they use the same `FIREBASE_SERVICE_ACCOUNT` to read
+the roster, and the lookup service takes no key. Deploying 0.3.0 is a plain
+`wrangler deploy`.
 
 ## Firestore and Storage rules
 
@@ -219,6 +229,59 @@ and `lastExportError` (null on success). A failed run writes only
 `lastExportError` and `lastExportErrorAt`. `/health` shows the time, day,
 and error; Console > Backups shows the same as its status line.
 
+## UPC photo lookup
+
+What it calls: the free UPCitemdb trial lookup,
+`https://api.upcitemdb.com/prod/trial/lookup?upc=<digits>`, with no key.
+A browser cannot call it (it only answers its own site), so the app asks
+the worker. The worker takes the first item's title, brand, and model, and
+up to four of its image addresses (http or https only, duplicates
+dropped, https first).
+
+**The limit.** The free lookup allows 100 lookups a day, and the count is
+shared with everyone else whose requests leave from the same Cloudflare
+network, not just this shop. When it is used up the service answers 429
+and the worker passes that on as 429 `busy`; the app says "Lookup is busy,
+try again later". That is a normal state, not a fault. `remaining` in the
+lookup answer is the service's own count of what is left.
+
+**Who can call it.** Only the app's own address (`APP_ORIGINS`, exact
+match; anything else, and a request with no `Origin`, gets 403 before any
+lookup), and only a person signed in to the app whose roster document
+(`loadout_users/{uid}`) is active with role admin or warehouse, from a
+verified `@umbrellaautomation.com` address, the same test the Firestore
+rules use. The app sends the Firebase ID token as `Authorization: Bearer`;
+the worker checks its signature against Google's published keys, its
+project, issuer, and times, then reads the roster doc with the service
+account. Signed out or a bad token is 401; tech, accounting, board, a
+paused person, or nobody on the roster is 403. Because the photo needs that
+header, the app fetches it with `fetch()` and shows it from a blob, not
+with a plain `<img src>`.
+
+**Where photos come from.** `/upc/photo` never takes an address from the
+request. It looks the UPC up again (from the cache when it can) and fetches
+entry `i` of that lookup's own list, so the worker cannot be pointed at
+any other address. The photo must come back as JPEG, PNG, WebP, or GIF
+(SVG is refused), 5 MB at most (checked on the header and again while
+reading), within 10 seconds, or the answer is 502 `photo_unavailable`.
+Outbound requests carry only `User-Agent: loadout-worker`: no sign-in
+token, cookie, or referrer of the caller's.
+
+**What is kept.** The worker stores nothing in Firestore or Storage. Each
+lookup answer (found or not) is kept for 24 hours in the worker's memory
+and in Cloudflare's cache, so the photo requests right after a lookup and a
+repeat lookup of the same UPC do not spend the daily quota. The app saves
+the photo the person picks through its own upload, as with a camera photo.
+Note: Cloudflare's cache does nothing on a `*.workers.dev` address, so
+until the worker sits on a custom domain only the in-memory copy helps;
+that usually covers the photo requests that follow a lookup.
+
+**Outbound calls per request** (the free plan allows 50): lookup is at
+most 4 (Google's keys, about once every few hours; the service account
+token, about once an hour; the roster read; the lookup itself, skipped on
+a cache hit), photo is at most 5 (the same plus the photo). Cache reads and
+writes may count too.
+
 ## T2 boundary
 
 Everything for the Portal API lives in `src/portal.js` and is not built.
@@ -280,10 +343,28 @@ Tests cover the CSV writer (including the two shipment files and the
 the fixture, id and name composition against the app's rules, replays and
 change orders over existing lines, retention date math, the Storage object
 names, day parsing, prune selection, name encoding, and the batch delete
-request and response (`test/storage.test.js`), and the routes that answer
-before touching Firestore.
+request and response (`test/storage.test.js`), the routes that answer
+before touching Firestore, the sign-in check against a key made in the
+test (`test/auth.test.js`: audience, issuer, expiry, signature, key id,
+roster role and pause), and the UPC routes with a fake network
+(`test/upc.test.js`: UPC parsing, the answer's shape, busy and unreachable,
+photo address filtering, image type and size limits, and CORS).
 
 ## Changelog
+
+### 0.3.0 (2026-11-11)
+
+Loadout is going to offer a product photo the moment a UPC goes onto a
+product (Loadout 0.10.0, PLAN 21.4), so nobody has to photograph a boxed
+switch that a retailer has already photographed. The free UPC lookup that
+finds those photos refuses calls from a browser, so the worker now asks it
+on the app's behalf: `/upc/lookup` returns the name, brand, model, and how
+many photos it found, and `/upc/photo` hands over one of them. Only the
+app's own address and signed-in admin and warehouse people can use them,
+and the worker fetches photos only from the lookup's own list, so it cannot
+be used to fetch anything else. Each answer is kept for a day so the
+shared 100-a-day limit is not spent twice on the same UPC. No new secret;
+`APP_ORIGINS` is a plain setting in `wrangler.toml`. Not deployed.
 
 ### 0.2.1 (2026-11-03)
 

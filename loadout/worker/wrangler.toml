@@ -23,6 +23,11 @@ FIREBASE_PROJECT_ID = "watchtower-6fbe1"
 # loadout/backups/ in it. Must match the bucket name in the Firebase console.
 STORAGE_BUCKET = "watchtower-6fbe1.firebasestorage.app"
 
+# 0.3.0: the only browser origins allowed to call /upc/lookup and
+# /upc/photo (comma list, exact match, no trailing slash). Everything else,
+# including a request with no Origin, gets 403 before any lookup.
+APP_ORIGINS = "https://devriz.umbrellaautomation.com"
+
 # Secrets, set with `wrangler secret put <NAME>`, never in this file:
 #   FIREBASE_SERVICE_ACCOUNT  JSON key of the loadout-worker service account on
 #                             watchtower-6fbe1, with the roles Cloud Datastore

@@ -12,8 +12,9 @@ test('routes: /health reports version and which intakes are configured', async (
   const r = await call(Object.assign({ ZAPIER_SHARED_SECRET: 's' }, base), '/health');
   assert.equal(r.status, 200);
   const j = await r.json();
-  assert.equal(j.version, '0.2.1');
+  assert.equal(j.version, '0.3.0');
   assert.deepEqual(j.intakes, { csv: true, zapier: false, portalApi: false });
+  assert.deepEqual(j.upc, { configured: false, origins: 0 });
   assert.equal(j.export.configured, false);
   assert.equal(j.export.bucket, 'watchtower-6fbe1.firebasestorage.app');
   assert.equal(j.export.lastExportAt, null);

@@ -3,6 +3,8 @@
 //   GET  /health            version, which intakes are configured, last export
 //   POST /zapier/proposal   T1: Portal proposal accepted, pushed by a Zap
 //   POST /portal/webhook    T2: Portal API webhook, a 501 stub (src/portal.js)
+//   GET  /upc/lookup        0.3.0: name and photo count for a UPC (src/upc.js)
+//   GET  /upc/photo         0.3.0: one photo from that UPC's lookup (src/upc.js)
 //   cron 09:00 UTC          nightly CSV export to the project's Storage bucket
 //
 // All Firestore writes go through the FIREBASE_SERVICE_ACCOUNT service
@@ -13,8 +15,9 @@ import { buildTable, toCsv, splitLines, shipmentTables } from './csv.js';
 import { dayStamp, dayPrefix, objectName, foldersToPrune, listDays, uploadCsv, deleteDay, RETENTION_DAYS } from './storage.js';
 import { parseProposal, buildImport, matchProduct, secretsMatch, slug } from './zapier.js';
 import { portalConfigured, handlePortalWebhook } from './portal.js';
+import { handleUpc, appOrigins } from './upc.js';
 
-const VERSION = '0.2.1';
+const VERSION = '0.3.0';
 
 // Root collections in the same order as the app's Console export
 // (index.html EXPORT_COLLS); ticket and order lines are added after, and a
@@ -52,6 +55,9 @@ export default {
         if (request.method !== 'POST') return json({ ok: false, error: 'Use POST' }, 405);
         return handlePortalWebhook(request, env);
       }
+      if (url.pathname === '/upc/lookup' || url.pathname === '/upc/photo') {
+        return await handleUpc(request, env, ctx);
+      }
       return json({ ok: false, error: 'Not found' }, 404);
     } catch (e) {
       console.error('loadout-worker error:', e && e.stack ? e.stack : e);
@@ -82,6 +88,12 @@ async function handleHealth(env) {
       portalApi: portalConfigured(env),
     },
     export: { configured: Boolean(env.FIREBASE_SERVICE_ACCOUNT), bucket: env.STORAGE_BUCKET || null, lastExportAt: null, lastExportFolder: null, lastExportError: null },
+    // The UPC routes need the service account (roster read), the project id
+    // (token audience) and at least one app origin.
+    upc: {
+      configured: Boolean(env.FIREBASE_SERVICE_ACCOUNT && env.FIREBASE_PROJECT_ID) && appOrigins(env).length > 0,
+      origins: appOrigins(env).length,
+    },
   };
   if (env.FIREBASE_SERVICE_ACCOUNT) {
     try {
