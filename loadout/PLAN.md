@@ -861,6 +861,7 @@ Build T0 first. T1 and T2 are worker work and need the plan tier known.
 | 0.9.0 | Section 20: the focused Pull screen (`#pull/<jobId>`) in pick order, the Pull door split into pullable and waiting on orders, Bring back from a van with the Close job van rule, Receive a shipment as the fourth door (serial or MAC on shipment receive), Arrived for carrier drops, the non-zero progress line, the QR on the printed pull sheet, the board's phone layout (20.3), the leftover-words sweep, `loadout_settings/worker` in the data dictionary, and the tech rules run in the emulator (14 of 14). Built 2026-11-11, not committed, rules not deployed. |
 | 0.10.0 | Section 21.4 Photo from a UPC (the sheet after every UPC save, Find a photo, Review photos after an import, the demo fixtures; needs loadout-worker 0.3.0 deployed), 22.1 New job made plain (two choices, three hand-built steps, "Here is what the file says"; the same writes as 0.9.1), 22.2 More for techs (`officeWord()`), 23 the Job report, 24 the account block in the header and the Account sheet. Built 2026-11-11, not committed, no rules change. |
 | 0.11.0 | Section 25: Brand and Category as pick lists (comboboxes) on New product and the product panel, Type with suggestions by category, the admin's Add confirm with `tidyName`, the refusal for other roles, `normKey` in the Shelf filters, the Stock report by category, the inventory importer and the proposal file reader, `loadout_settings/lists`, and Office > Settings > Brands and categories (Rename, Merge into, Probably the same, Look alike, batches of 400). Built 2026-11-11, not committed, no rules change. |
+| 0.11.1 | Section 27: the `TIPS` table (one sentence per action, keyed by action and a context word), `tipFor` in the panel builders, the fill pass in the MutationObserver for every button and button-styled link drawn as a string, the confirm sheets' button taking the sheet's own sentence, `Loadout.tipAudit()`, and What do these do? under action rows on a coarse pointer. Section 28: the Home link on the five door screens (28.1); Rename (admin, through the Brands and categories runner), Archive and Unarchive (admin, empty locations only), Show archived, the Kind tooltips, and the Settings line for locations (28.2). Built 2026-11-11, not committed, no rules change. |
 | 0.9.1 | Section 21.1 Shelf filters (Category from the product's own category, Type, Brand, Location, Consumables only; chips, the phone Filter sheet, session only) and 21.3 history as one vertical timeline everywhere; the home-screen strip, card, and Office > This phone on phones and tablets only; an odd last door spans both columns on Home; leftover "Stock" words. 21.2 stays an idea. Built 2026-11-11, not committed. |
 
 Each version is a release: bump the version everywhere, README changelog entry
@@ -2188,3 +2189,97 @@ each and 6 MB in all, and load only when the animation plays. Not used:
 Mixamo (unclear for a public repo) and any credit-required marketplace
 asset. The preview works from the published address only, since a browser
 blocks model files on a local file address.
+
+## 27. A tooltip on every action (user, 2026-11-11; build as 0.11.1)
+
+The user hovered over "Retire" on a product's panel and got nothing. The
+house rule is a tooltip on every non-obvious control, saying what it does
+and why, and the app has drifted from it: of about 390 buttons, about 290
+carry neither a tooltip nor a label for assistive tech (many are Cancel and
+Close, but Retire, Check in, Archive, Remove, Receive, Mark ordered and
+others are in that count).
+
+- **One source of truth.** A `TIPS` table keyed by action holds the
+  sentence for each action: what it does, what happens next, and for
+  anything that removes or ends something, what is lost and whether it can
+  be undone ("Retire: takes this unit out of service for good. It leaves
+  every list and count but keeps its history. It cannot be brought back
+  from the app."). A button that already carries its own, more specific
+  tooltip keeps it.
+- **Coverage by construction.** Buttons get their tooltip from the table
+  when they are drawn, so a new button with a known action cannot ship
+  without one. `Loadout.tipAudit()` lists any visible button that has
+  none, for checking.
+- **Phones have no hover.** On a touch screen, an action row with more
+  than one button ends with a small "What do these do?" link that opens a
+  sheet listing each button in that row with its sentence. Confirm sheets
+  already explain themselves and are left alone.
+- Plain Cancel, Close, Back, Done and Next are not given tooltips; the X
+  buttons keep their labels for assistive tech.
+
+**Built in 0.11.1** (2026-11-11, not committed). Everything above, with these
+choices: the What do these do? link always sits on its own line under the
+row (never squeezed beside the buttons), so no row wraps differently at
+360; "Got it" on the ? sheet counts as a plain close; the confirm sheets'
+button takes the sheet's own sentence as its tooltip, so those sentences
+are not repeated in `TIPS`; links styled as buttons (Pick up, Confirm
+delivery, Open the job) are covered too, keyed by their address.
+
+## 28. A way back from every door, and renaming locations (user, 2026-11-11; build in 0.11.1)
+
+### 28.1 Back to Home
+
+The user opened a door and could not get back. The door screens (Pull,
+Pick up, Confirm a delivery, Receive, Audit) have a color band and a
+heading but no way back except the tab bar, and inside the home-screen app
+there is no browser Back button.
+
+- Every screen reached from Home starts with a back link above its
+  heading: a chevron and the word **Home**. One level in (a job's Pull,
+  Pick up or Deliver screen, one shelf's audit) the crumb reads the parent
+  first: "Pull for a job / Job 1042", each part a link, as those screens
+  already do. Office sections keep "Office / Section" (or More for techs).
+- The link is a real link, 44 px tall on the phone, first in the tab order
+  after the skip link, and sits inside the band's card so it never scrolls
+  sideways. Escape does not navigate; it is not a form.
+
+### 28.2 Locations: add, rename, archive
+
+The user asked whether Settings lets an admin add or rename shelf
+locations. Today: New location is on Shelf, Locations (admin and
+warehouse); a location's panel edits only its kind; the name cannot be
+changed at all, and Settings has no entry for locations.
+
+- **Rename (admin only)** on the location's panel: area and shelf fields,
+  with the name they make shown as it will print. The location keeps its
+  id, so its printed QR label still scans; the readable name stored beside
+  that id is rewritten on stock rows, units, wire boxes, products that use
+  it as their default, and open job lines, in batches of at most 400, with
+  one edit movement ("Location renamed: Storage room, Shelf B to Storage
+  room, B3, 14 records"). Past movements keep the old name; they are
+  history. After a rename the panel offers **Print a new label**. A name
+  that matches another location (case and spacing ignored) is refused with
+  "Another location already has that name."
+- **Archive (admin only)**: only when nothing is stored there (no stock, no
+  units, no boxes); it leaves pick lists and the audit list and stays in
+  history. Unarchive from a "Show archived" toggle.
+- **Kind** stays editable by admin and warehouse as now, with a tooltip on
+  what each kind changes (a bay can hold a job's staged product; a vehicle
+  or van counts as "in a van").
+- **Settings** gains a "Locations" line: "Shelves, bays and vehicles are
+  managed on Shelf, Locations" with a link, so a person who looks there
+  finds it.
+
+**Built in 0.11.1** (2026-11-11, not committed, no rules change: the
+`loadout_*` wildcard already lets admin write locations, `archived`
+included, and admin writes every field the rename touches). Notes: the Home
+link is the first control inside the page content; the header (the mark,
+the views, the account block) still comes before it in the tab order.
+"Open job lines" is read as the staging bay name on open jobs and open job
+names (`stagingLocationName`); job lines carry no location name of their
+own besides `pickedFromName`, which is history and keeps the old name.
+Archive also refuses a location that is an open job's staging bay. The
+Kind tooltips follow the code: a vehicle can be pulled from like a shelf,
+a van cannot, and neither counts a line as "in a van" (that is the line's
+picked-up quantity). New location now also refuses a name another location
+has, and a name whose label code belongs to a renamed location says so.

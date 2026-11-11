@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.11.0</title>
+<title>Loadout v0.11.1</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.11.0">
+<meta name="loadout-version" content="0.11.1">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -141,6 +141,18 @@ h2.vt{margin:0;font-size:22px;font-weight:700;line-height:1.2}
 .labrow{display:flex;align-items:center;gap:var(--s1);margin:var(--s2) 0 var(--s1);min-width:0}
 .labrow>.lab{margin:0;min-width:0}
 .labrow>.chk{flex:0 1 auto;min-width:0}
+/* 0.11.1 (PLAN 27): on a touch screen an action row ends with "What do these do?" on its own line, and a sheet lists each button with its tooltip */
+.whatrow,.acts.hasw>.whatrow{flex:1 1 100%;display:flex;width:100%;min-width:0;margin:0}
+.acts.hasw{flex-wrap:wrap}
+.whatdo{min-height:44px;padding:0 2px;text-align:left}
+.whatlist{list-style:none;margin:0;padding:0}
+.whatlist li{padding:var(--s2) 0;border-top:1px solid var(--m-line)}
+.whatlist li:first-child{border-top:0;padding-top:0}
+.whatlist b{display:block;color:var(--m-text)}
+.whatlist span{display:block;color:var(--m-text);margin-top:2px;line-height:1.45}
+/* 0.11.1 (PLAN 28.1): the way back from a door screen */
+.backhome{display:inline-flex;align-items:center;gap:4px;min-height:32px;margin:0 0 var(--s1);color:var(--m-accent);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.backhome svg{width:16px;height:16px;flex:none}
 .tipq{flex:none;display:inline-grid;place-items:center;width:28px;height:28px;padding:0;border-radius:50%;border:1px solid var(--m-control-line);background:var(--m-card);color:var(--m-text);font:700 13px/1 var(--m-font);cursor:pointer}
 .tipsheet p{margin:0;font-size:15px;line-height:1.5}
 .fld{width:100%;min-height:var(--m-tap);background:var(--m-card);color:var(--m-text);border:1px solid var(--m-control-line);border-radius:var(--m-radius);padding:6px 11px;font-size:14px}
@@ -1108,6 +1120,7 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
   .tbl th .thb{min-height:44px}
   .tipq{width:44px;height:44px;font-size:16px}
   .toast .tbtn,.toast .tx{min-height:44px;min-width:44px}
+  .backhome{min-height:44px}
   .fld,.manual .fld{font-size:16px}
   .seg,.chips,.wnav,.pkg .pf,.rr .btnrow,.tkbtns,.podbtns,.quick{gap:var(--s1)}
   /* 8px between neighbors: sort buttons in a header row, line buttons on a Week card, a button under a form row */
@@ -1456,7 +1469,7 @@ a.textbtn{display:inline-flex;align-items:center}
     <!-- 0.10.0: the mark and name are one link to the person's Home; a relative hash keeps the demo's query string -->
     <a class="brand" href="#home" id="brandHome" aria-label="Loadout, go to Home">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.11.0</span>
+      Loadout <span class="v" id="verBadge">v0.11.1</span>
     </a>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
@@ -1495,7 +1508,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.11.0</span>
+    <span id="footVer">Loadout v0.11.1</span>
   </footer>
 
   <nav class="tabbar" aria-label="Views">
@@ -1521,7 +1534,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.11.0";
+const VERSION = "0.11.1";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -1857,7 +1870,7 @@ function paintStickyToast() {
   positionToast();
   clearTimeout(toast._t);
   t.classList.remove("bad");
-  t.innerHTML = "<span>" + esc(s.msg) + '</span><button type="button" class="tbtn">' + esc(s.label) + '</button><button type="button" class="tx" aria-label="Dismiss">&times;</button>';
+  t.innerHTML = "<span>" + esc(s.msg) + '</span><button type="button" class="tbtn" data-tk="reload">' + esc(s.label) + '</button><button type="button" class="tx" aria-label="Dismiss">&times;</button>';
   t.classList.add("show", "act");
   t.querySelector(".tbtn").addEventListener("click", () => { toast.sticky = null; t.classList.remove("show", "act"); s.fn(); });
   t.querySelector(".tx").addEventListener("click", () => { toast.sticky = null; t.classList.remove("show", "act"); });
@@ -2000,8 +2013,11 @@ document.addEventListener("keydown", e => {
 function confirmModal(title, bodyHTML, confirmLabel, onConfirm, danger) {
   const w = openModal(title, bodyHTML,
     '<button type="button" class="btn" data-close>Cancel</button>' +
-    '<button type="button" class="btn ' + (danger ? "danger" : "acc") + '" data-ok>' + esc(confirmLabel) + "</button>");
-  w.querySelector("[data-ok]").addEventListener("click", () => { closeModal(w); onConfirm(); });
+    '<button type="button" class="btn ' + (danger ? "danger" : "acc") + '" data-ok>' + esc(confirmLabel) + "</button>", { cls: "cnf" });
+  /* 0.11.1 (PLAN 27): the confirm button's tooltip is the sheet's own sentence, which already says what it does */
+  const okb = w.querySelector("[data-ok]"), say = w.querySelector(".mbody").textContent.replace(/\s+/g, " ").trim();
+  if (say) okb.title = say;
+  okb.addEventListener("click", () => { closeModal(w); onConfirm(); });
   return w;
 }
 /* glow on unset decision selects; cleared as soon as a value is picked.
@@ -2158,7 +2174,307 @@ function openFilters(fk) {
     setTimeout(resync, 60); toast("Filters cleared");
   });
 }
-function enhanceAll() { enhanceTips(); enhanceActs(); enhanceFilters(); fixInputs(); }
+function enhanceAll() { tipFill(); enhanceTips(); enhanceActs(); enhanceFilters(); fixInputs(); enhanceWhat(); }
+
+/* ---------------- 0.11.1 (PLAN 27): a tooltip on every action ----------------
+   TIPS is the one table. A button finds its sentence by, in order: data-tk
+   (a key passed where the button is drawn), data-act plus a context word
+   (its data-view, -kind, -tab, -x, -k, -d, -m, or for a state toggle its own
+   label) then data-act alone, data-go, its id ("#setSave"), a marker
+   attribute (data-q, data-upact=use, ...), the form it submits, or for a
+   link styled as a button its address with the record id dropped. A title
+   already on the button is more specific (it is built from live data) and
+   is never replaced. tipFill runs from the MutationObserver, so a button is
+   covered the moment it is drawn; Loadout.tipAudit() lists any that is not. */
+const TIPS = {
+  /* the five views (header and tab bar) and the Orders and tracking bar */
+  "go:home": "Home: the jobs to work on next, soonest install first, and the doors for each kind of work.",
+  "go:tickets": "Jobs: every job as a table you can sort, filter, and lay out, closed ones too.",
+  "go:scan": "Scan: read a shelf, box, unit, or product label with the camera, or type the code.",
+  "go:stock": "Shelf: every product, what is low, what is out with people, and every location.",
+  "go:office": "The sections your role can open: orders, labels, movements, reports, and settings.",
+  "go:orders": "Purchase orders, drafts first, then anything that arrived and is not received.",
+  "go:tracking": "Every package on order: to the office on one side, to job sites on the other.",
+  "go:week": "The install schedule a week at a time, with each job's lines and their status.",
+  "go:stock/low": "Opens Shelf on the Low list, where Reorder puts a product on a draft purchase order.",
+  "go:more/import": "Opens Import to bring the shop's inventory workbook in. Nothing is written until you press Import there.",
+  /* links styled as buttons, by address (the record id dropped) */
+  "href:home": "Back to Home and the next job to work on.",
+  "href:jobs": "Every job in a table you can sort and filter, closed ones too.",
+  "href:job/*": "Opens this job's page: every line, what to pull or order, and the timeline.",
+  "href:pull/*": "Opens this job's Pull screen: what to take from each shelf, in walking order.",
+  "href:pull": "Back to every job with lines the shelves can cover.",
+  "href:pickup/*": "Tick what you are taking from the bay into your van. It is yours until the delivery is confirmed.",
+  "href:pickup": "Back to every job with product waiting in a bay.",
+  "href:deliver/*": "Tick what arrived on site and confirm it. Anything not ticked stays where it is, with your note.",
+  "href:deliver": "Back to every job with product picked up or staged.",
+  "href:audit": "Back to every location, the longest since an audit first.",
+  "href:audit/*": "Opens this location's audit: confirm or correct each count.",
+  "href:orders": "Opens the purchase orders, drafts first.",
+  "href:shelf/locations": "Opens Shelf, Locations, where shelves, bays, vans, and vehicles are added, renamed, and archived.",
+  "href:office": "Back to the sections your role can open.",
+  "href:office/lists": "Opens Brands and categories: rename, merge, and the entries that look like duplicates.",
+  "href:tracking": "Every package on order, to the office and to job sites.",
+  /* lists and tables */
+  "columns": "Choose which columns this table shows and in what order. The layout is saved to your account and follows you to every device.",
+  "filters": "Opens the filters for this list in a sheet. The list behind it changes as you pick.",
+  "sfClear": "Clears every Shelf filter so the whole list shows again. The search keeps what is typed.",
+  "clearSearch": "Empties the search so the full list shows again.",
+  "retry": "Asks the database for this list again, for when the connection dropped or came back.",
+  "tfClear": "Clears the search and the filters, back to every job that is not closed.",
+  "ofClear": "Back to every open purchase order from every vendor.",
+  "trClear": "Clears the job, vendor, carrier, status, and Late only filters.",
+  "mvClear": "Clears the type, person, search, and dates so every recent movement shows.",
+  "stockTab:all": "Every product in the catalog, low stock first.",
+  "stockTab:low": "Products under their par level. Reorder on a row puts one on a draft purchase order.",
+  "stockTab:out": "Serialized units checked out to someone, longest out first, with Check in and Nudge.",
+  "stockTab:locations": "Every shelf, bay, van, and vehicle, with what each holds and its label.",
+  "itemsTab:out": "Units checked out to someone, longest out first.",
+  "itemsTab:in": "Units on a shelf, ready to check out.",
+  "itemsTab:staged": "Units laid out in a bay for a job.",
+  "itemsTab:installed": "Units marked installed when their job closed. They stay on record at the client.",
+  "itemsTab:returned": "Units back from a site that need a look before Back to stock.",
+  "itemsTab:all": "Every serialized unit, whatever its status.",
+  "unitsToggle": "Shows or hides this product's serialized units in the list, with who has each one.",
+  "xtoggle:p": "Opens or closes this product's panel: counts by location, boxes, units, and every action.",
+  "xtoggle:i": "Opens or closes this unit's panel: serial, MAC, where it is or who has it, and every action.",
+  "xtoggle:l": "Opens or closes this location's panel: what is recorded there, its label, and its actions.",
+  "xtoggle:b": "Shows or hides the files saved for this day, to download.",
+  "xsave": "Saves what you changed in this panel. The rest of the record stays as it is.",
+  "xhist": "Shows or hides this record's full history under the panel, newest first.",
+  /* records */
+  "product": "Opens this product's panel on Shelf, with where it is and every action.",
+  "scanProd": "Shows this product's card here on Scan, with its counts and actions.",
+  "item": "Opens this unit's panel under Units: serial, MAC, where it is or who has it, and every action.",
+  "location": "Opens this location on Shelf with everything recorded there.",
+  "ticket": "Opens this job's page: every line, what to pull or order, and the timeline.",
+  "order": "Opens this purchase order: its lines, shipments, and timeline.",
+  "boxSheet": "Opens the box sheet: type the mark where the cable leaves the box to log a cut or a reading.",
+  /* Shelf and the product, unit, and location panels */
+  "newProduct": "Adds a product to the catalog. Anything already typed or scanned is filled in for you.",
+  "newLocation": "Adds a shelf, bay, van, or vehicle. Its area and shelf make the label code, which never changes.",
+  "receive": "Records stock that arrived: units onto a shelf, or a new box of wire with its label and start length.",
+  "newBox": "Adds a new box or reel of this wire with its label and start length.",
+  "checkout": "Records who takes this unit and what it is for. It shows as out with them until someone checks it in.",
+  "checkin": "Puts this unit back on a shelf with its condition. Tick that it came back from a site and it waits in Returned until the warehouse looks at it.",
+  "moveItem": "Moves this unit to another location. Moving it into a bay marks it staged.",
+  "retire": "Takes this unit out of service for good: it leaves every list and count but keeps its history. It asks for a reason first, and it cannot be brought back from the app.",
+  "xupc": "Opens Scan and waits for the next barcode, which becomes this product's UPC once you confirm it.",
+  "photoRemove": "Deletes the photo from storage after you confirm. The product and its counts stay. It cannot be undone; Add photo or Find a photo puts a new one on.",
+  "startCam": "Asks the browser for the camera again. If it was blocked, allow it in the browser's site settings first.",
+  "linkUpc": "Saves this barcode as the UPC of the product you picked, after a confirm, so scanning it finds that product from now on.",
+  "printOne:prod": "Opens a print preview of this product's QR label. Scanning it opens the product.",
+  "printOne:item": "Opens a print preview of this unit's QR label, with its serial or MAC. Scanning it shows who has the unit.",
+  "printOne:loc": "Opens a print preview of this location's QR label. Scanning it makes this the active location on Scan.",
+  "printOne:ctr": "Opens a print preview of this box's QR label. Scanning it opens the box sheet.",
+  /* 0.11.1 (PLAN 28.2): renaming and archiving a location */
+  "locRename": "Changes the area and shelf, and the name they make, on every record that shows it. The label code stays, so a printed label still scans.",
+  "locArchive": "Takes this empty location off the pick lists, the audit list, and the Shelf filter. Its history stays, and Unarchive brings it back.",
+  "locUnarchive": "Puts this location back on the pick lists, the audit list, and the Shelf filter.",
+  "locRenameOk": "Writes the new name on the location and on every record beside it, in batches. Past movements keep the old name; rename again to change it back.",
+  /* jobs */
+  "newTicket": "Makes the list of product for one client's install, by hand or from the proposal file.",
+  "tkCopy": "Copies the status block to the clipboard, ready to paste into the proposal's internal notes in Portal.",
+  "tkAddLines": "Pick more products from the shelf list for this job, or read a changed proposal file.",
+  "tkAddCsv": "Reads a changed proposal file (.csv) for this job. New lines are added and changed quantities updated; lines not in the file stay.",
+  "tkOrderOff": "Every line is covered by stock or a purchase order, so there is nothing to order.",
+  "flowPickup": "Takes every ticked line into your van. Serialized units on them check out to you, and the lines stay yours until the delivery is confirmed.",
+  "flowDeliver": "Confirms the ticked lines reached the site. Lines left unticked stay where they are with your note, so the next person knows where they went.",
+  "audStep:-1": "One fewer than the number in the box, or than expected if it is empty. Nothing is saved until Finish audit.",
+  "audStep:1": "One more than the number in the box, or than expected if it is empty. Nothing is saved until Finish audit.",
+  "audUnit:here": "Marks this unit as on the shelf; press again to unmark. Nothing is saved until Finish audit.",
+  "audFinish": "Saves the audit: a correction for each count that changed, a note for each unit not here, a reading for each box with a new mark, and today as the last audit date.",
+  "wkGo:-1": "Shows the week before.",
+  "wkGo:1": "Shows the week after.",
+  /* clients and job names */
+  "newClient": "Adds a client by name. Most clients arrive with an imported proposal, so check the list first.",
+  "editClient": "Changes the client's name or notes. Jobs already made keep the name they were created with.",
+  "archClient:Archive": "Takes this client off the New job list. Its jobs and history stay, and Restore brings it back.",
+  "archClient:Restore": "Puts this client back on the New job list.",
+  "newJob": "Adds a job name under a client: the site, its address, and the bay its jobs stage in.",
+  "editJob": "Changes this job name's name, address, staging bay, or status.",
+  "archJob:Archive": "Takes this job name off the New job list and frees its staging bay for another. Jobs already made with it stay, and Reopen brings it back.",
+  "archJob:Reopen": "Puts this job name back on the New job list.",
+  /* orders */
+  "poOrdered": "Records the vendor's order number and moves the PO out of draft. A draft with no number takes the next PO number then, which needs a connection.",
+  "poCancel": "Cancels this PO after a confirm. It stays on record as cancelled and its lines stop counting as on order, so job lines show as to order again. It cannot be reopened from the app.",
+  "olQty": "Changes how many of this product the draft orders.",
+  "olRemove": "Takes this product off the draft after a confirm, and its job line shows as to order again. Add it back with Add a product or the line's Order.",
+  "olNote": "A note under this line on the PO and in Tracking, for example the vendor's reason for a delay.",
+  /* Office sections */
+  "mvCsv": "Downloads the movements shown, in the order shown, as a CSV file. Export everything holds the full trail.",
+  "mvWeek:-1": "Sets From and To to the week before the one shown.",
+  "mvWeek:0": "Sets From and To to this week.",
+  "mvWeek:1": "Sets From and To to the week after the one shown.",
+  "lblAll": "Ticks every label in this group that matches the filter.",
+  "lblNone": "Unticks every label in this group.",
+  "lblPrint": "Opens a print preview of the ticked labels on the chosen sheet. Print at 100% scale with no margins.",
+  "confirmUser": "Confirms this person in the role shown, so they stop waiting as New. Change role picks a different one.",
+  "editUser": "Changes what this person can do: their role, and whether they are active. At least one admin always stays active.",
+  "userActive:Deactivate": "Takes away this person's role after a confirm: they can still sign in, but only read. Their name stays on everything they touched, and Reactivate gives the role back.",
+  "userActive:Reactivate": "Gives this person their role back, after a confirm, at their next sign-in or page load.",
+  "impRefresh": "Reads the alias boxes again and redraws the dry run below. Nothing is written.",
+  "impClear": "Drops the file and its preview so you can choose another. Nothing was written.",
+  "bdPin": "Adds the chosen job to the board's rotation. Save settings at the bottom puts it on the TV.",
+  "toBoard": "Opens Settings at the wall board section.",
+  "lsRetry": "Runs it again from where it stopped. Records already changed are skipped, so nothing changes twice.",
+  "lsDismiss": "Hides this message. What was already written stays written.",
+  "repTab": "Switches to this report.",
+  "rrPreset:0": "Sets From and To to the first and last day of this month and reads the report again.",
+  "rrPreset:-1": "Sets From and To to the first and last day of last month and reads the report again.",
+  "repRefresh": "Reads this date range from the database again. Stock and Aging are always live.",
+  "jrPick": "Opens the Job report on this job.",
+  "jrPick:Pick another job": "Clears the job so you can search for another.",
+  "repCsv": "Downloads the rows shown, with the columns shown, as a CSV file.",
+  "repXlsx": "Downloads the rows shown, with the columns shown, as an Excel workbook.",
+  "a2Add": "Opens the browser's own install dialog. Nothing is added until you confirm there.",
+  "a2Hide:card": "Hides this card on this device. This phone keeps the steps, and Show the tip again brings the card back.",
+  "a2How": "Opens This phone with the steps for this phone, and hides the tip under the header.",
+  /* sheets: the confirm button of each, passed as data-tk where it is drawn */
+  "colSave": "Saves the columns and their order to your account, so the same layout follows you to every device.",
+  "colUp": "Moves this column one place earlier in the table.",
+  "colDown": "Moves this column one place later in the table.",
+  "signout": "Signs you out of Loadout on this device. What you saved stays; sign in with the same account to come back.",
+  "leaveDemo": "Leaves the demo for the sign-in page. Nothing in the demo was saved.",
+  "pullOk": "Moves the quantity from the chosen shelf to the job's bay and counts it as staged on the line, with your name.",
+  "stageOk": "Counts this quantity as laid out in the bay on this line, without taking it from a shelf.",
+  "lnNoteOk": "Saves the note under this line on the job and the printed pull sheet.",
+  "pullAllOk": "Moves everything listed to the bay in one go and counts it as staged on each line.",
+  "closeOk": "Closes the job: leftovers go back to a shelf or are written off with your reason, units out on it are marked installed, and it drops off the board. A closed job cannot be reopened from the app.",
+  "ntCreate": "Saves the list as a job, or adds the lines to the job named, and opens it. Lines already on a job stay as they are.",
+  "ntLeave": "Closes New job and throws away what was typed and read so far. It cannot be brought back.",
+  "clientSave": "Saves the client. A new client joins the New job list.",
+  "jobSave": "Saves the job name with its address and staging bay.",
+  "pickForGo": "Opens the pull for the job and line you picked.",
+  "bbOk": "Takes the ticked lines out of the van. To the job's bay keeps them with the job; to a shelf puts them back in stock and the line needs pulling again.",
+  "cbAdd": "Adds this name to the pick list and puts it in the field.",
+  "prodSave": "Saves the product. Brand plus model is how a proposal import recognizes it later.",
+  "omOk": "Puts the ticked lines on the chosen draft PO, or starts a new draft. Pick its vendor under Orders before marking it ordered.",
+  "roOk": "Puts this quantity on the chosen draft PO for stock, or starts a new draft.",
+  "paOk": "Adds the product and quantity to this draft.",
+  "nvOk": "Adds the vendor to the list in Settings and picks it for this PO.",
+  "moOk": "Records the vendor's order number with today's date and your name, and fixes the unit cost on each line. The PO leaves draft and can take shipments.",
+  "shOk": "Adds the package with its tracking number and the lines in it. It shows on Tracking until it is received or arrives.",
+  "suOk": "Saves the status and dates. Arrived on a package to a job site counts it as arrived there, staged on the job.",
+  "boOk": "Marks the line backordered with the vendor's ETA, which shows on the job line, the Week view, and Tracking.",
+  "boClear": "Clears the backorder and its ETA, so the line counts as on order again.",
+  "olNoteOk": "Saves the note under this line on the PO and in Tracking.",
+  "oqOk": "Saves the new quantity on the draft.",
+  "rsOk": "Receives each line into its bay or onto its shelf, with records and labels for anything that gets its own QR. The PO counts it as received.",
+  "mdOk": "Counts the package's lines as received on the PO and staged on the job. Nothing goes into stock.",
+  "pkNoteOk": "Saves the note on the package card and on the PO.",
+  "rcOk": "Adds the units to the shelf. Serialized units get their own records, with labels to print from Labels.",
+  "nbOk": "Adds the box with its label and length. Print its sticker from Labels.",
+  "mvOk": "Moves the quantity between the two locations and logs the move with your name.",
+  "ctOk": "Saves the count. The difference from what Loadout showed is logged as an adjustment.",
+  "adOk": "Changes the count by this amount and logs it with the reason.",
+  "szOk": "Gives each unit its own record and QR. On hand does not change.",
+  "lfOk": "Saves the location. A new one gets a label to print from Labels.",
+  "coOk": "Checks the unit out to the person picked, for that job or for van stock.",
+  "ciOk": "Checks the unit in at the location picked, with its condition.",
+  "miOk": "Moves the unit to the location picked.",
+  "miBack": "Puts the unit back in stock at the location picked, logged as inspected.",
+  "rtOk": "Retires the unit for good with your reason. It leaves stock and every list but keeps its history, and it cannot be brought back from the app.",
+  "lsOk:Rename": "Renames the entry on the list and on every product that carries it. Product ids stay the same; rename again to change it back.",
+  "lsOk:Merge": "Gives every product in the group the name you keep, and the other spellings leave the list. They cannot be split apart again from here.",
+  "userOk": "Saves the role and Active for this person. At least one admin always stays active.",
+  "reload": "Loads the new version of Loadout. Anything typed on this page and not saved is lost.",
+  "#signinBtn": "Opens Google's sign-in. Only company accounts get in, and someone new starts as Tech until an admin confirms the role.",
+  "#pvPrint": "Opens the browser's print dialog for the sheet below.",
+  "#pvClose": "Closes the preview and goes back to where you were. Nothing was printed or saved.",
+  "#msGo": "Looks up the typed UPC, model, or label code and adds that product to the list.",
+  "#ntPick": "Opens the file picker for the proposal file (.csv) from Portal. It is read in this browser; nothing is saved until you create the job.",
+  "#ntReadPaste": "Reads the pasted text as if it were the proposal file.",
+  "#ntTypedAdd": "Adds what you typed as a line on the job: it can be staged and delivered, not pulled from the shelf.",
+  "#ntTypeOpen": "For anything the shelf list does not have: type it as a line on the job.",
+  "#carAdd": "Adds an empty carrier row. It is saved with Save settings.",
+  "#setSave": "Saves every part of this tab for everyone: General, box lengths, carriers, vendors, and the wall board.",
+  "#impPick": "Opens the file picker for the inventory workbook or a CSV. It is read in this browser; nothing is written until Import.",
+  /* marker attributes and forms */
+  "boxq": "Lowers Mark now by this many feet, for a cut of a known length. Nothing is saved until Save cut.",
+  "boxEmpty": "Writes a final cut down to zero and closes the box, after a confirm. It drops out of on hand, and an emptied box cannot be reopened from the app.",
+  "boxSave": "Saves the cut, or the reading when Recount is ticked, with your name and the job if one is picked.",
+  "fclear": "Clears every filter in this sheet. The list behind it changes at once.",
+  "fdone": "Closes the filters and shows the list with them applied.",
+  "upact:next": "Moves on to the next product in the review. This one keeps what you chose.",
+  "upact:kept": "Keeps the photo this product has now and closes the sheet.",
+  "upact:none": "Takes no photo from the lookup. The product keeps its UPC, and Find a photo can ask again later.",
+  "upact:use": "Saves the chosen photo as this product's photo, in place of any it has now. It needs a connection.",
+  "bdUp": "Moves this job one place earlier in the board's rotation. Save settings puts it on the TV.",
+  "bdDown": "Moves this job one place later in the board's rotation. Save settings puts it on the TV.",
+  "bdRm": "Takes this job out of the board's rotation when settings are saved. The job itself does not change.",
+  "ntq:-1": "One less on this line.",
+  "ntq:1": "One more on this line.",
+  "ntRemove": "Takes this line off the list before it is saved.",
+  "ntAdd": "Adds this product to the list, or one more if it is already on it.",
+  "submit:plScanForm": "Uses the scanned or typed code: a shelf picks the location, a unit ticks that unit, and the UPC confirms the product.",
+  "submit:rsScanForm": "Counts one for the line with this UPC; the first scan of a line starts it at 1.",
+  "submit:manualForm": "Looks up the typed code as if it were scanned."
+};
+/* no tooltip on a plain way out of a sheet or a step */
+const TIP_PLAIN = /^(cancel|close|back|done|next|keep working)$/i;
+const btnText = b => (b.textContent || "").replace(/\s+/g, " ").trim();
+const tipPlain = b => TIP_PLAIN.test(btnText(b)) || (b.hasAttribute("data-close") && /^got it$/i.test(btnText(b)));
+function tipFor(act, ctx) { return (ctx != null && ctx !== "" && TIPS[act + ":" + ctx]) || TIPS[act] || ""; }
+const TIP_MARK = [["q", "boxq"], ["empty", "boxEmpty"], ["save", "boxSave"], ["fclear", "fclear"], ["fdone", "fdone"], ["clear", "boClear"], ["up", "colUp"], ["down", "colDown"], ["bdup", "bdUp"], ["bddown", "bdDown"], ["bdrm", "bdRm"], ["ntrm", "ntRemove"], ["ntadd", "ntAdd"]];
+const TIP_IDROUTE = /^(job|ticket|pull|pickup|deliver|audit|order)$/;
+function tipOf(b) {
+  const d = b.dataset;
+  if (d.tk) return TIPS[d.tk] || "";
+  if (d.act) {
+    const ctx = d.act === "go" ? (d.view || "") + (d.sub ? "/" + d.sub : "") : [d.view, d.kind, d.tab, d.x, d.k, d.v, d.d, d.m].find(v => v != null && v !== "");
+    return tipFor(d.act, ctx) || tipFor(d.act, btnText(b)) || TIPS["go:" + ctx] || "";
+  }
+  if (d.go) return TIPS["go:" + d.go] || "";
+  if (b.id && TIPS["#" + b.id]) return TIPS["#" + b.id];
+  if (d.upact) return TIPS["upact:" + d.upact] || "";
+  if (d.ntq) return TIPS["ntq:" + d.d] || "";
+  const m = TIP_MARK.find(x => b.hasAttribute("data-" + x[0])); if (m) return TIPS[m[1]];
+  if (b.type === "submit" && b.form && b.form.id) return TIPS["submit:" + b.form.id] || "";
+  if (b.tagName === "A") {
+    const h = (b.getAttribute("href") || "").replace(/^#/, ""); if (!h || /^(\?|https?:)/.test(h)) return "";
+    const p = h.split("/"); return TIPS["href:" + (TIP_IDROUTE.test(p[0]) && p.length > 1 ? p[0] + "/*" : h)] || "";
+  }
+  return "";
+}
+function tipFill(root) {
+  $$("button:not([title]),a.btn:not([title])", root || document).forEach(b => { if (tipPlain(b)) return; const t = tipOf(b); if (t) { b.title = t; b.dataset.tipf = "1"; } });
+}
+/* every visible button (and link styled as one) on the screen without a
+   tooltip, less the plain list, the X buttons (they keep their aria-label),
+   and the two help controls (the ? beside a label, What do these do?) */
+function tipAudit() {
+  return $$("button,a.btn").filter(b => b.getClientRects().length && !b.closest("[hidden]") && !b.getAttribute("title") && !tipPlain(b) && btnText(b) !== String.fromCharCode(215) && !b.matches(".tipq,.whatdo,.grab"))
+    .map(b => ({ act: b.dataset.act || b.dataset.go || b.dataset.tk || (b.id ? "#" + b.id : "") || b.getAttribute("href") || "", text: btnText(b) || b.getAttribute("aria-label") || "" }));
+}
+(window.Loadout = window.Loadout || {}).tipAudit = tipAudit;
+
+/* phones have no hover: an action row with two or more buttons that carry a
+   tooltip ends with "What do these do?", on its own line under the buttons,
+   which opens the row's buttons with their sentences. Not on confirm sheets,
+   the tab bar, the doors, or a row of plain buttons. */
+const WHAT_SEL = ".btnrow,.tbl td.act,.pkg .pf,.ship .sfb,.tkbtns,.podbtns";
+const whatBtns = row => $$("button,a.btn", row).filter(b => !b.matches(".whatdo,.moreacts,.tipq") && b.getAttribute("title") && !tipPlain(b));
+function enhanceWhat() {
+  if (!COARSE.matches) return;
+  $$(WHAT_SEL).forEach(row => {
+    if (row.closest(".tabbar,.doors,#board,.cnf,.whatsheet,.tipbox,.actsheet") || row.querySelector(":scope > .whatrow")) return;
+    if (whatBtns(row).length < 2) return;
+    if (row.classList.contains("acts")) row.classList.add("hasw");
+    row.insertAdjacentHTML("beforeend", '<span class="whatrow"><button type="button" class="textbtn whatdo" aria-haspopup="dialog">What do these do?</button></span>');
+  });
+}
+function whatName(row) {
+  const host = row.closest("tr,.pkg,.ship,.xp,.res,.tkrow,.podet,.mbox,.mcard");
+  const el = host && host.querySelector(".tktitle,.podet h3,.xhead b,.pn,.rt,.trk,.mh b,h2,h3,h4");
+  const t = el ? el.textContent.replace(/\s+/g, " ").trim() : "";
+  return t ? t.slice(0, 80) : "What these buttons do";
+}
+function openWhat(row) {
+  const list = whatBtns(row);
+  openModal(whatName(row), '<ul class="whatlist">' + list.map(b => "<li><b>" + esc(btnText(b) || b.getAttribute("aria-label") || "") + "</b><span>" + esc(b.getAttribute("title")) + "</span></li>").join("") + "</ul>",
+    '<button type="button" class="btn" data-close>Close</button>', { cls: "whatsheet", noFocus: true });
+}
 new MutationObserver(() => enhanceAll()).observe(document.documentElement, { childList: true, subtree: true });
 
 /* ---------------- 0.6.0: the header, the tab bar, the camera ----------------
@@ -2210,7 +2526,8 @@ function wireMoney(root) {
   }));
 }
 function locOptions(sel, opts = {}) {
-  const list = Array.from(S.locations.values()).sort((a, b) => a.name.localeCompare(b.name));
+  /* 0.11.1 (PLAN 28.2): an archived location leaves every pick list, unless it is the one already chosen */
+  const list = Array.from(S.locations.values()).filter(l => !l.archived || l.id === sel || opts.all).sort((a, b) => a.name.localeCompare(b.name));
   return (opts.blank !== false ? '<option value="">' + esc(opts.blankLabel || "Choose a location") + "</option>" : "") +
     list.filter(l => !opts.filter || opts.filter(l)).map(l => '<option value="' + esc(l.id) + '"' + (l.id === sel ? " selected" : "") + ">" + esc(l.name) + (opts.qty ? " (" + esc(opts.qty(l)) + ")" : "") + "</option>").join("");
 }
@@ -2776,7 +3093,7 @@ function tkBaseFields(t, l) { return { ticketId: t.id, ticketNumber: t.number, t
 /* what a unit carries while it serves a ticket line (PLAN 16 rule 3, finding 16) */
 function tkItemFields(t, l) { return { ticketId: t.id, ticketNumber: t.number || null, ticketLineId: l ? l.id : null, jobId: t.jobId || null, jobName: t.jobName || null, clientName: t.clientName || null }; }
 /* stock a line can still be pulled from: shelves and areas, never a bay or a van */
-function pullableLoc(id) { const L = S.locations.get(id); return !L || (L.kind !== "bay" && L.kind !== "van"); }
+function pullableLoc(id) { const L = S.locations.get(id); return !L || (L.kind !== "bay" && L.kind !== "van" && !L.archived); }
 /* 0.5.2: shelf stock by product (bays and vans left out), worked out once
    per redraw or listener update and shared by every "to order" answer */
 let _shelf = null;
@@ -4074,7 +4391,7 @@ function openColumns(tbl, anchor) {
     '<div class="grid2"><div><label class="lab" for="colSort" title="The default order is the one the page uses when nothing is picked here.">Sort by</label><select class="fld" id="colSort"><option value="">Default order</option>' +
       cols.map(c => '<option value="' + c.k + '"' + (pr.sortKey === c.k ? " selected" : "") + ">" + esc(c.label) + "</option>").join("") + "</select></div>" +
     '<div><label class="lab" for="colDir">Direction</label><select class="fld" id="colDir"><option value="asc"' + (pr.sortDir !== "desc" ? " selected" : "") + '>Ascending</option><option value="desc"' + (pr.sortDir === "desc" ? " selected" : "") + ">Descending</option></select></div></div>",
-    '<button type="button" class="btn" data-reset title="Back to the columns and order this table ships with">Reset layout</button><button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Save layout</button>', { pop: anchor, noFocus: true });
+    '<button type="button" class="btn" data-reset title="Back to the columns and order this table ships with">Reset layout</button><button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="colSave">Save layout</button>', { pop: anchor, noFocus: true });
   const paint = () => {
     $("#colList", w).innerHTML = order.map((k, i) => {
       const c = cols.find(x => x.k === k);
@@ -4226,7 +4543,7 @@ function openAccount() {
   const body = '<div class="acctsheet"><dl class="meta"><div><dt>Name</dt><dd>' + esc(u.name || "") + "</dd></div><div><dt>Email</dt><dd>" + esc(u.email || "") + "</dd></div>" +
     "<div><dt>Role</dt><dd>" + esc(role) + (DEMO ? "<small>The demo shows this role. Add &amp;role=tech, warehouse, or accounting to the address to see another.</small>" : "") + "</dd></div></dl>" +
     '<p class="rolewhat">' + esc(ROLE_WHAT[S.role] || "") + "</p></div>";
-  const w = openModal("Account", body, '<button type="button" class="btn" data-close>Close</button><button type="button" class="btn danger" data-ok>' + (DEMO ? "Leave the demo" : "Sign out") + "</button>", { noFocus: true });
+  const w = openModal("Account", body, '<button type="button" class="btn" data-close>Close</button><button type="button" class="btn danger" data-ok data-tk="' + (DEMO ? "leaveDemo" : "signout") + '">' + (DEMO ? "Leave the demo" : "Sign out") + "</button>", { noFocus: true });
   w.querySelector("[data-ok]").addEventListener("click", () => { closeModal(w); if (signOutFn) signOutFn(); });
 }
 $("#acctBtn").addEventListener("click", openAccount);
@@ -4389,7 +4706,7 @@ function renderTicket() {
     /* 0.10.0 (PLAN 23): the same job as a report, with costs, units, and exports */
     (canConsole() ? '<a class="btn" href="#office/reports/job/' + encodeURIComponent(t.id) + '" title="Every line of this job in Reports, with its units, wire boxes, and costs when they are on, ready to export or print">Open as a report</a>' : "") +
     (closed || !W ? "" : lines.some(isShort) ? '<button type="button" class="btn" data-act="tkOrder" title="Puts every Short line (the shelves cannot cover it and no PO carries it yet) on a draft purchase order">Order missing</button>'
-      : '<span title="Every line is covered by stock or a PO"><button type="button" class="btn" disabled aria-describedby="omHint">Order missing</button><span class="sr" id="omHint">Every line is covered by stock or a PO</span></span>') +
+      : '<span title="Every line is covered by stock or a PO"><button type="button" class="btn" disabled aria-describedby="omHint" data-tk="tkOrderOff">Order missing</button><span class="sr" id="omHint">Every line is covered by stock or a PO</span></span>') +
     (W && !closed ? '<button type="button" class="btn" data-act="tkBoard" aria-pressed="' + pinned + '" title="' + (pinned ? "Takes this job off the warehouse TV" : "Pins this job to the warehouse TV so its pull sheet shows by the bays") + '">' + (pinned ? "Remove from board" : "Show on board") + "</button>" : "") +
     (W && !closed ? '<button type="button" class="btn" data-act="tkClose" title="Asks what to do with anything left in the bay, then marks units out on this job installed">Close job</button>' : "") + "</div></div>" +
     '<dl class="meta"><div><dt>Client</dt><dd>' + esc(t.clientName || "None") + "</dd></div>" +
@@ -4470,7 +4787,7 @@ function openPull(t, l, preset = {}) {
         '<div><label class="lab" for="plQty">Quantity</label><input class="fld n" id="plQty" type="number" min="1" step="1" inputmode="numeric"></div></div><div id="plUnits"></div>') +
     '<label class="lab" for="plScan" title="A scanner that types, or the code under a label. A shelf label picks the location, a unit label ticks that unit, and the product\'s UPC confirms it is the right thing.">' + '<abbr>Scan or type a code</abbr></label><form class="manual" id="plScanForm" style="margin:0" autocomplete="off"><input class="fld mono" id="plScan" placeholder="Shelf, unit, box, or UPC"><button type="submit" class="btn">Use</button></form>' +
     '<p class="hint" id="plHint"></p><p class="err" id="plErr" hidden></p>';
-  const w = openModal("Pull from stock", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Pull</button>', { wide: true });
+  const w = openModal("Pull from stock", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="pullOk">Pull</button>', { wide: true });
   wireGlow(w);
   const picked = new Set(preset.itemIds || []);
   const err = m => { const e = $("#plErr", w); e.textContent = m; e.hidden = !m; };
@@ -4543,7 +4860,7 @@ function openStage(t, l) {
   const body = '<p class="hint" style="margin-top:0"><b>' + esc(lineName(l)) + "</b>. Use Stage for quantity laid out in the bay that did not come through Pull from stock. Needs " + esc(lqty(l, left)) + " more.</p>" +
     '<label class="lab" for="sgQty">Laid out now <span class="req">required</span></label><input class="fld n" id="sgQty" type="number" min="1" step="1" inputmode="numeric" value="' + left + '">' +
     '<label class="lab" for="sgNote">Note</label><input class="fld" id="sgNote" placeholder="Where it came from, optional"><p class="err" id="sgErr" hidden></p>';
-  const w = openModal("Stage", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Stage</button>');
+  const w = openModal("Stage", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="stageOk">Stage</button>');
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const q = Math.floor(num($("#sgQty", w).value)), e = $("#sgErr", w);
     if (q < 1 || q > left) { e.textContent = "Quantity must be between 1 and " + fmtN(left) + "."; e.hidden = false; return; }
@@ -4556,7 +4873,7 @@ async function deliverLine(t, l) {
   if (await doDeliver(t, l)) toast("Delivered " + lqty(l, d.q) + " of " + lineName(l) + (d.items.length ? ". " + d.items.length + " unit" + (d.items.length > 1 ? "s" : "") + " checked out to you." : "."));
 }
 function openLineNote(t, l) {
-  const w = openModal("Note on " + lineName(l), '<label class="lab" for="lnText">Note</label><textarea class="fld" id="lnText" placeholder="Shows under the line on the job and the print">' + esc(l.notes || "") + "</textarea>", '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Save note</button>');
+  const w = openModal("Note on " + lineName(l), '<label class="lab" for="lnText">Note</label><textarea class="fld" id="lnText" placeholder="Shows under the line on the job and the print">' + esc(l.notes || "") + "</textarea>", '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="lnNoteOk">Save note</button>');
   w.querySelector("[data-ok]").addEventListener("click", async () => { const v = $("#lnText", w).value.trim(); closeModal(w); if (await doLineNote(t, l, v)) toast("Note saved"); });
 }
 /* Pull everything we have in stock: default location first, then the most stock */
@@ -4585,7 +4902,7 @@ function openPullAll(t) {
     (t.stagingLocationId || !pl.moves.length ? "" : '<label class="lab" for="paBay" title="Saved on the job, so every pull goes there.">' + "<abbr>Staging bay</abbr></label><select class=\"fld\" id=\"paBay\" data-decide>" + bayOptions("") + "</select>") +
     (pl.wire.length ? '<div class="sect"><h4 class="h4">Wire, cut on a box</h4><p class="hint" style="margin-top:0">' + pl.wire.map(l => esc(lineName(l)) + " (" + esc(lqty(l, lineLeft(l))) + ")").join(", ") + ". Use Pull from stock on the line, or the box sheet with this job chosen.</p></div>" : "") +
     '<div class="sect"><h4 class="h4">Still needs ordering after this</h4>' + (pl.order.length ? '<ul class="onhand">' + pl.order.map(o => "<li><span>" + esc(lineName(o.l)) + "</span><b>" + esc(lqty(o.l, o.qty)) + "</b></li>").join("") + "</ul>" : '<p class="hint" style="margin-top:0">Nothing. Stock covers every line.</p>') + '</div><p class="err" id="paErr" hidden></p>';
-  const w = openModal("Pull everything in stock", body, '<button type="button" class="btn" data-close>Cancel</button>' + (pl.moves.length ? '<button type="button" class="btn acc" data-ok>Pull ' + pl.moves.reduce((a, m) => a + m.qty, 0) + " units</button>" : ""), { wide: true });
+  const w = openModal("Pull everything in stock", body, '<button type="button" class="btn" data-close>Cancel</button>' + (pl.moves.length ? '<button type="button" class="btn acc" data-ok data-tk="pullAllOk">Pull ' + pl.moves.reduce((a, m) => a + m.qty, 0) + " units</button>" : ""), { wide: true });
   wireGlow(w);
   const ok = w.querySelector("[data-ok]"); if (!ok) return;
   ok.addEventListener("click", async () => {
@@ -4627,7 +4944,7 @@ function openClose(t) {
     '<div class="sect"><h4 class="h4">Marked installed at ' + esc(t.jobName || "the job") + "</h4>" + (inst.length ? '<ul class="onhand">' + inst.map(i => "<li><span>" + esc(i.productName || "") + ' <span class="z mono">' + esc(itemLabel(i)) + "</span></span><span>" + esc(i.holderName || "") + "</span></li>").join("") + "</ul>" : '<p class="hint" style="margin-top:0">No serialized units are out on this job.</p>') + "</div>" +
     '<label class="lab" for="clNote">Note</label><input class="fld" id="clNote" placeholder="Optional"><p class="err" id="clErr" hidden></p>';
   const blocked = van.length && !A;
-  const w = openModal("Close job #" + t.number, body, '<button type="button" class="btn" data-close>Cancel</button>' + (blocked ? '<span title="Product is still in a van"><button type="button" class="btn acc" disabled aria-describedby="clBlk">Close job</button><span class="sr" id="clBlk">Product is still in a van. Deliver it or bring it back first.</span></span>' : '<button type="button" class="btn acc" data-ok>Close job</button>'), { wide: true });
+  const w = openModal("Close job #" + t.number, body, '<button type="button" class="btn" data-close>Cancel</button>' + (blocked ? '<span title="Product is still in a van"><button type="button" class="btn acc" disabled aria-describedby="clBlk" title="Product is still in a van. Deliver it or bring it back first, then close the job.">Close job</button><span class="sr" id="clBlk">Product is still in a van. Deliver it or bring it back first.</span></span>' : '<button type="button" class="btn acc" data-ok data-tk="closeOk">Close job</button>'), { wide: true });
   wireGlow(w);
   w.addEventListener("change", e => {
     if (e.target.name === "clMode") { $("#clRet", w).hidden = e.target.value !== "return"; $("#clWo", w).hidden = e.target.value !== "writeoff"; }
@@ -4851,7 +5168,7 @@ function openNewTicket(opts = {}) {
       (DEMO ? '<div class="btnrow"><button type="button" class="btn" id="ntSample" title="Demo only: a made-up proposal file with skipped rows, matches, and new products">Use the sample file</button></div>' : "") +
       '<p class="hint" id="ntFileName"></p><div id="ntRead"></div><div id="ntTk"></div></div>' +
     '<p class="sr" id="ntLive" aria-live="polite"></p><p class="err" id="ntErr" role="alert" hidden></p>';
-  const foot = '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn" id="ntBack">Back</button><button type="button" class="btn acc" id="ntNext">Next</button><button type="button" class="btn acc" data-ok>Create job</button>';
+  const foot = '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn" id="ntBack">Back</button><button type="button" class="btn acc" id="ntNext">Next</button><button type="button" class="btn acc" data-ok data-tk="ntCreate">Create job</button>';
   const w = openModal(addTo ? "Add lines to job #" + addTo.number : "New job", body, foot, { wide: true, noFocus: true, cls: "ntbox" });
   const err = m => { const e = $("#ntErr", w); e.textContent = m || ""; e.hidden = !m; if (m) e.scrollIntoView({ block: "nearest" }); };
   const live = m => { const l = $("#ntLive", w); l.textContent = ""; setTimeout(() => { l.textContent = m; }, 30); };
@@ -4862,7 +5179,7 @@ function openNewTicket(opts = {}) {
   w._guard = () => {
     if (!dirty()) return true;
     const c = openModal("Leave without saving?", "<p>" + (I.hand.length ? "The " + plural(I.hand.length, "line") + " on this list are" : I.rows.length ? "The proposal file you read is" : "What you typed is") + " not saved yet. Leaving throws " + (I.hand.length ? "them" : "it") + " away.</p>",
-      '<button type="button" class="btn" data-close>Keep working</button><button type="button" class="btn danger" data-ok>Leave without saving</button>', { noFocus: true });
+      '<button type="button" class="btn" data-close>Keep working</button><button type="button" class="btn danger" data-ok data-tk="ntLeave">Leave without saving</button>', { noFocus: true });
     c.querySelector("[data-ok]").addEventListener("click", () => { closeModal(c); w._guard = null; closeModal(w); });
     return false;
   };
@@ -5215,7 +5532,7 @@ function openClientForm(c) {
   const isNew = !c;
   const body = '<label class="lab" for="cfName">Name <span class="req">required</span></label><input class="fld" id="cfName" value="' + esc(c ? c.name : "") + '"' + (isNew ? "" : ' title="Renaming does not rewrite jobs already made; they keep the name they were created with."') + ">" +
     '<label class="lab" for="cfNotes">Notes</label><textarea class="fld" id="cfNotes" placeholder="Gate code, who to call, anything the crew should know">' + esc(c ? c.notes || "" : "") + '</textarea><p class="err" id="cfErr" hidden></p>';
-  const w = openModal(isNew ? "New client" : "Edit " + c.name, body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>' + (isNew ? "Add client" : "Save") + "</button>");
+  const w = openModal(isNew ? "New client" : "Edit " + c.name, body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="clientSave">' + (isNew ? "Add client" : "Save") + "</button>");
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const name = clean($("#cfName", w).value), e = $("#cfErr", w), id = isNew ? slug(name) : c.id;
     if (!name || !id) { e.textContent = "Type the client's name."; e.hidden = false; return; }
@@ -5233,7 +5550,7 @@ function openJobForm(j) {
     '<div class="grid2"><div><label class="lab" for="jfBay" title="The bay reserved for this job name. New jobs under it start with this bay, and the bay\'s QR shows the job on Scan.">' + "<abbr>Staging bay</abbr></label><select class=\"fld\" id=\"jfBay\">" + locOptions(d.stagingLocationId || "", { blankLabel: "None", filter: l => l.kind === "bay" }) + "</select></div>" +
     '<div><label class="lab" for="jfStatus" title="Archived job names drop out of the New job list. Jobs already made with them stay.">' + '<abbr>Status</abbr></label><select class="fld" id="jfStatus"><option value="open"' + (d.status !== "closed" ? " selected" : "") + '>Open</option><option value="closed"' + (d.status === "closed" ? " selected" : "") + ">Archived</option></select></div></div>" +
     '<p class="err" id="jfErr" hidden></p>';
-  const w = openModal(isNew ? "New job" : "Edit " + j.name, body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>' + (isNew ? "Add job" : "Save") + "</button>");
+  const w = openModal(isNew ? "New job" : "Edit " + j.name, body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="jobSave">' + (isNew ? "Add job" : "Save") + "</button>");
   wireGlow(w);
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const cid = isNew ? $("#jfClient", w).value : j.clientId, name = clean($("#jfName", w).value), e = $("#jfErr", w), bay = $("#jfBay", w).value || null;
@@ -5289,7 +5606,7 @@ function openPickFor(p, item) {
   if (c.length === 1) { openPull(c[0].t, c[0].l, preset); return; }
   const body = '<p class="hint" style="margin-top:0">' + esc(productName(p)) + (item ? ", unit " + esc(itemLabel(item)) : "") + '. Open jobs that still need it:</p><label class="lab" for="pfSel" title="The job whose bay you scanned last is picked for you.">' + '<abbr>Job and line</abbr></label><select class="fld" id="pfSel" data-decide><option value="">Choose a job</option>' +
     c.map(x => '<option value="' + esc(x.t.id + "|" + x.l.id) + '"' + (bayHit === x ? " selected" : "") + ">#" + esc(x.t.number) + " " + esc(tkWho(x.t)) + ", " + esc(x.l.area || "No area") + ", needs " + esc(lqty(x.l, lineLeft(x.l))) + "</option>").join("") + '</select><p class="err" id="pfErr" hidden></p>';
-  const w = openModal("Pull for job", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Continue</button>');
+  const w = openModal("Pull for job", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="pickForGo">Continue</button>');
   wireGlow(w);
   w.querySelector("[data-ok]").addEventListener("click", () => {
     const v = $("#pfSel", w).value; if (!v) { const e = $("#pfErr", w); e.textContent = "Pick the job."; e.hidden = false; return; }
@@ -5587,6 +5904,11 @@ function fitDoors() {
 }
 addEventListener("resize", () => { if (S.view === "home" && !BOARD) fitDoors(); });
 const bandHTML = k => '<div class="band ' + k + '" aria-hidden="true"></div>';
+/* 0.11.1 (PLAN 28.1): the first thing on a door's screen is the way back,
+   since the home-screen app has no browser Back. A plain link, so Escape
+   and the keyboard treat it as one. */
+const BACK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>';
+const backHomeHTML = () => '<a class="backhome" href="#home">' + BACK_SVG + "Home</a>";
 const jobHref = (t, v) => "#" + (v || "job") + "/" + encodeURIComponent(t.id);
 
 /* the progress line (0.9.0, PLAN 20.2): the one builder for job cards, the
@@ -5700,7 +6022,7 @@ function renderPull() {
   const el = $("#v-pull");
   if (S.pullJob) { el.innerHTML = pullJobHTML(); return; }
   const pj = pullJobs(), now = pj.now.sort(byInstall), waiting = pj.waiting.sort(byInstall), st = jobsStateHTML(), toPull = t => jobHref(t, "pull");
-  let h = bandHTML("pull") + '<div class="mcard"><div class="thead"><h2 class="vt">Pull for a job</h2></div><p class="hint" style="margin:0 0 var(--s2)">Jobs with lines on the shelf, soonest install first. Open one and pull it shelf by shelf.</p>';
+  let h = bandHTML("pull") + '<div class="mcard">' + backHomeHTML() + '<div class="thead"><h2 class="vt">Pull for a job</h2></div><p class="hint" style="margin:0 0 var(--s2)">Jobs with lines on the shelf, soonest install first. Open one and pull it shelf by shelf.</p>';
   if (st) h += st;
   else if (!now.length && !waiting.length) h += '<div class="empty"><p>Nothing to pull. Every open job is pulled.</p><a class="btn" href="#jobs">See all jobs</a></div>';
   else {
@@ -5737,7 +6059,7 @@ function pullPlan(t) {
 }
 function pullJobHTML() {
   const t = S.tickets.get(S.pullJob), W = isWriter();
-  let h = bandHTML("pull") + '<div class="mcard"><div class="crumb"><a class="textbtn" href="#pull">Pull</a>';
+  let h = bandHTML("pull") + '<div class="mcard"><div class="crumb"><a class="textbtn" href="#pull">Pull for a job</a>';
   if (S.errors.tickets) return h + "</div>" + errorBox("jobs", "tickets") + "</div>";
   if (!S.loaded.tickets || (t && !S.linesLoaded.has(t.id))) return h + '</div><div class="empty"><p>Loading the job</p></div></div>';
   if (!t) return h + '</div><div class="empty"><p>That job is not in Loadout. It may have been removed, or has not reached this device yet.</p><a class="btn" href="#pull">Back to the list</a></div></div>';
@@ -5808,7 +6130,7 @@ function renderFlow(kind) {
           (van.length ? '<h3 class="h4">Picked up, in a van</h3>' + jobCardsHTML(van, "", x => ({ label: "Confirm delivery", href: jobHref(x, "deliver") })) : "") +
           (bay.length ? '<h3 class="h4" style="margin-top:var(--s3)">Staged in a bay</h3>' + jobCardsHTML(bay, "", x => ({ label: "Confirm delivery", href: jobHref(x, "deliver") })) : "")));
     }
-    el.innerHTML = h + '<div class="thead"><h2 class="vt">' + title + "</h2></div>" + body + "</div>";
+    el.innerHTML = h + backHomeHTML() + '<div class="thead"><h2 class="vt">' + title + "</h2></div>" + body + "</div>";
     return;
   }
   const back = '<div class="crumb"><a class="textbtn" href="#' + kind + '">' + (kind === "pickup" ? "Pick up" : "Deliveries") + "</a>";
@@ -5876,7 +6198,7 @@ function vanLinesOf(t, mine) { return ticketLines(t.id).filter(l => lineInVan(l)
 function bringBackTargets(t) {
   const W = isWriter(), bay = t.stagingLocationId && S.locations.has(t.stagingLocationId) ? t.stagingLocationId : "";
   if (!W) return { bay, opts: bay ? '<option value="' + esc(bay) + '" selected>' + esc(locName(bay)) + " (this job's bay)</option>" : "" };
-  const shelves = Array.from(S.locations.values()).filter(l => l.kind !== "bay" && l.kind !== "van" && l.kind !== "vehicle").sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  const shelves = Array.from(S.locations.values()).filter(l => l.kind !== "bay" && l.kind !== "van" && l.kind !== "vehicle" && !l.archived).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
   return { bay, opts: (bay ? '<option value="' + esc(bay) + '" selected>' + esc(locName(bay)) + " (this job's bay)</option>" : '<option value="">Choose where it goes</option>') +
     '<optgroup label="Shelves">' + shelves.map(l => '<option value="' + esc(l.id) + '">' + esc(l.name) + "</option>").join("") + "</optgroup>" };
 }
@@ -5890,7 +6212,7 @@ function openBringBack(t, mine) {
       (W ? "" : '<p class="hint">It goes to the job\'s bay. The warehouse puts it back on a shelf if the job is off.</p>')
       : '<p class="err">This job has no bay to bring it back to. Ask the warehouse to give it one, or to take it back to a shelf.</p>') +
     '<label class="lab" for="bbNote">Note</label><input class="fld" id="bbNote" placeholder="Optional, for example: job moved to next week"><p class="err" id="bbErr" hidden></p>';
-  const w = openModal("Bring back to the shop", body, '<button type="button" class="btn" data-close>Cancel</button>' + (tg.opts ? '<button type="button" class="btn acc" data-ok>Bring back</button>' : ""), { wide: true });
+  const w = openModal("Bring back to the shop", body, '<button type="button" class="btn" data-close>Cancel</button>' + (tg.opts ? '<button type="button" class="btn acc" data-ok data-tk="bbOk">Bring back</button>' : ""), { wide: true });
   wireGlow(w);
   const ok = w.querySelector("[data-ok]"); if (!ok) return;
   ok.addEventListener("click", async () => {
@@ -5932,7 +6254,7 @@ async function doBringBack(t, lines, dest, note) {
    a note movement for a unit not found (no new unit status), a reading for
    each box with a new mark, and lastAuditedAt / By / ByName on the location. */
 function auditLocs() {
-  return Array.from(S.locations.values()).sort((a, b) => (toDate(a.lastAuditedAt) || 0) - (toDate(b.lastAuditedAt) || 0) || a.name.localeCompare(b.name));
+  return Array.from(S.locations.values()).filter(l => !l.archived).sort((a, b) => (toDate(a.lastAuditedAt) || 0) - (toDate(b.lastAuditedAt) || 0) || a.name.localeCompare(b.name));
 }
 function auditContents(locId) {
   const prods = Array.from(S.stock.values()).filter(r => r.locationId === locId && num(r.qty) > 0).map(r => ({ p: S.products.get(r.productId), exp: num(r.qty) })).filter(x => x.p).sort((a, b) => productName(a.p).localeCompare(productName(b.p)));
@@ -5956,7 +6278,7 @@ function renderAudit() {
   const loading = !S.loaded.locations || !S.loaded.stock || !S.loaded.items || !S.loaded.containers || !S.loaded.products;
   const errd = ["locations", "stock", "items", "containers", "products"].find(c => S.errors[c]);
   if (!S.auditLoc) {
-    h += '<div class="thead"><h2 class="vt">Audit a shelf</h2></div><p class="hint" style="margin:0 0 var(--s2)">Pick a shelf, bay, or vehicle and confirm or correct what is on it. The longest since an audit come first; over ' + AUDIT_OLD_DAYS + " days shows in amber.</p>";
+    h += backHomeHTML() + '<div class="thead"><h2 class="vt">Audit a shelf</h2></div><p class="hint" style="margin:0 0 var(--s2)">Pick a shelf, bay, or vehicle and confirm or correct what is on it. The longest since an audit come first; over ' + AUDIT_OLD_DAYS + " days shows in amber.</p>";
     if (errd) h += errorBox("locations", errd);
     else if (loading) h += '<div class="empty"><p>Loading locations</p></div>';
     else if (!S.locations.size) h += '<div class="empty"><p>No locations yet. Add a shelf, bay, or van on Shelf, Locations, or import the inventory sheet.</p><a class="btn" href="#shelf/locations">Open Locations</a></div>';
@@ -6182,7 +6504,7 @@ function sfPass(p, skip) {
    filters leave, with their counts, so picking one shows exactly that many */
 function sfOptions(base, k) {
   const m = new Map();
-  base.forEach(p => { if (sfPass(p, k)) sfVals(p, k).forEach(v => m.set(v, (m.get(v) || 0) + 1)); });
+  base.forEach(p => { if (sfPass(p, k)) sfVals(p, k).forEach(v => { if (k === "loc" && S.locations.get(v) && S.locations.get(v).archived) return; m.set(v, (m.get(v) || 0) + 1); }); });
   if (S.sf[k] && !m.has(S.sf[k])) m.set(S.sf[k], 0);
   const out = Array.from(m.entries());
   return out.sort((a, b) => sfLabel(k, a[0]).localeCompare(sfLabel(k, b[0])));
@@ -6345,9 +6667,11 @@ function locationsTable(q) {
   S.containers.forEach(c => { if (c.status !== "empty") bump(c.locationId, "boxes", 1); });
   S.items.forEach(i => { if (inStockItem(i) || i.status === "returned") bump(i.locationId, "items", 1); });
   const cnt = (l, k) => { const c = counts.get(l.id); return c ? (k === "prods" ? c.prods.size : c[k]) : 0; };
-  const list = Array.from(S.locations.values()).filter(l => !q || (l.name + " " + l.kind).toLowerCase().includes(q));
+  /* 0.11.1 (PLAN 28.2): archived locations show only with Show archived (or while their panel is open) */
+  const archN = Array.from(S.locations.values()).filter(l => l.archived).length;
+  const list = Array.from(S.locations.values()).filter(l => (!l.archived || S.showArchLocs || xIs("l", l.id)) && (!q || (l.name + " " + l.kind).toLowerCase().includes(q)));
   const cols = [
-    { k: "name", label: "Location", sort: l => l.name.toLowerCase(), html: l => '<button type="button" class="linkbtn" data-act="xtoggle" data-x="l" data-id="' + esc(l.id) + '"><div class="pn">' + esc(l.name) + "</div></button>" + (l.jobName ? '<div class="pd">Reserved for ' + esc(l.jobName) + "</div>" : "") },
+    { k: "name", label: "Location", sort: l => l.name.toLowerCase(), html: l => '<button type="button" class="linkbtn" data-act="xtoggle" data-x="l" data-id="' + esc(l.id) + '"><div class="pn">' + esc(l.name) + "</div></button>" + (l.archived ? ' <span class="st">Archived</span>' : "") + (l.jobName ? '<div class="pd">Reserved for ' + esc(l.jobName) + "</div>" : "") },
     { k: "area", label: "Area", text: l => l.area },
     { k: "shelf", label: "Shelf", text: l => l.shelf || "" },
     { k: "kind", label: "Kind", text: l => l.kind },
@@ -6357,7 +6681,7 @@ function locationsTable(q) {
     { k: "items", label: "Serialized", r: true, sort: l => cnt(l, "items"), text: l => fmtN(cnt(l, "items")) },
     { k: "id", label: "Label code", def: false, html: l => '<span class="mono">' + esc(PAYLOAD.loc(l.id)) + "</span>" }
   ];
-  return tableHTML("locations", cols, list, {
+  return (archN ? '<label class="chk" title="Archived locations hold nothing and are off the pick lists. Show them to open one and Unarchive it."><input type="checkbox" id="showArchLocs"' + (S.showArchLocs ? " checked" : "") + "> Show archived (" + fmtN(archN) + ")</label>" : "") + tableHTML("locations", cols, list, {
     defaultSort: (a, b) => LOC_KINDS.indexOf(a.kind) - LOC_KINDS.indexOf(b.kind) || a.name.localeCompare(b.name),
     empty: "<p>Nothing matches '" + esc(q) + "'.</p>" + '<button type="button" class="btn" data-act="clearSearch" data-for="stockSearch">Clear the search</button>',
     actions: l => '<button type="button" class="btn sm" data-act="printOne" data-kind="loc" data-id="' + esc(l.id) + '">Print label</button>',
@@ -6631,7 +6955,7 @@ function cbAsk(f, raw) {
     const w = openModal("New " + L.one,
       '<label class="lab" for="cbAddName">Save as</label><input class="fld" id="cbAddName" autocomplete="off" spellcheck="false" value="' + esc(tidyName(raw)) + '">' +
       '<p class="hint">' + (f === "brand" ? "Fix the capitals if this is not how the maker writes it." : "Fix the capitals if this is not how it should read.") + '</p><p class="err" id="cbAddErr" role="alert" hidden></p>',
-      '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Add</button>', { onClose: () => fin(null) });
+      '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="cbAdd">Add</button>', { onClose: () => fin(null) });
     const ok = w.querySelector("[data-ok]");
     ok.addEventListener("click", async () => {
       const nm = oneSpace($("#cbAddName", w).value), er = $("#cbAddErr", w);
@@ -6734,7 +7058,7 @@ function openProductForm(p, prefill = {}) {
     (S.general.showCosts ? '<div><label class="lab" for="pf_lastCost" title="Used for the QR threshold: units received at or above the threshold in Settings get their own QR.">' + '<abbr>Last cost</abbr></label><div class="money"><input class="fld" id="pf_lastCost" data-money inputmode="decimal" value="' + (d.lastCost != null ? num(d.lastCost).toFixed(2) : "") + '"></div></div>' : "") +
     '<details class="more"' + (ATTR_FIELDS.some(([k]) => d[k]) ? " open" : "") + '><summary>Attributes</summary><div class="grid3">' + ATTR_FIELDS.map(([k, l, t]) => f(k, l, "", t || "text")).join("") + "</div></details>" +
     '<p class="err" id="pfErr" hidden></p>';
-  const w = openModal(isNew ? "New product" : "Edit " + productName(p), body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>' + (isNew ? "Create product" : "Save changes") + "</button>", { wide: true });
+  const w = openModal(isNew ? "New product" : "Edit " + productName(p), body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="prodSave">' + (isNew ? "Create product" : "Save changes") + "</button>", { wide: true });
   wireMoney(w);
   const pcat = $("#pf_category", w); if (pcat) pcat.addEventListener("animationend", () => { pcat.classList.add("seen"); GLOW_SEEN.add(pcat.id); }, { once: true });
   w.querySelector("[data-ok]").addEventListener("click", async () => {
@@ -6931,7 +7255,7 @@ function openOrderMissing(t, onlyId) {
     '<div class="olpick">' + ls.map(l => '<div class="row"><label class="chk"><input type="checkbox" data-om="' + esc(l.id) + '" checked> <span>' + esc(lineName(l)) + ' <span class="z">' + esc(l.area || "") + "</span></span></label>" +
       '<div><label class="sr" for="omq_' + esc(l.id) + '">Quantity for ' + esc(lineName(l)) + '</label><input class="fld n" id="omq_' + esc(l.id) + '" type="number" min="1" step="any" inputmode="decimal" value="' + uncoveredFor(l, stock, t) + '"></div></div>').join("") + "</div>" +
     draftChoice(drafts) + '<p class="err" id="omErr" hidden></p>';
-  const w = openModal(onlyId ? "Order " + lineName(ls[0]) : "Order missing for #" + t.number, body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Add to PO</button>', { wide: true });
+  const w = openModal(onlyId ? "Order " + lineName(ls[0]) : "Order missing for #" + t.number, body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="omOk">Add to PO</button>', { wide: true });
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const err = $("#omErr", w), items = [];
     for (const l of ls) {
@@ -6966,7 +7290,7 @@ function openReorder(p) {
     (onPo.length ? '<p class="hint">Already on order for stock: ' + esc(onPo.join(", ")) + ".</p>" : "") +
     '<label class="lab" for="roQty" title="' + (p.unit === "ft" ? "In feet. Rounded up to whole boxes from the start length in Settings." : "Enough to bring it back to par, rounded up.") + '"><abbr>Quantity' + (p.unit === "ft" ? " (ft)" : "") + '</abbr></label><input class="fld n" id="roQty" type="number" min="1" step="any" inputmode="decimal" value="' + reorderQty(p) + '">' +
     draftChoice(drafts) + '<p class="err" id="roErr" hidden></p>';
-  const w = openModal("Reorder", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Add to PO</button>');
+  const w = openModal("Reorder", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="roOk">Add to PO</button>');
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const q = num($("#roQty", w).value);
     if (!(q > 0)) { const e = $("#roErr", w); e.textContent = "Type a quantity above zero."; e.hidden = false; return; }
@@ -6983,7 +7307,7 @@ async function newPo() {
 function openPoAddLine(o) {
   const list = '<datalist id="paProducts">' + Array.from(S.products.values()).map(p => productName(p)).sort().map(n => '<option value="' + esc(n) + '">').join("") + "</datalist>";
   const body = '<div class="grid2"><div><label class="lab" for="paProd">Product</label><input class="fld" id="paProd" list="paProducts" placeholder="Start typing a name"></div><div><label class="lab" for="paQty">Quantity</label><input class="fld n" id="paQty" type="number" min="1" step="any" value="1"></div></div>' + list + '<p class="hint" id="paHint"></p><p class="err" id="paErr" hidden></p>';
-  const w = openModal("Add a product to " + (o.number ? "PO " + o.number : "the draft"), body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Add</button>');
+  const w = openModal("Add a product to " + (o.number ? "PO " + o.number : "the draft"), body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="paOk">Add</button>');
   const find = () => { const v = $("#paProd", w).value.trim().toLowerCase(); return Array.from(S.products.values()).find(p => productName(p).toLowerCase() === v) || null; };
   $("#paProd", w).addEventListener("input", () => { const p = find(); $("#paHint", w).textContent = p ? qtyTxt(p, onHandOf(p)) + " on hand" + (p.unit === "ft" ? ". Quantity is in feet." : ".") : ""; if (p) $("#paQty", w).value = reorderQty(p); });
   w.querySelector("[data-ok]").addEventListener("click", async () => {
@@ -6996,7 +7320,7 @@ function openPoAddLine(o) {
 }
 function openNewVendor(done) {
   const w = openModal("Add a vendor", '<label class="lab" for="nvName">Vendor name <span class="req">required</span></label><input class="fld" id="nvName" placeholder="As it appears on their invoices"><p class="hint">It joins the vendor list in Settings, so the next PO can pick it.</p><p class="err" id="nvErr" hidden></p>',
-    '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Add vendor</button>', { onClose: () => done(null) });
+    '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="nvOk">Add vendor</button>', { onClose: () => done(null) });
   w.querySelector("[data-ok]").addEventListener("click", () => {
     const v = clean($("#nvName", w).value);
     if (!v) { const e = $("#nvErr", w); e.textContent = "Type the vendor's name."; e.hidden = false; return; }
@@ -7010,7 +7334,7 @@ function openMarkOrdered(o) {
     '<div><label class="lab" for="moNum" title="The order or confirmation number the vendor gave you. It is what you quote when you call them about it.">' + '<abbr>Vendor order number</abbr> <span class="req">required</span></label><input class="fld mono" id="moNum" value="' + esc(o.orderNumber || "") + '" placeholder="SO 4418873"></div></div>' +
     shipToField(o) + costLinesHTML(o) +
     '<label class="lab" for="moNote">Note</label><input class="fld" id="moNote" placeholder="Optional, for example who you spoke to"><p class="err" id="moErr" hidden></p>';
-  const w = openModal(o.number ? "Mark PO " + o.number + " ordered" : "Mark the draft ordered", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Mark ordered</button>', { wide: costOn() && ordSummary(o).lines > 0 });
+  const w = openModal(o.number ? "Mark PO " + o.number + " ordered" : "Mark the draft ordered", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="moOk">Mark ordered</button>', { wide: costOn() && ordSummary(o).lines > 0 });
   wireGlow(w); wireMoney(w);
   const stSel = $("#moShip", w), stHint = $("#moShipHint", w);
   if (stSel) stSel.addEventListener("change", () => { stHint.textContent = shipToHint(o, stSel.value); });
@@ -7077,7 +7401,7 @@ function openAddShipment(o) {
       return '<div class="row"><label class="chk"><input type="checkbox" data-sh="' + esc(ol.id) + '"' + (num(ol.qtyOrdered) - num(ol.qtyShipped) > 0 ? " checked" : "") + "> <span>" + esc(olName(ol)) + ' <span class="z">' + esc(olQty(ol, num(ol.qtyShipped))) + " of " + esc(olQty(ol, ol.qtyOrdered)) + " shipped</span></span></label>" +
         '<div><label class="sr" for="shq_' + esc(ol.id) + '">Quantity of ' + esc(olName(ol)) + '</label><input class="fld n" id="shq_' + esc(ol.id) + '" type="number" min="1" step="any" value="' + left + '"></div></div>'; }).join("") + "</div>" +
     '<p class="hint">Partial shipments are fine: tick only what is in this box and lower the quantity.</p><p class="err" id="shErr" hidden></p>';
-  const w = openModal("Add shipment to PO " + o.number, body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Add shipment</button>', { wide: true });
+  const w = openModal("Add shipment to PO " + o.number, body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="shOk">Add shipment</button>', { wide: true });
   let touched = false;
   const det = () => {
     const n = $("#shTrk", w).value, c = detectCarrier(n), h = $("#shDet", w);
@@ -7114,7 +7438,7 @@ function openShipUpdate(s) {
     '<div class="grid2"><div><label class="lab" for="suSt">Status</label><select class="fld" id="suSt">' + [["shipped", "Shipped"], ["out_for_delivery", "Out for delivery"], ["delivered", "Arrived"]].map(([k, l]) => '<option value="' + k + '"' + (s.status === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" +
     '<div><label class="lab" for="suExp">Expected</label><input class="fld" id="suExp" type="date" value="' + esc(isoDay(s.expectedAt)) + '"></div></div>' +
     '<div id="suDelBox"><label class="lab" for="suDel" title="Arrived but not received puts the PO at the top of Tracking in amber until someone scans the box in.">' + '<abbr>Arrived on</abbr></label><input class="fld" id="suDel" type="date" value="' + esc(isoDay(s.deliveredAt || new Date())) + '"></div>';
-  const w = openModal("Update shipment", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Save</button>');
+  const w = openModal("Update shipment", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="suOk">Save</button>');
   const sync = () => { $("#suDelBox", w).hidden = $("#suSt", w).value !== "delivered"; };
   $("#suSt", w).addEventListener("change", sync); sync();
   w.querySelector("[data-ok]").addEventListener("click", async () => {
@@ -7129,16 +7453,16 @@ function openBackorder(o, ol) {
   const was = ol.status === "backordered";
   const body = '<p class="hint" style="margin-top:0">' + esc(olName(ol)) + ", PO " + esc(o.number) + ". The ETA shows on the job line, the Week view, and Tracking.</p>" +
     '<label class="lab" for="boEta" title="The date the vendor gave. Leave it empty if they gave none.">' + '<abbr>Vendor ETA</abbr></label><input class="fld" id="boEta" type="date" value="' + esc(isoDay(ol.eta)) + '">';
-  const w = openModal(was ? "Change ETA" : "Mark backordered", body, '<button type="button" class="btn" data-close>Cancel</button>' + (was ? '<button type="button" class="btn" data-clear>No longer backordered</button>' : "") + '<button type="button" class="btn acc" data-ok>Save</button>');
+  const w = openModal(was ? "Change ETA" : "Mark backordered", body, '<button type="button" class="btn" data-close>Cancel</button>' + (was ? '<button type="button" class="btn" data-clear>No longer backordered</button>' : "") + '<button type="button" class="btn acc" data-ok data-tk="boOk">Save</button>');
   w.querySelector("[data-ok]").addEventListener("click", async () => { const v = $("#boEta", w).value; closeModal(w); if (await doBackorder(o, ol, v ? new Date(v + "T12:00:00") : null, false)) toast(olName(ol) + " marked backordered"); });
   const c = w.querySelector("[data-clear]"); if (c) c.addEventListener("click", async () => { closeModal(w); if (await doBackorder(o, ol, null, true)) toast("Backorder cleared"); });
 }
 function openOlNote(o, ol) {
-  const w = openModal("Note on " + olName(ol), '<label class="lab" for="onText">Note</label><textarea class="fld" id="onText" placeholder="Shows under the line on the PO and in Tracking">' + esc(ol.note || "") + "</textarea>", '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Save note</button>');
+  const w = openModal("Note on " + olName(ol), '<label class="lab" for="onText">Note</label><textarea class="fld" id="onText" placeholder="Shows under the line on the PO and in Tracking">' + esc(ol.note || "") + "</textarea>", '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="olNoteOk">Save note</button>');
   w.querySelector("[data-ok]").addEventListener("click", async () => { const v = $("#onText", w).value.trim(); closeModal(w); if (await doOlNote(o, ol, v)) toast("Note saved"); });
 }
 function openOlQty(o, ol) {
-  const w = openModal("Quantity on " + (o.number ? "PO " + o.number : "the draft"), '<p class="hint" style="margin-top:0">' + esc(olName(ol)) + '</p><label class="lab" for="oqQty">Quantity' + (olIsFt(ol) ? " (ft)" : "") + ' <span class="req">required</span></label><input class="fld n" id="oqQty" type="number" min="1" step="any" value="' + num(ol.qtyOrdered) + '"><p class="err" id="oqErr" hidden></p>', '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Save</button>');
+  const w = openModal("Quantity on " + (o.number ? "PO " + o.number : "the draft"), '<p class="hint" style="margin-top:0">' + esc(olName(ol)) + '</p><label class="lab" for="oqQty">Quantity' + (olIsFt(ol) ? " (ft)" : "") + ' <span class="req">required</span></label><input class="fld n" id="oqQty" type="number" min="1" step="any" value="' + num(ol.qtyOrdered) + '"><p class="err" id="oqErr" hidden></p>', '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="oqOk">Save</button>');
   w.querySelector("[data-ok]").addEventListener("click", async () => { const q = num($("#oqQty", w).value); if (!(q > 0)) { const e = $("#oqErr", w); e.textContent = "Type a quantity above zero."; e.hidden = false; return; } closeModal(w); if (await doOlQty(o, ol, q)) toast("Quantity saved"); });
 }
 /* Receive a shipment: one row per line still open on it. Tap to take the
@@ -7170,7 +7494,7 @@ function openReceiveShipment(s, focusLineId) {
       (r.ser ? '<div class="grid2"><div><label class="lab" for="rsSer' + i + '" title="The maker\'s serial numbers, for warranty claims and returns. One per line, in the order the stickers go on.">' + "<abbr>Serial numbers</abbr></label><textarea class=\"fld mono\" id=\"rsSer" + i + '" placeholder="One per line, optional"></textarea></div>' +
         '<div><label class="lab" for="rsMac' + i + '" title="For anything that joins the network: the MAC finds the device on the client\'s network. One per line, in the same order as the serials.">' + "<abbr>MAC addresses</abbr></label><textarea class=\"fld mono\" id=\"rsMac" + i + '" placeholder="One per line, optional" spellcheck="false"></textarea></div></div>' : "") + "</div>").join("") +
     '<p class="err" id="rsErr" hidden></p>';
-  const w = openModal("Receive shipment", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Receive</button>', { wide: true, noFocus: true });
+  const w = openModal("Receive shipment", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="rsOk">Receive</button>', { wide: true, noFocus: true });
   wireGlow(w);
   if (focusLineId) { const i = rows.findIndex(r => r.ol.id === focusLineId); if (i >= 0) setTimeout(() => { const q = $("#rsQty" + i, w); if (q) { if (COARSE.matches) q.scrollIntoView({ block: "center" }); else { q.focus(); q.select(); } } }, 40); }
   else if (!COARSE.matches) setTimeout(() => $("#rsScan", w).focus(), 40);
@@ -7287,7 +7611,7 @@ function rcvCardHTML(p) {
 }
 function renderReceive() {
   const el = $("#v-receive");
-  let h = bandHTML("receive") + '<div class="mcard"><div class="thead"><h2 class="vt">Receive a shipment</h2><span class="sp"><a class="btn sm" href="#tracking" title="Every package, to the office and to client sites, under ' + officeWord() + ', Orders and tracking">Tracking</a></span></div>';
+  let h = bandHTML("receive") + '<div class="mcard">' + backHomeHTML() + '<div class="thead"><h2 class="vt">Receive a shipment</h2><span class="sp"><a class="btn sm" href="#tracking" title="Every package, to the office and to client sites, under ' + officeWord() + ', Orders and tracking">Tracking</a></span></div>';
   if (!isWriter()) { el.innerHTML = h + '<div class="empty"><p>Receiving is for the warehouse and the admin.</p><a class="btn" href="#home">Back to Home</a></div></div>'; return; }
   h += '<p class="hint" style="margin:0 0 var(--s2)">Boxes coming to the shop. Arrived first: find the box and press Receive. Lines for a job go to its bay.</p>';
   if (S.errors.shipments || S.errors.orders) { el.innerHTML = h + errorBox("shipments", S.errors.shipments ? "shipments" : "orders") + "</div>"; return; }
@@ -7402,7 +7726,7 @@ function openMarkDelivered(s) {
     "<p>Its lines count as received on the PO" + (o.ticketId ? " and staged on job #" + esc(o.ticketNumber || o.ticketId) : "") + ". Nothing goes into stock: the box is at the site, not in the building.</p>" +
     '<label class="lab" for="mdAt" title="When it reached the site. The card and the shipment\'s status log show this time.">' + '<abbr>Arrived at</abbr></label><input class="fld" id="mdAt" type="datetime-local" value="' + v + '">' +
     '<label class="lab" for="mdNote">Note</label><input class="fld" id="mdNote" placeholder="Optional, for example who signed for it"><p class="err" id="mdErr" hidden></p>';
-  const w = openModal("Mark arrived", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Mark arrived</button>');
+  const w = openModal("Mark arrived", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="mdOk">Mark arrived</button>');
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const raw = $("#mdAt", w).value, at = raw ? new Date(raw) : new Date(), e = $("#mdErr", w);
     if (isNaN(at)) { e.textContent = "Type the date and time it arrived."; e.hidden = false; return; }
@@ -7415,7 +7739,7 @@ function openPkgNote(kind, id) {
   const s = kind === "ship" ? S.shipments.get(id) : null, o = kind === "po" ? S.orders.get(id) : null;
   if (!s && !o) return;
   const w = openModal("Note on " + (s ? (s.carrier || "Other") + " " + (s.tracking || "") : "PO " + o.number), '<label class="lab" for="pkNote">Note</label><textarea class="fld" id="pkNote" placeholder="Shows on the package card in Tracking and on the PO, for example: left at the front desk">' + esc((s ? s.note : o.notes) || "") + "</textarea>",
-    '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Save note</button>');
+    '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="pkNoteOk">Save note</button>');
   w.querySelector("[data-ok]").addEventListener("click", async () => { const v = $("#pkNote", w).value.trim(); closeModal(w); if (await (s ? doShipNote(s, v) : doPoNote(o, v))) toast("Note saved"); });
 }
 
@@ -7633,7 +7957,8 @@ function productPanel(p) {
 function productActions(p, where) {
   const W = isWriter(), id = esc(p.id), ft = p.unit === "ft", scan = where === "scan", a = [];
   const onShelf = !ft && byLocation(p).some(e => e.locationId && stockQty(p, e.locationId) > 0);
-  const B = (act, label, tip, cls) => '<button type="button" class="btn' + (cls ? " " + cls : "") + '" data-act="' + act + '" data-id="' + id + '"' + (tip ? ' title="' + esc(tip) + '"' : "") + ">" + label + "</button>";
+  /* 0.11.1 (PLAN 27): a button drawn with no sentence of its own takes the table's (Retire, Check in, Check out, Move) */
+  const B = (act, label, tip, cls) => { tip = tip || tipFor(act, label); return '<button type="button" class="btn' + (cls ? " " + cls : "") + '" data-act="' + act + '" data-id="' + id + '"' + (tip ? ' title="' + esc(tip) + '"' : "") + ">" + label + "</button>"; };
   if (W) a.push(B("receive", ft ? "Receive a box" : "Receive", ft ? "A new box or reel of this wire, with its label and start length" : "Units that arrived, into a shelf", scan ? "acc" : ""));
   if (W && needLinesFor(p.id).length) a.push(B("pickFor", "Pull for job", "Pulls this product for an open job that needs it. The job whose bay you scanned last is picked for you."));
   if (W && onShelf) a.push(B("moveStock", "Move", "Moves counted units from one location to another without a job, for example shelf to van."));
@@ -7647,7 +7972,8 @@ function productActions(p, where) {
 }
 function unitActions(it, where) {
   const W = isWriter(), T = isTech(), id = esc(it.id), scan = where === "scan", a = [];
-  const B = (act, label, tip, cls) => '<button type="button" class="btn' + (cls ? " " + cls : "") + '" data-act="' + act + '" data-id="' + id + '"' + (tip ? ' title="' + esc(tip) + '"' : "") + ">" + label + "</button>";
+  /* 0.11.1 (PLAN 27): a button drawn with no sentence of its own takes the table's (Retire, Check in, Check out, Move) */
+  const B = (act, label, tip, cls) => { tip = tip || tipFor(act, label); return '<button type="button" class="btn' + (cls ? " " + cls : "") + '" data-act="' + act + '" data-id="' + id + '"' + (tip ? ' title="' + esc(tip) + '"' : "") + ">" + label + "</button>"; };
   if (T && (inStockItem(it) || it.status === "returned")) a.push(B("checkout", "Check out", "", scan ? "acc" : ""));
   if (T && it.status === "checked_out") a.push(B("checkin", "Check in", "", scan ? "acc" : ""));
   if (W && it.status === "in_stock" && pullableLoc(it.locationId) && needLinesFor(it.productId).length) a.push(B("stageFor", "Pull for job", "Moves this unit to the bay of an open job that needs it and counts it on that line"));
@@ -7692,20 +8018,25 @@ function locPanel(l) {
   S.containers.forEach(c => { if (c.locationId === id && c.status !== "empty") rows.push('<li><span>Box <button type="button" class="textbtn mono" data-act="boxSheet" data-id="' + esc(c.id) + '">' + esc(c.label) + "</button> " + esc(c.productName || "") + "</span><b>" + fmtN(c.ftLeft) + " ft</b></li>"); });
   S.items.forEach(i => { if (i.locationId === id && i.status !== "retired" && i.status !== "checked_out") rows.push('<li><span><button type="button" class="textbtn" data-act="item" data-id="' + esc(i.id) + '">' + esc(itemLabel(i)) + "</button> " + esc(i.productName || "") + "</span>" + statusPill(i.status) + "</li>"); });
   const tks = l.kind === "bay" ? ticketForBay(id) : [];
-  let h = '<div class="xhead"><b>' + esc(l.name) + '</b><span class="st">' + esc(l.kind[0].toUpperCase() + l.kind.slice(1)) + "</span>" + (S.activeLoc === id ? '<span class="st ok">Active on Scan</span>' : "") + "</div>";
+  const A = isAdmin(), run = S.ls.run, busy = !!(run && run.state === "running"), off = !onlineNow();
+  let h = '<div class="xhead"><b>' + esc(l.name) + '</b><span class="st">' + esc(l.kind[0].toUpperCase() + l.kind.slice(1)) + "</span>" + (l.archived ? '<span class="st warn">Archived</span>' : "") + (S.activeLoc === id ? '<span class="st ok">Active on Scan</span>' : "") + "</div>";
   if (W) {
     const d = xDraft(l, ["kind"]);
     h += '<div class="xgrid"><div><label class="lab" for="xf_area">Area</label><input class="fld" id="xf_area" value="' + esc(l.area || "") + '" disabled></div><div><label class="lab" for="xf_shelf">Shelf</label><input class="fld" id="xf_shelf" value="' + esc(l.shelf || "") + '" disabled></div>' +
-      '<div><label class="lab" for="xf_kind" title="Bays hold product staged for a job; vans are stock that travels. Neither is pulled from for a job. A vehicle is a car or truck that carries a few units for one person; jobs can pull from it.">' + '<abbr>Kind</abbr></label><select class="fld" id="xf_kind" data-xf="kind">' + LOC_KINDS.map(k => '<option value="' + k + '"' + (d.kind === k ? " selected" : "") + ">" + k[0].toUpperCase() + k.slice(1) + "</option>").join("") + "</select></div></div>" +
-      '<p class="hint">Area and shelf make the label code, so they stay as they are. Add a new location if the shelf moved.</p>';
+      '<div><label class="lab" for="xf_kind" title="' + esc(KIND_LAB_TIP) + '">' + '<abbr>Kind</abbr></label><select class="fld" id="xf_kind" data-xf="kind">' + kindOptions(d.kind) + "</select></div></div>" +
+      /* 0.11.1 (PLAN 28.2): an admin renames with Rename below; the label code (the id) never changes */
+      '<p class="hint">' + (A ? "Rename changes the area and shelf everywhere they show. The label code stays, so a printed label still scans." : "Area and shelf make the label code, so they stay as they are. An admin can rename the location.") + "</p>";
   }
+  if (A) h += lsRunHTML(id) + (off ? '<p class="lsoff" role="status">You are offline. Rename needs a connection, so it waits until it is back.</p>' : "");
   h += '<dl class="meta"><div><dt>Label code</dt><dd class="mono">' + esc(PAYLOAD.loc(id)) + "</dd></div>" + (l.jobName ? "<div><dt>Reserved for</dt><dd>" + esc(l.jobName) + "</dd></div>" : "") +
     (tks.length ? "<div><dt>Staging for</dt><dd>" + tks.map(t => '<button type="button" class="textbtn" data-act="ticket" data-id="' + esc(t.id) + '">#' + esc(t.number) + "</button>").join(" ") + "</dd></div>" : "") + "</dl>" +
     '<div class="sect"><h4 class="h4">What is here</h4>' + (rows.length ? '<ul class="onhand">' + rows.join("") + "</ul>" : '<p class="hint" style="margin-top:0">Nothing is recorded at this location.</p>') + "</div>";
   if (S.x.err) h += '<p class="err" role="alert">' + esc(S.x.err) + "</p>";
   h += '<div class="btnrow">' + (W ? '<button type="button" class="btn acc" data-act="xsave">Save</button>' : "") +
     '<button type="button" class="btn" data-act="printOne" data-kind="loc" data-id="' + esc(id) + '">Print label</button>' +
-    (S.activeLoc === id ? "" : '<button type="button" class="btn" data-act="useLoc" data-id="' + esc(id) + '" title="Makes this the active location for Receive, Count, and Check in on the Scan view">Use as active location</button>') +
+    (S.activeLoc === id || l.archived ? "" : '<button type="button" class="btn" data-act="useLoc" data-id="' + esc(id) + '" title="Makes this the active location for Receive, Count, and Check in on the Scan view">Use as active location</button>') +
+    (A ? '<button type="button" class="btn" data-act="locRename" data-id="' + esc(id) + '"' + (busy || off ? " disabled" : "") + ">Rename</button>" +
+      '<button type="button" class="btn" data-act="' + (l.archived ? "locUnarchive" : "locArchive") + '" data-id="' + esc(id) + '">' + (l.archived ? "Unarchive" : "Archive") + "</button>" : "") +
     '<button type="button" class="btn" data-act="xhist" aria-pressed="' + !!S.x.showHist + '">Show history</button></div>' + xHistHTML();
   return '<div class="xp' + xFresh() + '" id="' + xDomId(id) + '">' + h + "</div>";
 }
@@ -8048,7 +8379,7 @@ function openReceive(p, presetLoc) {
       '<label class="lab" for="rcMacs" title="Optional, for anything that joins the network: the MAC finds the device on the client\'s network. One per line, in the same order as the serials.">' + "<abbr>MAC addresses</abbr></label><textarea class=\"fld mono\" id=\"rcMacs\" placeholder=\"One per line, optional\" spellcheck=\"false\"></textarea></div>" +
     '<label class="lab" for="rcNote">Note</label><input class="fld" id="rcNote" placeholder="Vendor, PO, or anything worth keeping">' +
     '<p class="err" id="rcErr" hidden></p>';
-  const w = openModal("Receive", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Receive</button>');
+  const w = openModal("Receive", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="rcOk">Receive</button>');
   wireGlow(w); wireMoney(w);
   const ser = $("#rcSer", w), cost = $("#rcCost", w);
   ser.addEventListener("change", () => $("#rcSerBox", w).hidden = !ser.checked);
@@ -8107,7 +8438,7 @@ function openNewBox(p, presetUpc) {
     '<div><label class="lab" for="nbDate">Purchase date</label><input class="fld" id="nbDate" type="date" value="' + isoDay(new Date()) + '"></div></div>' +
     '<label class="lab" for="nbUpc" title="The barcode printed on the box. Scanning it later finds this product.">' + '<abbr>UPC on the box</abbr></label><input class="fld mono" id="nbUpc" inputmode="numeric" value="' + esc(presetUpc || p.upc || "") + '">' +
     '<p class="err" id="nbErr" hidden></p>';
-  const w = openModal("Receive a box", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Add box</button>');
+  const w = openModal("Receive a box", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="nbOk">Add box</button>');
   wireGlow(w);
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const label = $("#nbLabel", w).value.trim().toUpperCase(), st = num($("#nbStart", w).value), loc = $("#nbLoc", w).value, err = $("#nbErr", w);
@@ -8134,7 +8465,7 @@ function openMoveStock(p) {
     '<div><label class="lab" for="mvTo">To</label><select class="fld" id="mvTo" data-decide>' + locOptions(S.activeLoc && !from.some(e => e.locationId === S.activeLoc && from.length === 1) ? S.activeLoc : "") + "</select></div></div>" +
     '<label class="lab" for="mvQty">Quantity <span class="req">required</span></label><input class="fld n" id="mvQty" type="number" min="1" step="1" value="1" inputmode="numeric">' +
     '<label class="lab" for="mvNote">For</label><input class="fld" id="mvNote" placeholder="Job or reason, optional"><p class="err" id="mvErr" hidden></p>';
-  const w = openModal("Move stock", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Move</button>');
+  const w = openModal("Move stock", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="mvOk">Move</button>');
   wireGlow(w);
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const f = $("#mvFrom", w).value, t = $("#mvTo", w).value, q = Math.floor(num($("#mvQty", w).value)), err = $("#mvErr", w);
@@ -8151,7 +8482,7 @@ function openCount(p) {
   const body = '<p class="hint" style="margin-top:0">' + esc(productName(p)) + ". Type what is on the shelf now; the difference is logged as an adjustment.</p>" +
     '<div class="grid2"><div><label class="lab" for="ctLoc">Location</label><select class="fld" id="ctLoc" data-decide>' + locOptions(sel, { qty: l => fmtN(stockQty(p, l.id)) + " now" }) + "</select></div>" +
     '<div><label class="lab" for="ctQty">Counted <span class="req">required</span></label><input class="fld n" id="ctQty" type="number" min="0" step="1" inputmode="numeric"></div></div><p class="hint" id="ctHint"></p><p class="err" id="ctErr" hidden></p>';
-  const w = openModal("Count", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Save count</button>');
+  const w = openModal("Count", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="ctOk">Save count</button>');
   wireGlow(w);
   const upd = () => { const l = $("#ctLoc", w).value, c = $("#ctQty", w).value; $("#ctHint", w).textContent = l ? "System shows " + fmtN(stockQty(p, l)) + " here" + (c !== "" ? ". Saving records " + ((num(c) - stockQty(p, l)) >= 0 ? "+" : "") + fmtN(num(c) - stockQty(p, l)) + "." : ".") : ""; };
   $("#ctLoc", w).addEventListener("change", upd); $("#ctQty", w).addEventListener("input", upd); upd();
@@ -8171,7 +8502,7 @@ function openAdjust(p) {
     '<div><label class="lab" for="adQty" title="Negative to take away, positive to add. For a full recount use Count on the Scan card instead.">' + '<abbr>Change by</abbr> <span class="req">required</span></label><input class="fld n" id="adQty" type="number" step="1" placeholder="-2 or 3" data-signed></div></div>' +
     '<label class="lab" for="adReason" title="Required. The reason is what explains the count to whoever looks at it next.">' + '<abbr>Reason</abbr></label><select class="fld" id="adReason" data-decide><option value="">Choose a reason</option>' + ADJUST_REASONS.map(r => "<option>" + esc(r) + "</option>").join("") + "</select>" +
     '<label class="lab" for="adNote">Note</label><input class="fld" id="adNote" placeholder="Required when the reason is Other"><p class="err" id="adErr" hidden></p>';
-  const w = openModal("Adjust", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Save adjustment</button>');
+  const w = openModal("Adjust", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="adOk">Save adjustment</button>');
   wireGlow(w);
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const l = $("#adLoc", w).value, d = Math.trunc(num($("#adQty", w).value)), r = $("#adReason", w).value, n = $("#adNote", w).value.trim(), err = $("#adErr", w);
@@ -8191,7 +8522,7 @@ function openSerialize(p) {
     '<div><label class="lab" for="szQty">How many <span class="req">required</span></label><input class="fld n" id="szQty" type="number" min="1" step="1" value="1"></div></div>' +
     '<label class="lab" for="szSer" title="Optional. The maker\'s serial numbers, for warranty claims and returns. One per line.">' + '<abbr>Serial numbers</abbr></label><textarea class="fld mono" id="szSer" placeholder="One per line, optional"></textarea>' +
     '<label class="lab" for="szMac" title="Optional, for anything that joins the network: the MAC finds the device on the client\'s network. One per line, in the same order as the serials.">' + '<abbr>MAC addresses</abbr></label><textarea class="fld mono" id="szMac" placeholder="One per line, optional" spellcheck="false"></textarea><p class="err" id="szErr" hidden></p>';
-  const w = openModal("Serialize", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Serialize</button>');
+  const w = openModal("Serialize", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="szOk">Serialize</button>');
   wireGlow(w);
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const l = $("#szLoc", w).value, n = Math.floor(num($("#szQty", w).value)), err = $("#szErr", w);
@@ -8205,20 +8536,88 @@ function openSerialize(p) {
 }
 
 /* ---------------- locations ---------------- */
+/* 0.11.1 (PLAN 28.2): what each kind changes, read from the code (pullableLoc, Bring back, Close job) */
+const KIND_TIP = {
+  shelf: "Shelf: stock that jobs pull from, and where Bring back and Close job return product.",
+  bay: "Bay: holds one job's staged product. Pull moves product into it, and jobs never pull from it.",
+  van: "Van: stock that travels. Jobs never pull from it.",
+  vehicle: "Vehicle: a car or truck with a few units for one person. Jobs can pull from it.",
+  other: "Other: anything else, such as a cage or a closet. Jobs can pull from it."
+};
+const KIND_LAB_TIP = LOC_KINDS.map(k => KIND_TIP[k]).join(" ");
+const kindOptions = sel => LOC_KINDS.map(k => '<option value="' + k + '" title="' + esc(KIND_TIP[k]) + '"' + (sel === k ? " selected" : "") + ">" + k[0].toUpperCase() + k.slice(1) + "</option>").join("");
+/* every record that keeps a location's readable name beside its id, and is
+   not history: stock rows, units, wire boxes, products that use it as their
+   default, and the staging bay named on open jobs and open job names.
+   Movements are history and keep the old name. */
+function locRenameOps(id, to) {
+  const ops = [], up = (coll, rid, data) => ops.push({ op: "update", coll, id: rid, data: Object.assign(data, { updatedAt: NOW }) });
+  S.stock.forEach((r, k) => { if (r.locationId === id && r.locationName !== to) up("loadout_stock", r.id || k, { locationName: to }); });
+  S.items.forEach((i, k) => { if (i.locationId === id && i.locationName !== to) up("loadout_items", i.id || k, { locationName: to }); });
+  S.containers.forEach((c, k) => { if (c.locationId === id && c.locationName !== to) up("loadout_containers", c.id || k, { locationName: to }); });
+  S.products.forEach((p, k) => { if (p.defaultLocationId === id && p.defaultLocationName !== to) up("loadout_products", p.id || k, { defaultLocationName: to }); });
+  S.tickets.forEach((t, k) => { if (t.stagingLocationId === id && t.status !== "closed" && t.stagingLocationName !== to) up("loadout_tickets", t.id || k, { stagingLocationName: to }); });
+  S.jobs.forEach((j, k) => { if (j.stagingLocationId === id && j.status !== "closed" && j.stagingLocationName !== to) up("loadout_jobs", j.id || k, { stagingLocationName: to }); });
+  return ops;
+}
+function locRenameJob(l, r) {
+  const id = l.id, from = l.name;
+  return { loc: id, to: r.to, label: "Location", noun: "record", oldWhat: "the old name", what: "location rename",
+    todo: () => locRenameOps(id, r.to),
+    noteFor: n => "Location renamed: " + from + " to " + r.to + ", " + plural(n, "record"),
+    tail() { return [{ op: "update", coll: "loadout_locations", id, data: { area: r.area, shelf: r.shelf, name: r.to, updatedAt: NOW } }, mv("edit", { toLocationId: id, toLocationName: r.to, note: this.note })]; } };
+}
+function openLocRename(l) {
+  if (!l) return;
+  lsSheet("Rename " + l.name,
+    '<div class="grid2"><div><label class="lab" for="lrArea" title="The room or zone, for example Storage room or Warehouse">' + '<abbr>Area</abbr> <span class="req">required</span></label><input class="fld" id="lrArea" autocomplete="off" value="' + esc(l.area || "") + '"></div>' +
+    '<div><label class="lab" for="lrShelf" title="Blank for a bare area, a bay, or a van">' + '<abbr>Shelf</abbr></label><input class="fld" id="lrShelf" autocomplete="off" value="' + esc(l.shelf || "") + '"></div></div>' +
+    '<p class="hint">The label code stays <span class="mono">' + esc(PAYLOAD.loc(l.id)) + "</span>, so the printed label still scans. Past movements keep the old name.</p>", "Rename", w => {
+    const area = clean($("#lrArea", w).value), shelf = clean($("#lrShelf", w).value), to = composeLocName(area, shelf);
+    if (!area) return { go: false, say: "Type the area." };
+    if (Array.from(S.locations.values()).some(x => x.id !== l.id && normKey(x.name) === normKey(to))) return { go: false, say: "Prints as " + to + ". Another location already has that name." };
+    if (to === l.name) return { go: false, say: "Prints as " + to + ". That is the name it has now." };
+    const n = locRenameOps(l.id, to).length;
+    return { go: true, area, shelf, to, say: "Prints as " + to + ". " + (n ? plural(n, "record") + (n === 1 ? " carries" : " carry") + " the name and change" + (n === 1 ? "s" : "") + " with it." : "No record carries the name yet; only the location changes.") };
+  }, r => locRenameJob(l, r), "locRenameOk");
+}
+/* what is stored at a location, and what holds it as a staging bay */
+function locHeld(id) {
+  const prods = Array.from(S.stock.values()).filter(r => r.locationId === id && num(r.qty) > 0).length;
+  const units = Array.from(S.items.values()).filter(i => i.locationId === id && !["retired", "installed", "checked_out"].includes(i.status)).length;
+  const boxes = Array.from(S.containers.values()).filter(c => c.locationId === id && c.status !== "empty").length;
+  const tk = openTickets().find(t => t.stagingLocationId === id), jb = Array.from(S.jobs.values()).find(j => j.stagingLocationId === id && j.status !== "closed");
+  return { prods, units, boxes, tk, jb, n: prods + units + boxes };
+}
+function locArchive(l) {
+  if (!l) return;
+  const h = locHeld(l.id);
+  if (h.n) { toast(l.name + " still holds " + [h.prods ? plural(h.prods, "product") : "", h.units ? plural(h.units, "unit") : "", h.boxes ? plural(h.boxes, "box", "boxes") : ""].filter(Boolean).join(", ") + ". Move or use them up first, then archive it.", true); return; }
+  if (h.tk || h.jb) { toast(l.name + " is the staging bay of " + (h.tk ? "job #" + h.tk.number : h.jb.name) + ". Free it there first, then archive it.", true); return; }
+  confirmModal("Archive " + l.name, "<p>" + esc(l.name) + " leaves the pick lists, the audit list, and the Shelf filter. Its history and printed label stay, and Show archived on Shelf, Locations brings it back to unarchive.</p>", "Archive",
+    () => DB.commit([{ op: "update", coll: "loadout_locations", id: l.id, data: { archived: true, archivedAt: NOW, archivedBy: S.user.email, updatedAt: NOW } }, mv("edit", { toLocationId: l.id, note: "Location archived" })], "archiving " + l.name)
+      .then(ok => { if (!ok) return; if (S.activeLoc === l.id) setActiveLoc(null); toast(l.name + " archived"); }));
+}
+function locUnarchive(l) {
+  if (!l) return;
+  DB.commit([{ op: "update", coll: "loadout_locations", id: l.id, data: { archived: false, archivedAt: null, archivedBy: null, updatedAt: NOW } }, mv("edit", { toLocationId: l.id, note: "Location unarchived" })], "unarchiving " + l.name)
+    .then(ok => ok && toast(l.name + " is back on the lists"));
+}
 function openLocationForm(l) {
   const isNew = !l; const d = l || { kind: "" };
   const body = '<div class="grid2"><div><label class="lab" for="lfArea" title="The room or zone, for example Storage room or Warehouse">' + '<abbr>Area</abbr> <span class="req">required</span></label><input class="fld" id="lfArea" value="' + esc(d.area || "") + '"' + (isNew ? "" : " disabled") + "></div>" +
     '<div><label class="lab" for="lfShelf" title="Blank for a bare area, a bay, or a van">' + '<abbr>Shelf</abbr></label><input class="fld" id="lfShelf" value="' + esc(d.shelf || "") + '"' + (isNew ? "" : " disabled") + "></div></div>" +
-    '<label class="lab" for="lfKind" title="Bays hold product staged for a job; vans are stock that travels. A vehicle is a car or truck that carries a few units for one person.">' + '<abbr>Kind</abbr></label><select class="fld" id="lfKind" data-decide><option value="">Choose a kind</option>' + LOC_KINDS.map(k => '<option value="' + k + '"' + (d.kind === k ? " selected" : "") + ">" + k[0].toUpperCase() + k.slice(1) + "</option>").join("") + "</select>" +
+    '<label class="lab" for="lfKind" title="' + esc(KIND_LAB_TIP) + '">' + '<abbr>Kind</abbr></label><select class="fld" id="lfKind" data-decide><option value="">Choose a kind</option>' + kindOptions(d.kind) + "</select>" +
     (isNew ? "" : '<p class="hint">Area and shelf make the label code, so they stay as they are. Add a new location if the shelf moved.</p>') + '<p class="err" id="lfErr" hidden></p>';
-  const w = openModal(isNew ? "New location" : "Edit " + l.name, body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>' + (isNew ? "Add location" : "Save") + "</button>");
+  const w = openModal(isNew ? "New location" : "Edit " + l.name, body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="lfOk">' + (isNew ? "Add location" : "Save") + "</button>");
   wireGlow(w);
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const area = clean($("#lfArea", w).value), shelf = clean($("#lfShelf", w).value), kind = $("#lfKind", w).value, err = $("#lfErr", w);
     if (!area) { err.textContent = "Type the area."; err.hidden = false; return; }
     if (!kind) { err.textContent = "Pick a kind."; err.hidden = false; return; }
     const id = isNew ? locIdFor(area, shelf) : l.id;
-    if (isNew && S.locations.has(id)) { err.textContent = "That location already exists."; err.hidden = false; return; }
+    if (isNew && S.locations.has(id)) { const was = S.locations.get(id); err.textContent = was.name === composeLocName(area, shelf) ? "That location already exists." : "That label code belongs to " + was.name + ", which was renamed from this name. Use another area or shelf name."; err.hidden = false; return; }
+    if (isNew && Array.from(S.locations.values()).some(x => normKey(x.name) === normKey(composeLocName(area, shelf)))) { err.textContent = "Another location already has that name."; err.hidden = false; return; }
     closeModal(w);
     if (await doSaveLocation(id, { area, shelf, kind, name: composeLocName(area, shelf) }, isNew)) toast(isNew ? "Location added" : "Saved");
   });
@@ -8548,7 +8947,7 @@ function openCheckout(it) {
     '<label class="lab" for="coJob" title="The job it is going to, or Van stock when it rides in a van until needed.">' + '<abbr>For</abbr> <span class="req">required</span></label><div class="manual" style="margin:0"><input class="fld" id="coJob" placeholder="Job name or address"><button type="button" class="btn" id="coVan" title="Fills For with Van stock: it rides in a van until a job needs it">Use van stock</button></div>' +
     (admin ? '<label class="lab" for="coWho" title="Pick someone else when they took it and you are recording it for them.">' + '<abbr>Held by</abbr></label><select class="fld" id="coWho">' + people.map(u => '<option value="' + esc(u.id) + '"' + (u.id === S.user.uid ? " selected" : "") + ">" + esc(u.name || u.email) + "</option>").join("") + (people.some(u => u.id === S.user.uid) ? "" : '<option value="' + esc(S.user.uid) + '" selected>' + esc(S.user.name) + "</option>") + "</select>" : '<p class="hint">Held by you (' + esc(S.user.name) + ").</p>") +
     '<label class="lab" for="coNote">Note</label><input class="fld" id="coNote" placeholder="Optional"><p class="err" id="coErr" hidden></p>';
-  const w = openModal("Check out", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Check out</button>');
+  const w = openModal("Check out", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="coOk">Check out</button>');
   $("#coVan", w).addEventListener("click", () => { $("#coJob", w).value = "Van stock"; });
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const job = $("#coJob", w).value.trim();
@@ -8567,7 +8966,7 @@ function openCheckin(it) {
     '<label class="lab" for="ciCond" title="Damaged or missing parts keeps a record of it before the next person grabs it.">' + '<abbr>Condition</abbr></label><select class="fld" id="ciCond" data-decide><option value="">Choose a condition</option>' + Object.entries(CONDITIONS).map(([k, l]) => '<option value="' + k + '">' + l + "</option>").join("") + "</select>" +
     '<label class="chk" title="It goes to Returned, not In stock, until someone in the warehouse looks at it, and the history logs a return."><input type="checkbox" id="ciRet"> Came back from a client\'s site, needs a look first</label>' +
     '<label class="lab" for="ciNote">Note</label><input class="fld" id="ciNote" placeholder="Optional"><p class="err" id="ciErr" hidden></p>';
-  const w = openModal("Check in", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Check in</button>');
+  const w = openModal("Check in", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="ciOk">Check in</button>');
   wireGlow(w);
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const l = $("#ciLoc", w).value, c = $("#ciCond", w).value, e = $("#ciErr", w);
@@ -8580,7 +8979,7 @@ function openCheckin(it) {
 function openMoveItem(it, backToStock) {
   const body = '<p class="hint" style="margin-top:0">' + esc(it.productName) + ", " + esc(itemLabel(it)) + "</p>" +
     '<label class="lab" for="miLoc">To</label><select class="fld" id="miLoc" data-decide>' + locOptions(backToStock ? it.locationId || "" : "") + '</select><p class="err" id="miErr" hidden></p>';
-  const w = openModal(backToStock ? "Back to stock" : "Move unit", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>' + (backToStock ? "Back to stock" : "Move") + "</button>");
+  const w = openModal(backToStock ? "Back to stock" : "Move unit", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="' + (backToStock ? "miBack" : "miOk") + '">' + (backToStock ? "Back to stock" : "Move") + "</button>");
   wireGlow(w);
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const l = $("#miLoc", w).value; if (!l) { const e = $("#miErr", w); e.textContent = "Pick a location."; e.hidden = false; return; }
@@ -8591,7 +8990,7 @@ function openMoveItem(it, backToStock) {
 }
 function openRetire(it) {
   const body = '<p class="hint" style="margin-top:0">' + esc(it.productName) + ", " + esc(itemLabel(it)) + '. A retired unit leaves stock for good but keeps its history.</p><label class="lab" for="rtWhy">Reason <span class="req">required</span></label><input class="fld" id="rtWhy" placeholder="Broken beyond repair, lost, sold"><p class="err" id="rtErr" hidden></p>';
-  const w = openModal("Retire unit", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn danger" data-ok>Retire</button>');
+  const w = openModal("Retire unit", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn danger" data-ok data-tk="rtOk">Retire</button>');
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const r = $("#rtWhy", w).value.trim(); if (!r) { const e = $("#rtErr", w); e.textContent = "Give a reason."; e.hidden = false; return; }
     closeModal(w); if (await doRetire(it, r)) toast("Unit retired");
@@ -8798,6 +9197,8 @@ function settingsHTML() {
     '<div><label class="lab" for="setLabel" title="The sheet the Labels tab starts on. Anyone can switch sheets when they print.">' + '<abbr>Default label sheet</abbr></label><select class="fld" id="setLabel"><option value="5160"' + (g.labelSize !== "5163" ? " selected" : "") + '>Avery 5160</option><option value="5163"' + (g.labelSize === "5163" ? " selected" : "") + ">2 x 4 in</option></select></div></div>" +
     '<label class="chk" title="How the Week view opens for anyone who has not chosen for themselves. A person\'s own Work week button still wins on their devices."><input type="checkbox" id="setWw"' + (g.workWeek ? " checked" : "") + "> Week view hides the weekend by default (Work week)</label></div>" +
     lsSettingsSect() +
+    /* 0.11.1 (PLAN 28.2): so a person who looks for locations here finds them */
+    '<div class="setsect"><h3 title="Add a shelf, bay, van, or vehicle, rename one (admin), or archive one that is empty (admin)">Locations</h3><p class="hint" style="margin-top:0">Shelves, bays and vehicles are managed on Shelf, Locations.</p><div class="btnrow"><a class="btn" href="#shelf/locations">Open Shelf, Locations</a></div></div>' +
     '<div class="setsect"><h3 title="Used when a new box is received or imported. A box whose feet left is already higher takes its feet left as the start.">Box start length by cable type (ft)</h3><div class="grid3">' +
       BOX_TYPES.map(b => '<div><label class="lab" for="bs_' + b.k + '">' + esc(b.label) + '</label><input class="fld n" id="bs_' + b.k + '" type="number" min="1" value="' + esc(g.boxStart[b.k]) + '"></div>').join("") + "</div></div>" +
     '<div class="setsect"><h3>Carriers</h3><p class="hint" style="margin-top:0">The tracking link on each shipment. Put {n} where the tracking number goes. The names UPS, FedEx, and USPS are the ones the carrier guess picks.</p><div id="carRows">' +
@@ -8872,38 +9273,55 @@ function lsProductOp(p, f, to) {
 }
 const lsTodo = (f, keys, to) => Array.from(S.products.values()).filter(p => keys.includes(normKey(p[f])) && p[f] !== to);
 /* job: { f, keys (every normKey that ends up as to), to, from (the old words for the note), verb ("renamed", "merged", "spellings merged"), merge } */
+/* 0.11.1 (PLAN 28.2): the one batch runner, for a brand or category rename
+   or merge and for a location rename. A job says what is still to write
+   (todo, so a run again skips what landed), what goes in the last batch
+   (tail), its words, and what to keep locally after (after). */
+function lsListJob(o) {
+  const L = LISTF[o.f];
+  return Object.assign(o, {
+    label: L.label, noun: "product", oldWhat: "the old " + L.one, what: L.one + " " + (o.merge ? "merge" : "rename"),
+    todo: () => lsTodo(o.f, o.keys, o.to).map(p => lsProductOp(p, o.f, o.to)),
+    noteFor: n => L.label + " " + o.verb + ": " + o.from + (o.merge ? " into " : " to ") + o.to + ", " + plural(n, "product"),
+    tail: () => {
+      o._arr = ((S.lists && S.lists[L.doc]) || []).filter(x => { const k = normKey(x && x.name); return k && !o.keys.includes(k) && k !== normKey(o.to); })
+        .map(x => ({ name: oneSpace(x.name), key: normKey(x.name) })).concat([{ name: o.to, key: normKey(o.to) }]);
+      return [{ op: "set", coll: "loadout_settings", id: "lists", merge: true, data: Object.assign({ [L.doc]: o._arr }, listWho()) }, mv("edit", { note: o.note })];
+    },
+    after: () => listLocalSet(o.f, o._arr)
+  });
+}
 async function lsRun(job) {
-  if (!onlineNow()) { toast("Rename and Merge need a connection. Try again when you are back online.", true); return; }
-  const f = job.f, L = LISTF[f], todo = lsTodo(f, job.keys, job.to);
-  if (job.total == null) job.total = todo.length;
-  job.done = Math.max(0, job.total - todo.length);
-  job.note = L.label + " " + job.verb + ": " + job.from + (job.merge ? " into " : " to ") + job.to + ", " + plural(job.total, "product");
-  const ops = todo.map(p => lsProductOp(p, f, job.to));
-  const arr = ((S.lists && S.lists[L.doc]) || []).filter(x => { const k = normKey(x && x.name); return k && !job.keys.includes(k) && k !== normKey(job.to); })
-    .map(x => ({ name: oneSpace(x.name), key: normKey(x.name) })).concat([{ name: job.to, key: normKey(job.to) }]);
-  const tail = [{ op: "set", coll: "loadout_settings", id: "lists", merge: true, data: Object.assign({ [L.doc]: arr }, listWho()) }, mv("edit", { note: job.note })];
+  if (!onlineNow()) { toast(job.loc ? "Rename needs a connection. Try again when you are back online." : "Rename and Merge need a connection. Try again when you are back online.", true); return; }
+  const ops = job.todo();
+  if (job.total == null) job.total = ops.length;
+  job.done = Math.max(0, job.total - ops.length);
+  job.note = job.noteFor(job.total);
+  const tail = job.tail(), isTail = new Set(tail);
   const chunks = []; for (let i = 0; i < ops.length; i += LS_BATCH) chunks.push(ops.slice(i, i + LS_BATCH));
   if (chunks.length && chunks[chunks.length - 1].length + tail.length <= LS_BATCH) chunks[chunks.length - 1].push(...tail); else chunks.push(tail);
   Object.assign(job, { state: "running", batches: chunks.length, batch: 0, demo: DEMO });
   S.ls.run = job; render(true);
   for (const ch of chunks) {
     job.batch++;
-    const ok = await DB.commit(ch, L.one + " " + (job.merge ? "merge" : "rename"));
+    const ok = await DB.commit(ch, job.what);
     if (!ok && !DEMO) { job.state = "failed"; render(true); return; }
-    job.done += ch.filter(o => o.coll === "loadout_products").length;
+    job.done += ch.filter(o => !isTail.has(o)).length;
     if (S.ls.run === job) render(true);
   }
-  if (!DEMO) listLocalSet(f, arr);
+  if (!DEMO && job.after) job.after();
   job.state = "done"; render(true);
   if (!DEMO) toast(job.note);
 }
-function lsRunHTML() {
-  const r = S.ls.run; if (!r) return "";
-  const L = LISTF[r.f];
-  if (r.state === "running") return '<p class="loadmsg" role="status">' + (r.merge ? "Merging" : "Renaming") + ": " + fmtN(r.done) + " of " + plural(r.total, "product") + " done, batch " + fmtN(r.batch) + " of " + fmtN(r.batches) + ".</p>";
-  if (r.state === "failed") return '<div class="errbox" role="alert"><p>' + esc(L.label) + (r.merge ? " merge" : " rename") + " stopped after " + fmtN(r.done) + " of " + plural(r.total, "product") + ". The rest still carry the old " + L.one + ". Running it again picks up where it stopped and changes nothing twice.</p>" +
+/* where shows the box: the Brands and categories page, or one location's panel */
+function lsRunHTML(where) {
+  const r = S.ls.run; if (!r || (where ? r.loc !== where : !!r.loc)) return "";
+  if (r.state === "running") return '<p class="loadmsg" role="status">' + (r.merge ? "Merging" : "Renaming") + ": " + fmtN(r.done) + " of " + plural(r.total, r.noun) + " done, batch " + fmtN(r.batch) + " of " + fmtN(r.batches) + ".</p>";
+  if (r.state === "failed") return '<div class="errbox" role="alert"><p>' + esc(r.label) + (r.merge ? " merge" : " rename") + " stopped after " + fmtN(r.done) + " of " + plural(r.total, r.noun) + ". The rest still carry " + esc(r.oldWhat) + ". Running it again picks up where it stopped and changes nothing twice.</p>" +
     '<div class="btnrow"><button type="button" class="btn acc" data-act="lsRetry">Run it again</button><button type="button" class="btn" data-act="lsDismiss">Dismiss</button></div></div>';
-  return '<div class="impdone" role="status"><p><b>' + (r.demo ? "Done in the demo, nothing saved." : "Done.") + "</b> " + esc(r.note) + "." + (r.demo ? " It would have gone in " + plural(r.batches, "batch", "batches") + " of at most " + LS_BATCH + " writes." : "") + '</p><div class="btnrow"><button type="button" class="btn" data-act="lsDismiss">Dismiss</button></div></div>';
+  return '<div class="impdone" role="status"><p><b>' + (r.demo ? "Done in the demo, nothing saved." : "Done.") + "</b> " + esc(r.note) + "." + (r.demo ? " It would have gone in " + plural(r.batches, "batch", "batches") + " of at most " + LS_BATCH + " writes." : "") +
+    (r.loc ? " The label code did not change, so the printed label still scans; print a new one for the new name." : "") + '</p><div class="btnrow">' +
+    (r.loc ? '<button type="button" class="btn acc" data-act="printOne" data-kind="loc" data-id="' + esc(r.loc) + '">Print a new label</button>' : "") + '<button type="button" class="btn" data-act="lsDismiss">Dismiss</button></div></div>';
 }
 function lsGroupLi(g, i, lock) {
   const L = LISTF[g.f];
@@ -8941,8 +9359,8 @@ function listsPageHTML() {
   return h;
 }
 /* the three sheets: each closes by X, Cancel, or its button, and the run starts after it closes */
-function lsSheet(title, body, okLabel, plan, start) {
-  const w = openModal(title, body + '<p class="lssay" id="lsSay" aria-live="polite"></p>', '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>' + esc(okLabel) + "</button>");
+function lsSheet(title, body, okLabel, plan, start, tk) {
+  const w = openModal(title, body + '<p class="lssay" id="lsSay" aria-live="polite"></p>', '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="' + esc(tk || "lsOk:" + okLabel) + '">' + esc(okLabel) + "</button>");
   const ok = $("[data-ok]", w), say = $("#lsSay", w);
   const paint = () => { const r = plan(w); say.textContent = r.say; ok.disabled = !r.go; };
   w.addEventListener("input", paint); w.addEventListener("change", paint); wireGlow(w); paint();
@@ -8959,7 +9377,7 @@ function lsRename(f, key) {
     if (other) return { go: true, to, keys, other, say: other.name + " is already on the list with " + plural(other.n, "product") + ". Renaming merges the two: " + lsChange(n) + " to " + to + "." };
     if (!n && to === e.name) return { go: false, say: "That is the name it has now." };
     return { go: true, to, keys, say: n ? lsChange(n) + " from " + e.name + " to " + to + "." : "No product carries it yet; only the list changes." };
-  }, r => ({ f, keys: r.keys, to: r.to, from: e.name, verb: r.other ? "merged" : "renamed", merge: !!r.other }));
+  }, r => lsListJob({ f, keys: r.keys, to: r.to, from: e.name, verb: r.other ? "merged" : "renamed", merge: !!r.other }));
 }
 function lsMerge(f, key) {
   const L = LISTF[f], e = valueList(f).byKey.get(key); if (!e) return;
@@ -8971,7 +9389,7 @@ function lsMerge(f, key) {
     if (!keep) return { go: false, say: "Choose the " + L.one + " to keep." };
     const keys = [key, keep.key];
     return { go: true, to: keep.name, keys, say: lsChange(lsTodo(f, keys, keep.name).length) + " to " + keep.name + "." };
-  }, r => ({ f, keys: r.keys, to: r.to, from: e.name, verb: "merged", merge: true }));
+  }, r => lsListJob({ f, keys: r.keys, to: r.to, from: e.name, verb: "merged", merge: true }));
 }
 function lsGroup(i) {
   const g = _lsG[i]; if (!g) return;
@@ -8981,7 +9399,7 @@ function lsGroup(i) {
     const c = $('input[name="lsKeep"]:checked', w), o = c && g.opts[+c.value];
     if (!o) return { go: false, say: "Choose the spelling to keep." };
     return { go: true, to: o.name, say: lsChange(lsTodo(g.f, g.keys, o.name).length) + " to " + o.name + "." };
-  }, r => ({ f: g.f, keys: g.keys, to: r.to, from: g.opts.map(o => o.name).filter(n => n !== r.to).join(" and "), verb: g.weak ? "merged" : "spellings merged", merge: true }));
+  }, r => lsListJob({ f: g.f, keys: g.keys, to: r.to, from: g.opts.map(o => o.name).filter(n => n !== r.to).join(" and "), verb: g.weak ? "merged" : "spellings merged", merge: true }));
 }
 const lsNet = () => { if (S.view === "office" && S.officeSec === "lists") render(true); };
 window.addEventListener("online", lsNet); window.addEventListener("offline", lsNet);
@@ -9017,7 +9435,7 @@ function lastAdminBlock(u, role, active) {
 function openUser(u) {
   const body = '<p class="hint" style="margin-top:0">' + esc(u.name || "") + ", " + esc(u.email) + '</p><label class="lab" for="uRole" title="Admin: everything, People and Settings in Office too. Warehouse: receive, audit, move, labels, jobs, orders. Tech: scan, check out and in, box readings, stage and deliver. Accounting: reads everything and Office, Reports, changes nothing. Board: the wall board TV\'s own account.">' + '<abbr>Role</abbr></label><select class="fld" id="uRole">' +
     ROLES.map(r => '<option value="' + r + '"' + (u.role === r ? " selected" : "") + ">" + ROLE_LABEL[r] + "</option>").join("") + '</select><label class="chk" title="A deactivated person can still sign in but only reads. Their name stays on every record they touched."><input type="checkbox" id="uActive"' + (u.active === false ? "" : " checked") + '> Active</label><p class="err" id="uErr" hidden></p>';
-  const w = openModal("Change " + (u.name || u.email), body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Save</button>');
+  const w = openModal("Change " + (u.name || u.email), body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="userOk">Save</button>');
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const role = $("#uRole", w).value, active = $("#uActive", w).checked;
     if (lastAdminBlock(u, role, active)) { const e = $("#uErr", w); e.textContent = "Keep at least one active admin."; e.hidden = false; return; }
@@ -9321,10 +9739,11 @@ const DATA_DICTIONARY = [
     ["upcLookupUpc", "The UPC that answer was about. The sheet does not open on its own again for the same UPC; Find a photo always asks (0.10.0)"],
     ["onHand", "Total on hand, recomputed with each movement"], ["lastCost", "Last unit cost; values in reports use it"], ["portalItemId", "Portal item id when imported"],
     ["lastCountAt", "Count date from the inventory sheet"]].concat(DD_WHO) },
-  { coll: "loadout_locations", id: "area--shelf slug, as storage-room--rca-av-video", about: "Shelves, bays, vans, and bare areas.", fields: [
+  { coll: "loadout_locations", id: "area--shelf slug, as storage-room--rca-av-video; it never changes, so after a rename (0.11.1) it keeps the first name's slug and the printed label still scans", about: "Shelves, bays, vans, and bare areas.", fields: [
     ["area", "Room or zone"], ["shelf", "Shelf within it, blank for a bare area"], ["name", "Area and shelf, as printed on the label"], ["kind", "shelf, bay, van, vehicle (a person's car or truck that carries stock, 0.7.0), or other"],
     ["jobId", "Job the bay is reserved for"], ["jobName", "Its name"], ["qr", "Label payload, loadout:loc:{id}"],
-    ["lastAuditedAt", "When the last Audit a shelf finished here (0.8.0); empty means never audited"], ["lastAuditedBy", "Email of whoever finished it"], ["lastAuditedByName", "Their name"]].concat(DD_WHO) },
+    ["lastAuditedAt", "When the last Audit a shelf finished here (0.8.0); empty means never audited"], ["lastAuditedBy", "Email of whoever finished it"], ["lastAuditedByName", "Their name"],
+    ["archived", "True once an admin archives an empty location (0.11.1): it leaves the pick lists, the audit list, and the Shelf filter, and still names itself everywhere history shows it"], ["archivedAt", "When it was archived; empty once unarchived"], ["archivedBy", "Email of the admin who archived it"]].concat(DD_WHO) },
   { coll: "loadout_stock", id: "{productId}__{locationId}", about: "Counted quantity of one product on one shelf.", fields: [
     ["productId", "Product"], ["productName", "Its name when written"], ["locationId", "Location"], ["locationName", "Its name when written"], ["qty", "Count in the product's unit"], ["updatedAt", "When it last changed"]] },
   { coll: "loadout_containers", id: "the box label slug, as a1026", about: "Wire boxes and reels for by-the-foot products.", fields: [
@@ -10372,7 +10791,7 @@ function impDoneHTML() {
     '<button type="button" class="btn" data-act="impDoneX">Done</button></div></div>';
 }
 /* demo-only hooks for checking the importer and the loading and error states by script */
-if (DEMO) window.Loadout = { importBuffer: (buf, name) => importLoad(buf, name || "workbook.xlsx"), state: S, render: () => render(true), setLive, sampleCsv: () => SAMPLE_CSV, board: BD,
+if (DEMO) window.Loadout = { tipAudit, importBuffer:(buf, name) => importLoad(buf, name || "workbook.xlsx"), state: S, render: () => render(true), setLive, sampleCsv: () => SAMPLE_CSV, board: BD,
   /* 0.11.0 (PLAN 25): the matcher, the formatter, and the lists, for the self-test and the checks by script */
   lists: { normKey, tidyName, brandList, categoryList, listSpell, importOps: () => S.imp && S.imp.plan ? importOps(S.imp.plan) : null },
   /* 0.5.0 checks by script: sync({online:false, pending:3}) drives the pill (sync(null) goes back to Demo);
@@ -10397,6 +10816,9 @@ document.addEventListener("click", e => {
   if (e.target.closest("[data-skip]")) { e.preventDefault(); const m = $("#main"); if (m) m.focus(); return; }
   const tq = e.target.closest(".tipq");
   if (tq) { e.preventDefault(); openTip(tq.dataset.tipFor, tq.dataset.tip); return; }
+  /* 0.11.1 (PLAN 27): What do these do? under an action row on a touch screen */
+  const wd = e.target.closest(".whatdo");
+  if (wd) { const row = wd.parentNode.closest(WHAT_SEL); if (row) openWhat(row); return; }
   const g = e.target.closest("[data-go]");
   if (g && !g.closest(".modal")) { go(g.dataset.go); return; }
   const bd = e.target.closest("[data-bdup],[data-bddown],[data-bdrm]");
@@ -10461,6 +10883,10 @@ document.addEventListener("click", e => {
     case "lsRetry": if (S.ls.run) lsRun(S.ls.run); break;
     case "lsDismiss": S.ls.run = null; render(true); break;
     case "newLocation": openLocationForm(null); break;
+    /* 0.11.1 (PLAN 28.2): rename and archive a location (admin) */
+    case "locRename": if (isAdmin()) openLocRename(S.locations.get(id)); break;
+    case "locArchive": if (isAdmin()) locArchive(S.locations.get(id)); break;
+    case "locUnarchive": if (isAdmin()) locUnarchive(S.locations.get(id)); break;
     case "editLocation": case "location": navLoc(id); break;
     case "newBox": openNewBox(P()); break;
     case "boxSheet": closeAllModals(); if (S.view === "scan") { S.scan = { kind: "ctr", id }; paintScanResult(); } else openBoxSheet(id); break;
@@ -10613,6 +11039,7 @@ document.addEventListener("change", e => {
   else if (t.id === "lblSize") { S.labelSize = t.value; }
   else if (t.dataset && t.dataset.tf && t.id !== "tfQ") { S.tkFilter[t.dataset.tf] = t.type === "checkbox" ? t.checked : t.value; render(true); }
   else if (t.id === "showArch") { S.showArchived = t.checked; render(true); }
+  else if (t.id === "showArchLocs") { S.showArchLocs = t.checked; render(true); const c = $("#showArchLocs"); if (c) c.focus(); }
   else if (t.id === "lblEmpty") { S.labelEmpty = t.checked; render(true); }
   else if (t.dataset && t.dataset.xf && S.x) { if (!S.x.draft) S.x.draft = {}; S.x.draft[t.dataset.xf] = t.type === "checkbox" ? t.checked : t.value; }
   else if (t.dataset && t.dataset.of) { S.ordFilter[t.dataset.of] = t.value; render(true); }

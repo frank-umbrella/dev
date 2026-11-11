@@ -73,6 +73,11 @@ its address, and on Home already it scrolls back to the top.
   the Pick up and Confirm a delivery doors, with the same counts. Accounting lands on Office, Reports; the board account on the wall
   board. A door's color runs as a thin band along the top of its screens
   (the job page and the Pull screen take the Pull amber) and nowhere else.
+  Each door's list (`#pull`, `#pickup`, `#deliver`, `#receive`, `#audit`)
+  starts with a **Home** link above its heading (0.11.1, PLAN 28.1: a
+  chevron and the word, 44 px on a phone), since the home-screen app has no
+  browser Back; one level in, the crumb's first part leads back to the list
+  ("Pull for a job / Job 1042", "All locations").
 - **Pull for a job** (0.9.0): the jobs a shelf can feed now, soonest install
   first, then a quiet **Waiting on orders** group for jobs whose lines only
   an order can cover. A card opens the job's **Pull screen** (`#pull/<jobId>`),
@@ -274,7 +279,27 @@ its address, and on Home already it scrolls back to the top.
   two columns, on hand by location, boxes, and one row of buttons (Save,
   Receive or Receive a box, Pull for job, Move, Count, Adjust, Serialize,
   Reorder, Print label, Show history); the Scan card shows the first of the
-  same buttons, in the same order. **History** (0.9.1, PLAN 21.3) reads as a
+  same buttons, in the same order. **Locations** (0.11.1, PLAN 28.2): New
+  location (admin and warehouse) adds a shelf, bay, van, or vehicle; the
+  Kind select says what each kind changes (a bay holds one job's staged
+  product and is never pulled from, a van is never pulled from, a shelf,
+  vehicle, or other is). An admin has **Rename** on a location's panel: area
+  and shelf, with the name they make shown as it will print. The id (the
+  label code) never changes, so a printed label still scans; the readable
+  name is rewritten on stock rows, units, wire boxes, products that use it as
+  their default, and the staging bay named on open jobs and open job names,
+  in batches of at most 400 with one `edit` movement ("Location renamed:
+  Storage room, Shelf B to Storage room, B3, 14 records"), using the same
+  runner as Brands and categories (progress, Run it again, needs a
+  connection). Past movements keep the old name. A name another location
+  has (case and spacing ignored) is refused with "Another location already
+  has that name." When it is done the panel offers **Print a new label**.
+  **Archive** (admin) works only on an empty location that is no job's
+  staging bay; it leaves the pick lists (pull sources, Receive targets, a
+  product's default location, every location select), the Audit list, and
+  the Shelf Location filter, and still names itself wherever history shows
+  it. **Show archived** on Shelf, Locations lists them again, with
+  **Unarchive**. **History** (0.9.1, PLAN 21.3) reads as a
   timeline everywhere it shows (a product, unit, or location's Show history,
   the Timeline on a job and a PO, Last movements on the Scan card): newest
   first under Today, Yesterday, and dated headings, a rail with a dot per
@@ -362,7 +387,9 @@ its address, and on Home already it scrolls back to the top.
   vendors, the Portal tier, and the wall board (mode, rotation, grouping,
   theme, picked lines, pinned jobs), all saved by one button. Settings also
   links to **Brands and categories** (0.11.0, admin, `#office/lists`; no card
-  of its own on Office): the two lists with name and product count, sortable
+  of its own on Office), and (0.11.1) has a **Locations** line, "Shelves,
+  bays and vehicles are managed on Shelf, Locations", with a link there.
+  Brands and categories has the two lists with name and product count, sortable
   with the Columns manager, one search over both, cards under 720 px, and
   Add a brand or Add a category. At the top, **Probably the same** lists a
   value saved more than one way that differs only by case or spacing, and a
@@ -426,6 +453,13 @@ its address, and on Home already it scrolls back to the top.
   by side from 900 px up and one below; the first field takes focus, Enter
   saves a form that has one text field, and a required field that is not a
   choice says "required". `/` jumps to the view's search field.
+  **Tooltips** (0.11.1, PLAN 27): every button carries a hover sentence on
+  what it does and, for anything that removes, ends, writes off, archives,
+  retires, cancels, or signs out, what is lost and whether the app can undo
+  it. They come from one table in the code (`TIPS`, keyed by action) as the
+  button is drawn; a button that builds its own, more specific sentence from
+  live data keeps it. Plain Cancel, Close, Back, Done, Next, and Keep working
+  carry none, and the X buttons keep their label for screen readers.
 - **Photos**: a product's panel (Shelf, open a row) has a Photo slot with Add
   photo, Replace photo, and Remove photo for admin and warehouse. The photo
   is shrunk to 1200 px and saved as JPEG before upload, and shows on the Scan
@@ -575,6 +609,11 @@ screen, where the thumb already is.
 - **Reading**: card text is 15 px, small grey text 13 px, nothing smaller; every
   button is at least 44 px tall with 8 px between neighbors. A field whose
   reason is not obvious has a ? that opens the reason.
+- **What do these do?** (0.11.1): a phone has no hover, so a row of two or
+  more buttons with tooltips (a card's footer, a panel's buttons, the job
+  page header, a Tracking card) ends with this link on its own line. It
+  opens a sheet named for the row with each button and its sentence; Close
+  only. Confirm sheets, the tab bar, and the doors do not get one.
 - **On its side** the full desktop menu shows, the header scrolls away with
   the page, sheets put their buttons in one row, and Scan puts the camera and
   the result side by side.
@@ -1157,6 +1196,39 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.11.1 (2026-11-11)
+
+The owner hovered over Retire on a unit and got nothing. Of about 390
+buttons, about 290 had no tooltip, Retire, Check in, Archive, and Receive
+among them, so the only way to learn what a button did was to press it.
+The owner also opened a door on the phone and could not get back, and asked
+whether locations can be renamed.
+
+- **A sentence on every button.** Hovering any button now says what it
+  does and what happens next. Anything that removes, ends, writes off,
+  archives, retires, cancels, or signs out also says what is lost and
+  whether the app can undo it ("Retire: takes this unit out of service for
+  good ... It cannot be brought back from the app"). The sentences live in
+  one table, so a new button picks one up as it is drawn, and
+  `Loadout.tipAudit()` lists any button on the screen that still has none.
+  Plain Cancel, Close, Back, Done, and Next stay quiet.
+- **What do these do?** A phone has no hover, so a row of buttons with
+  tooltips ends with this link on its own line. It lists each button with
+  its sentence.
+- **A way back from every door.** Pull, Pick up, Confirm a delivery,
+  Receive, and Audit start with a Home link above their heading.
+- **Rename and archive a location** (admin). Rename changes the area and
+  shelf on every record that shows the name, in batches, and keeps the
+  label code so printed labels still scan; it then offers a new label.
+  Archive takes an empty location off the pick lists and the audit list,
+  and Show archived brings it back. Settings points to Shelf, Locations so
+  people who look there find it.
+
+No rules change: admin could already write locations (the `loadout_*`
+wildcard lets warehouse and admin write them, `archived` included) and every
+field the rename rewrites on stock rows, units, wire boxes, products, jobs,
+and job names. Nothing to deploy for the rules.
 
 ### 0.11.0 (2026-11-11)
 
