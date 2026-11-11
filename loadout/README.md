@@ -286,7 +286,24 @@ its address, and on Home already it scrolls back to the top.
   bar down its left edge; Escape or the chevron at its top right closes it,
   and the address carries it
   (`#shelf/p/<id>`, `#shelf/l/<id>`), so a link lands on it open. Modals stay
-  for the decisions that need a confirm.
+  for the decisions that need a confirm. **Brand and Category** (0.11.0,
+  PLAN 25), on New product and the product panel, are pick lists: a field
+  with a list under it (a combobox: arrows move, Enter picks, Escape closes,
+  44 px options on a phone). Typing narrows the values already in use, each
+  with its product count; matching ignores case and extra spaces, and
+  leaving the field puts a match in the list's spelling. An admin who types
+  something new gets "Add 'middle atlantic' as a new brand" and a small
+  confirm with the name tidied ("Middle Atlantic": a word all lower case, or
+  all upper case and longer than four letters, gets a capital first letter;
+  capitals inside a word and short codes such as QSC stay; of, and, the stay
+  lower case inside a name), to correct before Add. Typing a new value and
+  pressing Save opens the same confirm. Anyone else sees "Not on the list.
+  Ask an admin to add it." and Save refuses that field with the same
+  sentence under it, keeping the rest of the form; clearing the field saves.
+  Brand may be empty; Category glows amber on New product until it is set.
+  **Type** keeps its text field and suggests the types already used in the
+  category picked (any type can still be typed). `kind` is unchanged and
+  stays internal.
 - **Scan**: point the phone at a UPC or a Loadout label, or type the code.
   Shelf labels set the active location; box labels open the box sheet (mark
   now, cut this time, quick -50 / -100 / -250, Empty, recount); unit labels
@@ -343,7 +360,25 @@ its address, and on Home already it scrolls back to the top.
   **Settings** (admin): show costs, QR threshold, week start, the Work week
   default for the Week view, label sheet, box start lengths, carriers,
   vendors, the Portal tier, and the wall board (mode, rotation, grouping,
-  theme, picked lines, pinned jobs), all saved by one button. **About**:
+  theme, picked lines, pinned jobs), all saved by one button. Settings also
+  links to **Brands and categories** (0.11.0, admin, `#office/lists`; no card
+  of its own on Office): the two lists with name and product count, sortable
+  with the Columns manager, one search over both, cards under 720 px, and
+  Add a brand or Add a category. At the top, **Probably the same** lists a
+  value saved more than one way that differs only by case or spacing, and a
+  weaker **Look alike** group (punctuation, spaces, or a trailing s, such as
+  Rack and Racks); each has Merge into one with the spelling to keep.
+  **Rename** (the new name tidied and editable; the sheet says how many
+  products change, and a name already on the list merges the two) and
+  **Merge into...** (pick the entry to keep) rewrite `brand` or `category`,
+  and the readable `name` when it carries the brand, on every product with
+  the value, in batches of at most 400 writes, then the lists document and
+  one `edit` movement ("Brand renamed: Iport to iPort, 3 products"). Ids
+  never change, and other records keep the product name they were written
+  with. Progress shows while it runs; if it stops part way it says how many
+  were done and offers Run it again, which only touches products still
+  carrying the old value. Both need a connection, and say so when offline.
+  **About**:
   the data dictionary for every collection, rendered from `DATA_DICTIONARY`
   in the code, with the readability rules. **Export everything**: every
   collection as one workbook or as zipped CSVs, file names stamped with the
@@ -493,7 +528,12 @@ which Add to home screen card shows (0.8.1: the address takes it too,
 the home screen state), and (0.5.2) `window.Loadout.exportTables()`
 to read the Export everything tables without downloading, and (0.6.0)
 `window.Loadout.boardRotate(6)` to set the board's rotation for watching the
-scroll and the 2 px shift. 0.5.2 adds a Short
+scroll and the 2 px shift. 0.11.0 adds `window.Loadout.lists` (`normKey`,
+`tidyName`, `brandList()`, `categoryList()`, `listSpell(f, s)`, and
+`importOps()` for the loaded workbook) and `window.Loadout.state.demoLog`,
+the last 50 refused batches, so a Rename or Merge run in batches can be read
+back whole. A brand or category added through the confirm stays on this
+tab's lists until reload. 0.5.2 adds a Short
 line with stock elsewhere (job #1053 needs 80 keystones; 64 are on the
 shelves and 24 ride in Van 1, which a job never pulls from, so 16 are
 Short), a draft started with no connection (no PO number until Mark ordered
@@ -718,6 +758,29 @@ gained `reviewedAt`, `reviewedBy`, and `reviewedByName` beside the worker's
   Truck). It reads like `other`.
 - Pulled units get one `checkout` movement by Import, dated from Pull Date
   (else the count date), with an `importKey` ending in `:checkout`.
+
+0.11.0 (PLAN 25):
+
+- `loadout_settings/lists` holds `brands` and `categories`, each an array of
+  `{ name, key }`: `name` is the spelling shown and saved, `key` is the name
+  trimmed, inner spaces collapsed, and lower case (`normKey`), the one key
+  every comparison of a brand or category uses. Plus `updatedAt`,
+  `updatedBy`, `updatedByName`. It is optional: a list is the values in use
+  on products plus these entries, so the app works from products alone when
+  the document is missing. It records the display spelling (otherwise the
+  spelling most products use) and holds a value added before any product
+  carries it. Only admins write it: an add appends with `arrayUnion`, so two
+  admins adding offline both land; Rename and Merge write the whole array.
+- `brand` and `category` on a product are saved in the list's spelling.
+  Rename and Merge rewrite them, and `name` when it was built from the brand
+  (or carries the old spelling), with `updatedAt`; ids never change, and
+  stock rows, units, and lines keep the product name they were written with
+  (names are snapshots). Each run writes one `edit` movement with no product
+  and a note such as "Brand renamed: Iport to iPort, 3 products".
+- The inventory sheet import writes brands and categories in the list's
+  spelling, starts a new make tidied in the alias table, and appends new
+  makes to `brands`. The proposal file reader writes a line's `brand` in the
+  list's spelling. Ids and the re-import keys are unchanged.
 
 Office, About lists every field of every collection.
 
@@ -1094,6 +1157,41 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.11.0 (2026-11-11)
+
+Brand and category were free text, so the same brand could be saved three
+ways ("Sonos", "SONOS", " sonos ") and the Shelf filter, the Stock report,
+and anyone reading the data saw it three times. They are now pick lists.
+
+- **Pick or type.** On New product and the product panel, Brand and
+  Category are a field with a list under it: typing narrows the values
+  already in use, each with its product count, and case and extra spaces do
+  not matter. Leaving the field puts a match in the list's spelling. Type
+  keeps its text field and suggests the types already used in the category
+  picked. Brand may stay empty (cables have none); Category glows on New
+  product until it is set.
+- **New values are an admin's call.** An admin who types something new
+  sees "Add 'middle atlantic' as a new brand" and a small confirm with the
+  name already capitalized ("Middle Atlantic") to correct before it is
+  saved. Anyone else sees "Not on the list. Ask an admin to add it." and
+  cannot save that value; the rest of the form is kept and the field can be
+  cleared. This keeps the lists short and spelled one way.
+- **One list everywhere.** The Shelf filters, the Stock report's By
+  category view, the inventory sheet importer, and the proposal file reader
+  all match the same way and write the list's spelling, so a file that says
+  "SONOS" lands on "Sonos". Product ids, line ids, and re-imports do not
+  change; a re-import no longer renames "Sonos Amp" to "SONOS Amp" because
+  the sheet shouted. New makes from an inventory import join the brand list.
+- **Tidy what is there.** Office, Settings, Brands and categories (admin)
+  lists both with their counts, flags the ones that are probably the same,
+  and has Rename and Merge into. Either one rewrites the value and the
+  readable name on every product carrying it, in batches, with one line in
+  the history; if the connection drops part way, running it again finishes
+  the job without doing anything twice.
+
+No rules change: admin could already write any document under
+`loadout_settings`, and the new `loadout_settings/lists` is one of them.
 
 ### 0.10.0 (2026-11-11)
 

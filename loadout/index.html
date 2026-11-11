@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.10.0</title>
+<title>Loadout v0.11.0</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.10.0">
+<meta name="loadout-version" content="0.11.0">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -1021,6 +1021,36 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
 }
 .setsect{margin-top:22px;padding-top:14px;border-top:1px solid var(--m-line)}
 .setsect>h3{margin:0 0 4px;font-size:16px}
+/* ---------- 0.11.0 (PLAN 25): brand, category, and type pick lists ----------
+   The list hangs under its field inside the field's own box (left and right 0),
+   so it is never wider than the field and never scrolls the page sideways; in
+   a bottom sheet it scrolls with the sheet. Its shadow is the one elevation
+   cue here: it sits over the fields below it. */
+.cb{position:relative;min-width:0}
+.cblist{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;margin:0;padding:4px;list-style:none;background:var(--m-card);border:1px solid var(--m-control-line);border-radius:var(--m-radius);box-shadow:0 8px 24px rgba(20,30,50,.18);max-height:min(264px,45vh);overflow-y:auto;overscroll-behavior:contain}
+.cblist li{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s2);min-height:34px;padding:7px 10px;border-radius:6px;cursor:pointer;color:var(--m-text);overflow-wrap:anywhere}
+.cblist li .cbt{min-width:0}
+.cblist li .cbn{flex:none;font-size:12px;color:var(--m-muted)}
+.cblist li:hover{background:var(--m-card2)}
+/* the option the arrows are on: the nav highlight plus an accent ring, so it never relies on the tint alone */
+.cblist li[aria-selected="true"]{background:var(--m-navon);box-shadow:inset 0 0 0 2px var(--m-accent)}
+.cblist li.cbadd{color:var(--m-accent2);font-weight:600}
+.cblist li.cbno{cursor:default;font-style:italic}
+.cblist li.cbadd,.cblist li.cbno{border-top:1px solid var(--m-line);border-radius:0 0 6px 6px;margin-top:2px}
+.cblist li.cbadd:first-child,.cblist li.cbno:first-child{border-top:0;margin-top:0;border-radius:6px}
+@media (max-width:640px),(pointer:coarse){.cblist li{min-height:44px;align-items:center}}
+/* Brands and categories */
+.lsh{margin:0;font-size:16px}
+.lsg{list-style:none;margin:0;padding:0}
+.lsg li{display:flex;align-items:center;justify-content:space-between;gap:var(--s1) var(--s2);flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--m-line)}
+.lsg .lsgn{min-width:0;flex:1 1 240px;overflow-wrap:anywhere}
+.lsweak{margin-top:var(--s3)}
+.lsoff{border:1px solid var(--m-warn-text);border-radius:var(--m-radius);padding:10px 14px;color:var(--m-warn-text);background:var(--m-dnrbg);margin:0 0 var(--s2)}
+.lssay{font-size:14px;margin:var(--s2) 0 0;color:var(--m-text)}
+.lsfs{border:0;margin:0;padding:0;min-width:0}
+.lsfs .chk{overflow-wrap:anywhere}
+.lsbar{margin-top:var(--s4)}
+@media (max-width:640px),(pointer:coarse){.lsg .btn{min-height:44px}}
 
 /* ---------- 0.5.0: offline, install, photos ---------- */
 /* dashed outline: a state that will change by itself once the server answers */
@@ -1426,7 +1456,7 @@ a.textbtn{display:inline-flex;align-items:center}
     <!-- 0.10.0: the mark and name are one link to the person's Home; a relative hash keeps the demo's query string -->
     <a class="brand" href="#home" id="brandHome" aria-label="Loadout, go to Home">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.10.0</span>
+      Loadout <span class="v" id="verBadge">v0.11.0</span>
     </a>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
@@ -1465,7 +1495,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.10.0</span>
+    <span id="footVer">Loadout v0.11.0</span>
   </footer>
 
   <nav class="tabbar" aria-label="Views">
@@ -1491,7 +1521,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.10.0";
+const VERSION = "0.11.0";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -1663,7 +1693,9 @@ const S = {
   /* 0.5.2: loadout_settings/counters (the shared PO number) */
   counters: null,
   /* 0.6.1: loadout_settings/worker, and the Backups tab's Storage listing */
-  worker: null, bk: null
+  worker: null, bk: null,
+  /* 0.11.0 (PLAN 25): loadout_settings/lists, and the Brands and categories page (its search and the Rename or Merge run) */
+  lists: null, ls: { q: "", run: null }
 };
 const COLLS = ["products", "locations", "stock", "containers", "items", "users", "movements", "settings", "clients", "jobs", "proposals", "tickets", "orders", "shipments"];
 
@@ -2241,7 +2273,8 @@ function demoStore() {
     /* every write is refused; the last refused batch is kept on the demo
        hook (window.Loadout.state.lastOps) so a script can check what a
        button would have written */
-    commit(ops, what) { S.lastOps = ops; S.lastWhat = what || ""; toast("Demo mode: not saved"); return Promise.resolve(false); },
+    /* 0.11.0: demoLog keeps the last 50 refused batches, so a run in batches (Rename, Merge) can be read back whole */
+    commit(ops, what) { S.lastOps = ops; S.lastWhat = what || ""; (S.demoLog = S.demoLog || []).push({ what: what || "", ops }); if (S.demoLog.length > 50) S.demoLog.shift(); toast("Demo mode: not saved"); return Promise.resolve(false); },
     /* 0.5.2 (finding 8): a write with a create precondition. The demo knows
        only its own fixture, so a label it holds already counts as taken. */
     commitCreate(ops, what) {
@@ -2258,7 +2291,7 @@ function demoStore() {
     async getAll(coll) {
       const key = coll.replace("loadout_", "");
       if (key === "movements") return S.movements.slice();
-      if (key === "settings") return [Object.assign({ id: "general" }, S.general), Object.assign({ id: "board" }, S.board), Object.assign({ id: "counters" }, S.counters || {})];
+      if (key === "settings") return [Object.assign({ id: "general" }, S.general), Object.assign({ id: "board" }, S.board), Object.assign({ id: "counters" }, S.counters || {})].concat(S.lists ? [Object.assign({ id: "lists" }, S.lists)] : []);
       if (key === "ticket_lines") { const out = []; S.lines.forEach((m, tid) => m.forEach(l => out.push(Object.assign({ ticketId: tid }, l)))); return out; }
       if (key === "order_lines") { const out = []; S.olines.forEach((m, oid) => m.forEach(l => out.push(Object.assign({ orderId: oid }, l)))); return out; }
       const m = S[key]; return m ? Array.from(m.values()) : [];
@@ -2344,7 +2377,7 @@ function firestoreStore(user) {
       olUnsubs.set(id, u);
     });
   }
-  const toMap = (key) => docs => { const m = new Map(); docs.forEach(d => m.set(d.id, d)); S[key] = m; _lastMv = null; _shelf = null; _sfLocs = null; _sfSpell = null; };
+  const toMap = (key) => docs => { const m = new Map(); docs.forEach(d => m.set(d.id, d)); S[key] = m; _lastMv = null; _shelf = null; _sfLocs = null; _sfSpell = null; _vl = null; };
   /* one op onto a batch or a transaction (both take set, update, delete) */
   function applyOp(w, o) {
     if (o.op === "add") { w.set(fs.doc(fs.collection(db, o.coll)), conv(o.data)); return; }
@@ -2372,6 +2405,8 @@ function firestoreStore(user) {
         S.portal = docs.find(d => d.id === "portal") || null;
         /* 0.6.1: loadout-worker's last nightly backup (Console > Backups) */
         S.worker = docs.find(d => d.id === "worker") || null;
+        /* 0.11.0 (PLAN 25): the brand and category lists; optional, the app works from products alone */
+        S.lists = docs.find(d => d.id === "lists") || null; listsDirty();
       });
       listen("movements", fs.query(fs.collection(db, "loadout_movements"), fs.orderBy("at", "desc"), fs.limit(500)), docs => { S.movements = docs.map(normMv); _lastMv = null; });
       listen("clients", fs.collection(db, "loadout_clients"), toMap("clients"));
@@ -4073,7 +4108,7 @@ let _rq = 0;
 function scheduleRender() { if (_rq) return; _rq = requestAnimationFrame(() => { _rq = 0; render(false); }); }
 function render(force) {
   if (!S.user) return;
-  _lastMv = null; _shelf = null; _sfLocs = null; _sfSpell = null;
+  _lastMv = null; _shelf = null; _sfLocs = null; _sfSpell = null; _vl = null;
   if (BOARD) { renderBoard(); return; }
   const ae = document.activeElement;
   const fid = ae && ae.id && $("#main").contains(ae) ? ae.id : null;
@@ -4656,7 +4691,7 @@ function lineIdFor(area, brand, model, desc) {
   const prod = brand || model ? slug((brand || "") + "-" + (model || "")) : slug(desc || "line");
   return ((slug(area) || "general") + "--" + (prod || "line")).slice(0, 140);
 }
-const prodKey = (b, m) => (String(b || "") + " " + String(m || "")).toLowerCase().replace(/\s+/g, " ").trim();
+const prodKey = (b, m) => normKey(String(b || "") + " " + String(m || ""));
 function matchProduct(brand, model) {
   if (!brand && !model) return null;
   const k = prodKey(brand, model);
@@ -4701,7 +4736,8 @@ function impBuild(I) {
     if (!Number.isFinite(q) || q <= 0) { skipped.push({ row, label, why: "Quantity " + qs + " is not a number above zero" }); return; }
     const p = matchProduct(brand, model), id = lineIdFor(area, p ? p.brand || brand : brand, p ? p.model || model : model, desc);
     if (lines.has(id)) { const e = lines.get(id); e.qtyNeeded += q; e.rows.push(row); return; }
-    lines.set(id, { id, area, option: g("option"), itemType: type, brand, model, description: desc, unit: /^(ft|feet|foot|lf)$/i.test(g("unit")) ? "ft" : (g("unit") || "each"), qtyNeeded: q, portalItemId: g("portalItemId") || null, productId: p ? p.id : null, rows: [row] });
+    /* 0.11.0 (PLAN 25): a brand on the list is written in the list's spelling ("SONOS" lands on "Sonos"); the line id is a slug, so it does not move */
+    lines.set(id, { id, area, option: g("option"), itemType: type, brand: brand ? listSpell("brand", brand) : brand, model, description: desc, unit: /^(ft|feet|foot|lf)$/i.test(g("unit")) ? "ft" : (g("unit") || "each"), qtyNeeded: q, portalItemId: g("portalItemId") || null, productId: p ? p.id : null, rows: [row] });
   });
   I.lines = lines; I.skipped = skipped; I.proposalFromCsv = proposal; I.proposalName = pname;
   if (!I.proposalTouched && proposal) I.proposal = proposal;
@@ -6000,7 +6036,9 @@ const OFFICE = [
   ["clients", "Clients", "Client names and the job names under them; most arrive with an import.", r => r === "admin"],
   ["reports", "Reports", "Stock value, spend by vendor, what went to each job.", r => r === "admin" || r === "accounting"],
   ["people", "People", "Who can sign in, and what each person can do.", r => r === "admin"],
-  ["settings", "Settings", "Costs, label size, carriers, QR threshold, and the wall board.", r => r === "admin"],
+  ["settings", "Settings", "Costs, label size, carriers, QR threshold, brands and categories, and the wall board.", r => r === "admin"],
+  /* 0.11.0 (PLAN 25): opened from Settings, so it has no card of its own (the fifth field hides it from the grid) */
+  ["lists", "Brands and categories", "The pick lists on every product: rename, merge, and the likely duplicates.", r => r === "admin", true],
   ["audit", "Audit", "Every shelf by the date it was last audited.", r => r === "admin" || r === "warehouse"],
   ["labels", "Labels", "Print labels for shelves, wire boxes, and serialized units.", r => r === "admin" || r === "warehouse" || r === "tech"],
   ["movements", "Movements", "Every pull, audit, pick-up, and check-out, with who and when.", r => r === "admin" || r === "warehouse" || r === "tech"],
@@ -6019,7 +6057,7 @@ function renderOffice(force) {
   const el = $("#v-office"), sec = S.officeSec;
   if (!sec) {
     _offBuilt = "";
-    const list = OFFICE.filter(o => o[3](S.role));
+    const list = OFFICE.filter(o => o[3](S.role) && !o[4]);
     el.innerHTML = '<div class="mcard"><div class="thead"><h2 class="vt">' + officeWord() + "</h2></div>" + installCardHTML() +
       '<div class="ocards">' + list.map(o => '<a class="oc" href="#' + (o[0] === "orders" ? "orders" : o[0] === "audit" ? "audit" : "office/" + o[0]) + '"><b>' + esc(o[1]) + "</b><span>" + esc(o[2]) + "</span></a>").join("") + "</div>" +
       (OFFICE.some(o => o[0] !== "phone" && !o[3](S.role)) ? '<p class="hint">' + (S.role === "accounting" ? "Orders, people, settings, and the warehouse sections are for the admin." : "Orders, reports, people, settings, and the rest are for the admin.") + "</p>" : "") + "</div>";
@@ -6027,7 +6065,7 @@ function renderOffice(force) {
   }
   /* 0.9.1: #office/phone on a computer lands on Office itself */
   if (sec === "phone" && !a2Device()) { S.officeSec = null; setHash(); renderOffice(force); return; }
-  const crumb = '<div class="crumb"><a class="textbtn" href="#office">' + officeWord() + "</a> / " + esc(officeName(sec)) + "</div>";
+  const crumb = '<div class="crumb"><a class="textbtn" href="#office">' + officeWord() + "</a> / " + (sec === "lists" && officeCan("settings") ? '<a class="textbtn" href="#office/settings">Settings</a> / ' : "") + esc(officeName(sec)) + "</div>";
   if (!officeCan(sec)) { _offBuilt = ""; el.innerHTML = '<div class="mcard">' + crumb + '<div class="empty"><p>' + esc(officeName(sec)) + ' is not open to your role.</p><a class="btn" href="#office">Back to ' + officeWord() + "</a></div></div>"; return; }
   /* forms keep what is typed: Import and Settings only redraw when asked to */
   if (!force && _offBuilt === sec && (sec === "import" || sec === "settings")) return;
@@ -6042,6 +6080,7 @@ function renderOffice(force) {
   else if (sec === "reports") h += reportsHTML();
   else if (sec === "people") h += peopleHTML();
   else if (sec === "settings") h += settingsHTML();
+  else if (sec === "lists") h += listsPageHTML();
   else if (sec === "backups") h += backupsHTML();
   else if (sec === "export") h += exportHTML();
   else if (sec === "about") h += aboutHTML();
@@ -6116,7 +6155,8 @@ function sfLocsOf(p) {
    kind is internal and only names the group when the category is blank.
    Category, Type, and Brand compare without regard to case or extra spaces,
    and each shows in the spelling most products use. */
-const sfNorm = s => String(s == null ? "" : s).replace(/\s+/g, " ").trim().toLowerCase();
+/* 0.11.0: the one matcher (normKey, PLAN 25); Category and Brand show the list's spelling */
+const sfNorm = normKey;
 function sfRaw(p, k) { return k === "cat" ? (sfNorm(p.category) ? p.category : "") : k === "type" ? p.type : p.brand; }
 function sfKey(p, k) {
   if (k === "cat") { const c = sfNorm(p.category); return c ? "c:" + c : "k:" + sfKind(p); }
@@ -6126,6 +6166,7 @@ var _sfSpell = null;
 function sfLabel(k, key) {
   if (k === "loc") return locName(key);
   if (key.startsWith("k:")) return SF_CAT[key.slice(2)] || key.slice(2);
+  if (k === "cat" || k === "brand") return listSpell(k === "cat" ? "category" : "brand", key.slice(2));
   if (!_sfSpell) {
     _sfSpell = {};
     ["cat", "type", "brand"].forEach(f => { const m = _sfSpell[f] = new Map(); S.products.forEach(p => { const kk = sfKey(p, f); if (!kk || kk.startsWith("k:")) return; const s = String(sfRaw(p, f)).replace(/\s+/g, " ").trim(); if (!m.has(kk)) m.set(kk, new Map()); const c = m.get(kk); c.set(s, (c.get(s) || 0) + 1); }); });
@@ -6422,8 +6463,226 @@ function whereItem(i) {
   return i.locationId ? locName(i.locationId) : "No location";
 }
 
+/* ==============================================================
+   BRANDS AND CATEGORIES AS PICK LISTS (0.11.0, PLAN 25)
+   One matcher (normKey) for every comparison of a brand or a category:
+   filters, reports, the importers, and the pickers. One formatter
+   (tidyName) for a value an admin adds. A list is the values in use on
+   products plus loadout_settings/lists, which records the display spelling
+   and holds a value added before any product carries it. The app works
+   from products alone when that document is missing.
+   ============================================================== */
+function normKey(s) { return String(s == null ? "" : s).replace(/\s+/g, " ").trim().toLowerCase(); }
+const oneSpace = s => String(s == null ? "" : s).replace(/\s+/g, " ").trim();
+/* a word typed all lower case, or all upper case and longer than four
+   letters, gets a capital first letter and lower case after; capitals
+   inside a word, or a short upper-case code, stay as typed; of, and, the
+   stay lower case inside a name. The admin sees the result before saving. */
+const TIDY_SMALL = ["of", "and", "the"];
+function tidyName(s) {
+  const w = oneSpace(s).split(" ").filter(Boolean);
+  return w.map((x, i) => {
+    const lo = x.toLowerCase(), letters = x.replace(/[^A-Za-z]/g, "");
+    if (i > 0 && i < w.length - 1 && TIDY_SMALL.includes(lo)) return lo;
+    if (!letters) return x;
+    if (x === lo) return x.charAt(0).toUpperCase() + x.slice(1);
+    if (x === x.toUpperCase()) return letters.length > 4 ? x.charAt(0) + x.slice(1).toLowerCase() : x;
+    return x;
+  }).join(" ");
+}
+const LISTF = {
+  brand: { doc: "brands", one: "brand", many: "brands", label: "Brand", Many: "Brands" },
+  category: { doc: "categories", one: "category", many: "categories", label: "Category", Many: "Categories" }
+};
+/* worked out once per redraw: one entry per normKey with its product count
+   and one display spelling (the saved one, else the one most products use) */
+var _vl = null;
+function listsDirty() { _vl = null; }
+function valueList(f) {
+  if (!_vl) _vl = {};
+  if (_vl[f]) return _vl[f];
+  const m = new Map(), ent = k => { let e = m.get(k); if (!e) m.set(k, e = { key: k, n: 0, sp: new Map(), saved: "" }); return e; };
+  S.products.forEach(p => { const k = normKey(p[f]); if (!k) return; const e = ent(k), s = oneSpace(p[f]); e.n++; e.sp.set(s, (e.sp.get(s) || 0) + 1); });
+  ((S.lists && S.lists[LISTF[f].doc]) || []).forEach(x => { const nm = oneSpace(x && x.name), k = normKey(nm); if (k) { const e = ent(k); if (!e.saved) e.saved = nm; } });
+  const out = Array.from(m.values()).map(e => {
+    const sp = Array.from(e.sp.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    return { key: e.key, name: e.saved || sp[0][0], n: e.n, saved: !!e.saved, spellings: sp };
+  }).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+  out.byKey = new Map(out.map(e => [e.key, e]));
+  return (_vl[f] = out);
+}
+function brandList() { return valueList("brand"); }
+function categoryList() { return valueList("category"); }
+function listEntry(f, s) { const k = normKey(s); return k ? valueList(f).byKey.get(k) || null : null; }
+/* the list's spelling for a value, or the value with its spaces tidied when it is not on the list */
+function listSpell(f, s) { const e = listEntry(f, s); return e ? e.name : oneSpace(s); }
+const listWho = () => ({ updatedAt: NOW, updatedBy: S.user.email, updatedByName: S.user.name });
+/* an add appends with arrayUnion, so two admins adding offline both land */
+function listAddOp(f, names) {
+  return { op: "set", coll: "loadout_settings", id: "lists", merge: true, data: Object.assign({ [LISTF[f].doc]: APPEND(...names.map(n => ({ name: n, key: normKey(n) }))) }, listWho()) };
+}
+/* this device's copy, at once: the listener replaces it with the server's
+   (the demo keeps it for the session, so the field and the filters can be tried) */
+function listLocalSet(f, arr) { S.lists = Object.assign({}, S.lists || {}, { [LISTF[f].doc]: arr }); listsDirty(); }
+function listLocalAdd(f, names) {
+  const cur = ((S.lists && S.lists[LISTF[f].doc]) || []).slice();
+  names.forEach(n => { if (!cur.some(x => normKey(x.name) === normKey(n))) cur.push({ name: n, key: normKey(n) }); });
+  listLocalSet(f, cur);
+}
+
+/* ---------------- the pick-or-type field (combobox) ----------------
+   Brand and Category on New product and the product panel, and Type with
+   suggestions only. An input with a listbox under it: type to narrow,
+   arrows to move, Enter to pick, Escape to close, and leaving the field
+   snaps a value that matches an option by normKey to that option's
+   spelling. One set of document listeners serves every field, so a panel
+   redraw never loses them. */
+const CB_REFUSE = "Not on the list. Ask an admin to add it.";
+const CB_UNADDED = "Not on the list yet. Add it, pick one from the list, or clear the field.";
+const CB_TIP = {
+  brand: "Pick the maker from the list, so one brand is never saved three ways. Typing narrows the list and case does not matter. Only an admin adds a new one. Leave it empty for cables and connectors with no brand.",
+  category: "Groups the catalog, the Shelf filter, and the reports, for example Wire, Network, Camera. Pick from the list so a product lands with the rest of its group. Only an admin adds a new one.",
+  type: "The sheet's Type column, for example CAT6 UTP patch cable or Network. The suggestions are the types already used in the category picked; anything else can be typed."
+};
+function cbField(pre, f, label, tip, val, o = {}) {
+  const id = pre + "_" + f, L = LISTF[f], err = o.err || "";
+  return '<div class="cbw"><label class="lab" for="' + id + '"' + (tip ? ' title="' + esc(tip) + '"><abbr>' + esc(label) + "</abbr>" : ">" + esc(label)) + "</label>" +
+    '<div class="cb"><input class="fld' + (o.glow && !val ? " glow" + (GLOW_SEEN.has(id) ? " seen" : "") : "") + '" id="' + id + '" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="' + id + '_lb" aria-describedby="' + id + '_err" autocomplete="off" spellcheck="false" data-cb="' + f + '"' +
+    (pre === "xf" ? ' data-xf="' + f + '"' : "") + (o.glow ? " data-cbglow" : "") + (err ? ' aria-invalid="true"' : "") + ' value="' + esc(val == null ? "" : val) + '">' +
+    '<ul class="cblist" id="' + id + '_lb" role="listbox" aria-label="' + esc(L ? L.Many + " in use" : "Types in use") + '" hidden></ul></div>' +
+    '<p class="err" id="' + id + '_err"' + (err ? "" : " hidden") + ">" + esc(err) + "</p></div>";
+}
+/* the category typed beside a Type field, for its suggestions */
+function cbCatOf(inp) { const host = inp.closest(".mbody,.xp"), c = host && host.querySelector('[data-cb="category"]'); return c ? c.value : ""; }
+/* Type: the types in use within the chosen category (every type when that category has none yet) */
+function typeList(cat) {
+  const ck = normKey(cat), all = Array.from(S.products.values()), inCat = ck ? all.filter(p => normKey(p.category) === ck) : [];
+  const m = new Map();
+  (inCat.length ? inCat : all).forEach(p => { const k = normKey(p.type); if (!k) return; if (!m.has(k)) m.set(k, { key: k, n: 0, sp: new Map() }); const e = m.get(k), s = oneSpace(p.type); e.n++; e.sp.set(s, (e.sp.get(s) || 0) + 1); });
+  return Array.from(m.values()).map(e => ({ key: e.key, n: e.n, name: Array.from(e.sp.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0] }));
+}
+function cbOptions(inp) {
+  const f = inp.dataset.cb, q = normKey(inp.value);
+  const list = f === "type" ? typeList(cbCatOf(inp)) : valueList(f);
+  return list.filter(e => !q || e.key.includes(q))
+    .sort((a, b) => (q ? b.key.startsWith(q) - a.key.startsWith(q) : 0) || a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+}
+const cbList = inp => document.getElementById(inp.getAttribute("aria-controls"));
+const cbOpts = lb => $$('[role="option"]', lb).filter(li => li.getAttribute("aria-disabled") !== "true");
+function cbPaint(inp) {
+  const lb = cbList(inp); if (!lb) return;
+  const f = inp.dataset.cb, raw = oneSpace(inp.value), hits = cbOptions(inp), L = LISTF[f];
+  let html = hits.map((e, i) => '<li role="option" id="' + lb.id + "-" + i + '" data-v="' + esc(e.name) + '" aria-selected="false"><span class="cbt">' + esc(e.name) + '</span><span class="sr">, </span><span class="cbn">' +
+    (e.n ? fmtN(e.n) + " product" + (e.n === 1 ? "" : "s") : "No products yet") + "</span></li>").join("");
+  if (L && raw && !listEntry(f, raw)) {
+    html += isAdmin() ? '<li role="option" id="' + lb.id + '-add" data-add="1" aria-selected="false" class="cbadd">Add \'' + esc(raw) + "' as a new " + L.one + "</li>"
+      : '<li role="option" id="' + lb.id + '-no" aria-disabled="true" aria-selected="false" class="cbno">' + CB_REFUSE + "</li>";
+  }
+  lb.innerHTML = html; lb.hidden = !html;
+  inp.setAttribute("aria-expanded", html ? "true" : "false"); inp.removeAttribute("aria-activedescendant");
+  if (html) lb.scrollIntoView({ block: "nearest" });
+}
+function cbClose(inp) { const lb = cbList(inp); if (lb) { lb.hidden = true; lb.innerHTML = ""; } inp.setAttribute("aria-expanded", "false"); inp.removeAttribute("aria-activedescendant"); }
+function cbMove(inp, d) {
+  const lb = cbList(inp); if (!lb) return;
+  if (lb.hidden) { cbPaint(inp); if (lb.hidden) return; }
+  const os = cbOpts(lb); if (!os.length) return;
+  const cur = os.findIndex(li => li.id === inp.getAttribute("aria-activedescendant"));
+  const nx = os[cur < 0 ? (d > 0 ? 0 : os.length - 1) : (cur + d + os.length) % os.length];
+  os.forEach(li => li.setAttribute("aria-selected", li === nx ? "true" : "false"));
+  inp.setAttribute("aria-activedescendant", nx.id); nx.scrollIntoView({ block: "nearest" });
+}
+function cbErr(inp, msg) {
+  const e = document.getElementById(inp.id + "_err"); if (e) { e.textContent = msg; e.hidden = !msg; }
+  if (msg) inp.setAttribute("aria-invalid", "true"); else inp.removeAttribute("aria-invalid");
+  if (inp.dataset.xf && S.x) { S.x.cbErr = Object.assign({}, S.x.cbErr, { [inp.dataset.cb]: msg }); }
+}
+function cbGlow(inp) { if (inp.hasAttribute("data-cbglow")) inp.classList.toggle("glow", !inp.value.trim()); }
+/* writes a value into the field and, on a panel, into its draft; a redraw
+   may have replaced the node, so it is found again by id */
+function cbSet(inp, v) {
+  const el = document.getElementById(inp.id) || inp;
+  el.value = v;
+  if (el.dataset.xf && S.x) { if (!S.x.draft) S.x.draft = {}; S.x.draft[el.dataset.xf] = v; }
+  cbErr(el, ""); cbGlow(el);
+  return el;
+}
+/* leaving the field: a value that matches an option by normKey takes its spelling */
+function cbSnap(inp) {
+  const f = inp.dataset.cb, raw = oneSpace(inp.value); if (!raw) return;
+  const e = f === "type" ? typeList("").find(x => x.key === normKey(raw)) : listEntry(f, raw);
+  if (e && e.name !== inp.value) cbSet(inp, e.name);
+}
+function cbPick(inp, li) {
+  if (!li || li.getAttribute("aria-disabled") === "true") return;
+  const f = inp.dataset.cb;
+  if (li.dataset.add) {
+    const raw = inp.value; cbClose(inp);
+    cbAsk(f, raw).then(n => { const el = n ? cbSet(inp, n) : document.getElementById(inp.id) || inp; try { el.focus(); } catch (e) {} });
+    return;
+  }
+  cbSet(inp, li.dataset.v); cbClose(inp);
+}
+/* the small confirm: the tidied name, editable, then Add writes it to the list */
+function cbAsk(f, raw) {
+  const L = LISTF[f];
+  return new Promise(res => {
+    let done = false; const fin = v => { if (!done) { done = true; res(v); } };
+    const w = openModal("New " + L.one,
+      '<label class="lab" for="cbAddName">Save as</label><input class="fld" id="cbAddName" autocomplete="off" spellcheck="false" value="' + esc(tidyName(raw)) + '">' +
+      '<p class="hint">' + (f === "brand" ? "Fix the capitals if this is not how the maker writes it." : "Fix the capitals if this is not how it should read.") + '</p><p class="err" id="cbAddErr" role="alert" hidden></p>',
+      '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>Add</button>', { onClose: () => fin(null) });
+    const ok = w.querySelector("[data-ok]");
+    ok.addEventListener("click", async () => {
+      const nm = oneSpace($("#cbAddName", w).value), er = $("#cbAddErr", w);
+      if (!nm) { er.textContent = "Type the name, or press Cancel."; er.hidden = false; return; }
+      const ex = listEntry(f, nm);
+      if (ex) { fin(ex.name); closeModal(w); return; }
+      ok.disabled = true;
+      const saved = await DB.commit([listAddOp(f, [nm])], "the " + L.one + " list");
+      ok.disabled = false;
+      if (!saved && !DEMO) { er.textContent = "Could not add it. Check your connection and try again."; er.hidden = false; return; }
+      listLocalAdd(f, [nm]);
+      fin(nm); closeModal(w);
+      if (saved) toast("Added " + nm + " to the " + L.many);
+    });
+  });
+}
+/* on save: the list's spelling, the confirm for an admin, the refusal for anyone else */
+async function cbResolve(f, raw, orig) {
+  const v = oneSpace(raw);
+  if (!v) return { v: "" };
+  if (orig != null && v === oneSpace(orig)) return { v };
+  const e = listEntry(f, v);
+  if (e) return { v: e.name };
+  if (!isAdmin()) return { err: CB_REFUSE };
+  const n = await cbAsk(f, v);
+  return n ? { v: n } : { err: CB_UNADDED };
+}
+document.addEventListener("input", e => { const t = e.target; if (!t.dataset || !t.dataset.cb) return; cbErr(t, ""); cbGlow(t); cbPaint(t); });
+document.addEventListener("click", e => {
+  const li = e.target.closest && e.target.closest('.cblist [role="option"]');
+  if (li) { const inp = document.querySelector('[aria-controls="' + li.parentNode.id + '"]'); if (inp) cbPick(inp, li); return; }
+  const t = e.target; if (t.dataset && t.dataset.cb && t.getAttribute("aria-expanded") !== "true") cbPaint(t);
+});
+/* a press on the list keeps focus in the field, so leaving it means leaving the field */
+document.addEventListener("mousedown", e => { if (e.target.closest && e.target.closest(".cblist")) e.preventDefault(); });
+document.addEventListener("focusout", e => { const t = e.target; if (!t.dataset || !t.dataset.cb) return; cbClose(t); cbSnap(t); });
+/* capture: Escape and Enter belong to an open list before the sheet sees them */
+document.addEventListener("keydown", e => {
+  const t = e.target; if (!t.dataset || !t.dataset.cb) return;
+  const lb = cbList(t), open = lb && !lb.hidden;
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); e.stopPropagation(); cbMove(t, e.key === "ArrowDown" ? 1 : -1); }
+  else if (e.key === "Escape" && open) { e.preventDefault(); e.stopPropagation(); cbClose(t); }
+  else if (e.key === "Enter" && open) {
+    e.preventDefault(); e.stopPropagation();
+    const a = t.getAttribute("aria-activedescendant"), li = a && document.getElementById(a);
+    if (li) cbPick(t, li); else { cbClose(t); cbSnap(t); }
+  }
+}, true);
+
 /* ---------------- product form ---------------- */
-const ATTR_FIELDS = [["connector1", "Connector 1"], ["connector2", "Connector 2"], ["color", "Color"], ["length", "Length", "number"], ["lengthUnit", "Length unit"], ["gauge", "Gauge"], ["gaugeUnit", "Gauge unit"], ["amps", "Amps", "number"], ["inputs", "Inputs", "number"], ["outputs", "Outputs", "number"], ["sex", "Sex"], ["band", "Band"], ["pins", "Pins", "number"], ["wireType", "Wire type"], ["grade", "Grade"]];
+const ATTR_FIELDS =[["connector1", "Connector 1"], ["connector2", "Connector 2"], ["color", "Color"], ["length", "Length", "number"], ["lengthUnit", "Length unit"], ["gauge", "Gauge"], ["gaugeUnit", "Gauge unit"], ["amps", "Amps", "number"], ["inputs", "Inputs", "number"], ["outputs", "Outputs", "number"], ["sex", "Sex"], ["band", "Band"], ["pins", "Pins", "number"], ["wireType", "Wire type"], ["grade", "Grade"]];
 /* PLAN 12b item 1: in a slash word of short parts ("A/v", "Y/Pb/Pr"),
    an all-lowercase part beside an all-caps one is an acronym typed in a
    hurry, so it goes upper case ("A/V"). Mixed-case parts stay as typed. */
@@ -6462,11 +6721,11 @@ function productIdFor(d) {
 function openProductForm(p, prefill = {}) {
   const isNew = !p; const d = Object.assign({ kind: "device", unit: "each" }, p || {}, prefill);
   const f = (k, label, tip, type = "text", extra = "") => '<div><label class="lab" for="pf_' + k + '"' + (tip ? ' title="' + esc(tip) + '"' : "") + ">" + (tip ? "<abbr>" + esc(label) + "</abbr>" : esc(label)) + '</label><input class="fld" id="pf_' + k + '" type="' + type + '" value="' + esc(d[k] == null ? "" : d[k]) + '"' + extra + "></div>";
-  const body = '<div class="grid2">' + f("brand", "Brand") + f("model", "Model", "The manufacturer's part number. Brand plus model is how the catalog and a future Portal import recognize the product.") + "</div>" +
+  const body = '<div class="grid2">' + cbField("pf", "brand", "Brand", CB_TIP.brand, d.brand) + f("model", "Model","The manufacturer's part number. Brand plus model is how the catalog and a future Portal import recognize the product.") + "</div>" +
     f("name", "Display name", "Leave blank to build it from brand and model, or from the type and attributes for cables and connectors without a brand.") +
     '<div class="grid2"><div><label class="lab" for="pf_kind">Kind</label><select class="fld" id="pf_kind">' + KINDS.map(k => '<option value="' + k + '"' + (d.kind === k ? " selected" : "") + ">" + KIND_LABEL[k] + "</option>").join("") + "</select></div>" +
     '<div><label class="lab" for="pf_unit" title="Feet products are tracked per box with a feet-left reading; each products are counted.">' + "<abbr>Unit</abbr></label><select class=\"fld\" id=\"pf_unit\"" + (!isNew && (allBoxesFor(p.id).length || stockRowsFor(p.id).length) ? " disabled title=\"Stock already exists in this unit. Empty it first to change the unit.\"" : "") + '><option value="each"' + (d.unit !== "ft" ? " selected" : "") + '>Each</option><option value="ft"' + (d.unit === "ft" ? " selected" : "") + ">Feet (boxes and reels)</option></select></div></div>" +
-    '<div class="grid2">' + f("type", "Type", "The sheet's Type column, for example CAT6 UTP patch cable or Network.") + f("category", "Category", "Groups the catalog, for example Wire, Network, Camera.") + "</div>" +
+    '<div class="grid2">' + cbField("pf", "category", "Category", CB_TIP.category, d.category, { glow: isNew }) + cbField("pf", "type", "Type", CB_TIP.type, d.type) + "</div>" +
     f("description", "Description") +
     '<div class="grid2">' + f("upc", "UPC", "Learned the first time a box is scanned. Type it only if you have it in front of you.", "text", ' inputmode="numeric"') +
     '<div><label class="lab" for="pf_def" title="Where Check in and Receive point first">' + "<abbr>Default location</abbr></label><select class=\"fld\" id=\"pf_def\">" + locOptions(d.defaultLocationId, { blankLabel: "None" }) + "</select></div></div>" +
@@ -6477,7 +6736,15 @@ function openProductForm(p, prefill = {}) {
     '<p class="err" id="pfErr" hidden></p>';
   const w = openModal(isNew ? "New product" : "Edit " + productName(p), body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>' + (isNew ? "Create product" : "Save changes") + "</button>", { wide: true });
   wireMoney(w);
+  const pcat = $("#pf_category", w); if (pcat) pcat.addEventListener("animationend", () => { pcat.classList.add("seen"); GLOW_SEEN.add(pcat.id); }, { once: true });
   w.querySelector("[data-ok]").addEventListener("click", async () => {
+    /* 0.11.0 (PLAN 25): brand and category come from the lists; a value not on them is added (admin) or refused, and the rest of the form stays */
+    let bad = false;
+    for (const k of ["brand", "category"]) {
+      const el = $("#pf_" + k, w), r = await cbResolve(k, el.value, isNew ? null : p[k]);
+      if (r.err) { cbErr(el, r.err); bad = true; } else cbSet(el, r.v);
+    }
+    if (bad) { const el = $('[aria-invalid="true"]', w); if (el) el.focus(); return; }
     const v = k => { const el = $("#pf_" + k, w); return el ? el.value.trim() : ""; };
     const out = { brand: v("brand"), model: v("model"), kind: v("kind"), unit: $("#pf_unit", w).value, type: v("type"), category: v("category"), description: v("description"),
       upc: v("upc") || null, defaultLocationId: $("#pf_def", w).value || null, consumable: $("#pf_cons", w).checked, parLevel: v("parLevel") === "" ? null : num(v("parLevel")) };
@@ -7335,8 +7602,9 @@ function productPanel(p) {
   if (W) {
     const d = xDraft(p, XF_P);
     const fi = (k, label, tip, extra) => "<div><label class=\"lab\" for=\"xf_" + k + '"' + (tip ? ' title="' + esc(tip) + '"' : "") + ">" + (tip ? "<abbr>" + esc(label) + "</abbr>" : esc(label)) + '</label><input class="fld" id="xf_' + k + '" data-xf="' + k + '" value="' + esc(d[k]) + '"' + (extra || "") + "></div>";
+    const ce = S.x.cbErr || {};
     h += '<div class="xgrid">' + fi("name", "Display name", "Leave blank to build it from brand and model, or from the type and attributes for cables and connectors without a brand.") +
-      fi("category", "Category", "Groups the catalog, for example Wire, Network, Camera.") + fi("brand", "Brand") + fi("model", "Model", "The manufacturer's part number. Brand plus model is how a Portal import recognizes the product.") +
+      cbField("xf", "category", "Category", CB_TIP.category, d.category, { err: ce.category }) + cbField("xf", "brand", "Brand", CB_TIP.brand, d.brand, { err: ce.brand }) + fi("model","Model", "The manufacturer's part number. Brand plus model is how a Portal import recognizes the product.") +
       '<div><label class="lab" for="xf_unit" title="' + (unitLocked ? "Stock already exists in this unit. Empty it first to change the unit." : "Feet products are tracked per box with a feet-left reading; each products are counted.") + '"><abbr>Unit</abbr></label><select class="fld" id="xf_unit" data-xf="unit"' + (unitLocked ? " disabled" : "") + '><option value="each"' + (d.unit !== "ft" ? " selected" : "") + '>Each</option><option value="ft"' + (d.unit === "ft" ? " selected" : "") + ">Feet (boxes and reels)</option></select></div>" +
       fi("parLevel", "Par level", "Reorder point in the product's unit. Below this the product shows as Low and joins the low-stock list.", ' type="number" min="0" step="any" inputmode="decimal"') +
       '<div><label class="lab" for="xf_defaultLocationId" title="Where Check in, Receive, and Reorder point first">' + '<abbr>Default location</abbr></label><select class="fld" id="xf_defaultLocationId" data-xf="defaultLocationId">' + locOptions(d.defaultLocationId, { blankLabel: "None" }) + "</select></div>" +
@@ -7345,7 +7613,7 @@ function productPanel(p) {
       (S.general.showCosts ? '<div><label class="lab" for="xf_lastCost" title="Used for the QR threshold: units received at or above the threshold in Settings get their own QR.">' + '<abbr>Last cost</abbr></label><div class="money"><input class="fld" id="xf_lastCost" data-xf="lastCost" data-money inputmode="decimal" value="' + esc(d.lastCost) + '"></div></div>' : "") + "</div>" +
       '<details class="more"' + (S.x.attrOpen ? " open" : "") + ' data-xattr><summary>Type, description, and attributes</summary><div class="xgrid">' +
       '<div><label class="lab" for="xf_kind">Kind</label><select class="fld" id="xf_kind" data-xf="kind">' + KINDS.map(k => '<option value="' + k + '"' + (d.kind === k ? " selected" : "") + ">" + KIND_LABEL[k] + "</option>").join("") + "</select></div>" +
-      fi("type", "Type", "The sheet's Type column, for example CAT6 UTP patch cable or Network.") + "</div>" + fi("description", "Description") +
+      cbField("xf", "type", "Type", CB_TIP.type, d.type) + "</div>" + fi("description", "Description") +
       '<div class="grid3">' + ATTR_FIELDS.map(([k, l, t]) => fi(k, l, "", t === "number" ? ' type="number" step="any"' : "")).join("") + "</div></details>";
   } else {
     const attrs = [["Brand", p.brand], ["Model", p.model], ["Kind", KIND_LABEL[p.kind] || p.kind], ["Type", p.type], ["Category", p.category], ["Unit", p.unit === "ft" ? "Feet" : "Each"], ["UPC", p.upc], ["Par level", p.parLevel != null && p.parLevel !== "" ? qtyTxt(p, p.parLevel) : ""],
@@ -7447,6 +7715,12 @@ async function xSave() {
   x.err = "";
   if (x.kind === "p") {
     const p = S.products.get(x.id); if (!p) return;
+    /* 0.11.0 (PLAN 25): brand and category from the lists, as on New product; a refusal sits under its field */
+    const ce = {};
+    for (const k of ["brand", "category"]) { const r = await cbResolve(k, d[k] == null ? p[k] : d[k], p[k]); if (r.err) ce[k] = r.err; else d[k] = r.v; }
+    if (S.x !== x) return;
+    x.cbErr = ce;
+    if (ce.brand || ce.category) { render(true); const el = $("#xf_" + (ce.category ? "category" : "brand")); if (el) el.focus(); return; }
     const v = k => String(d[k] == null ? "" : d[k]).trim();
     const out = { brand: v("brand"), model: v("model"), kind: v("kind") || p.kind, unit: v("unit") || p.unit || "each", type: v("type"), category: v("category"), description: v("description"),
       upc: v("upc") || null, defaultLocationId: v("defaultLocationId") || null, consumable: d.consumable === true || d.consumable === "true", parLevel: v("parLevel") === "" ? null : num(v("parLevel")) };
@@ -8523,6 +8797,7 @@ function settingsHTML() {
     '<div><label class="lab" for="setWeek" title="The first day of each block of seven in the Week view and the Movements week buttons">' + '<abbr>Week starts on</abbr></label><select class="fld" id="setWeek"><option value="0"' + (num(g.weekStart) !== 1 ? " selected" : "") + '>Sunday</option><option value="1"' + (num(g.weekStart) === 1 ? " selected" : "") + ">Monday</option></select></div>" +
     '<div><label class="lab" for="setLabel" title="The sheet the Labels tab starts on. Anyone can switch sheets when they print.">' + '<abbr>Default label sheet</abbr></label><select class="fld" id="setLabel"><option value="5160"' + (g.labelSize !== "5163" ? " selected" : "") + '>Avery 5160</option><option value="5163"' + (g.labelSize === "5163" ? " selected" : "") + ">2 x 4 in</option></select></div></div>" +
     '<label class="chk" title="How the Week view opens for anyone who has not chosen for themselves. A person\'s own Work week button still wins on their devices."><input type="checkbox" id="setWw"' + (g.workWeek ? " checked" : "") + "> Week view hides the weekend by default (Work week)</label></div>" +
+    lsSettingsSect() +
     '<div class="setsect"><h3 title="Used when a new box is received or imported. A box whose feet left is already higher takes its feet left as the start.">Box start length by cable type (ft)</h3><div class="grid3">' +
       BOX_TYPES.map(b => '<div><label class="lab" for="bs_' + b.k + '">' + esc(b.label) + '</label><input class="fld n" id="bs_' + b.k + '" type="number" min="1" value="' + esc(g.boxStart[b.k]) + '"></div>').join("") + "</div></div>" +
     '<div class="setsect"><h3>Carriers</h3><p class="hint" style="margin-top:0">The tracking link on each shipment. Put {n} where the tracking number goes. The names UPS, FedEx, and USPS are the ones the carrier guess picks.</p><div id="carRows">' +
@@ -8557,6 +8832,159 @@ function bindSettings(el) {
     if (ok) { S.genDraft = null; S.boardDraft = null; toast("Settings saved"); render(true); }
   });
 }
+
+/* ---------------- Brands and categories (0.11.0, PLAN 25; Office > Settings, admin) ----------------
+   Both lists with their counts, Rename and Merge into, and at the top the
+   values that are probably the same. A run rewrites brand (or category)
+   and the readable name on every product carrying the value, in batches of
+   at most 400 writes, then the lists document and one edit movement. It
+   only touches products still carrying an old value, so running it again
+   after a failure finishes the job without doing anything twice. Product
+   ids never change. */
+const LS_BATCH = 400;
+/* the weaker match: punctuation and spaces dropped, and a trailing s */
+const lsLoose = k => k.replace(/[^a-z0-9]/g, "").replace(/s$/, "");
+var _lsG = [];
+function lsGroups(f) {
+  const list = valueList(f), out = [], m = new Map();
+  list.forEach(e => { if (e.spellings.length > 1) out.push({ f, weak: false, keys: [e.key], opts: e.spellings.map(([s, n]) => ({ name: s, n })), def: e.name }); });
+  list.forEach(e => { const l = lsLoose(e.key); if (!l) return; if (!m.has(l)) m.set(l, []); m.get(l).push(e); });
+  m.forEach(g => { if (g.length > 1) out.push({ f, weak: true, keys: g.map(e => e.key), opts: g.map(e => ({ name: e.name, n: e.n })), def: g.slice().sort((a, b) => b.n - a.n)[0].name }); });
+  return out;
+}
+function lsSettingsSect() {
+  const nb = brandList().length, nc = categoryList().length, dup = lsGroups("brand").length + lsGroups("category").length;
+  return '<div class="setsect"><h3 title="The pick lists behind Brand and Category on every product. Rename or merge there, and every product carrying the value changes with it.">Brands and categories</h3><p class="hint" style="margin-top:0">' +
+    plural(nb, "brand") + " and " + plural(nc, "category", "categories") + " on the pick lists" + (dup ? ", " + plural(dup, "group") + " that look like duplicates" : "") + '.</p><div class="btnrow"><a class="btn" href="#office/lists">Open brands and categories</a></div></div>';
+}
+/* a product's readable name after a brand change: a built name is built
+   again; a typed one keeps its words with the old spelling swapped */
+function lsNameFor(p, to) {
+  if (!p.name || p.name === composeName(p)) return composeName(Object.assign({}, p, { brand: to }));
+  const old = oneSpace(p.brand); if (!old) return p.name;
+  const re = new RegExp("(^|[^A-Za-z0-9])" + old.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, "\\s+") + "(?=$|[^A-Za-z0-9])", "i");
+  return p.name.replace(re, (m0, pre) => pre + to);
+}
+function lsProductOp(p, f, to) {
+  const d = { [f]: to, updatedAt: NOW };
+  if (f === "brand") { const nm = lsNameFor(p, to); if (nm !== p.name) d.name = nm; }
+  return { op: "update", coll: "loadout_products", id: p.id, data: d };
+}
+const lsTodo = (f, keys, to) => Array.from(S.products.values()).filter(p => keys.includes(normKey(p[f])) && p[f] !== to);
+/* job: { f, keys (every normKey that ends up as to), to, from (the old words for the note), verb ("renamed", "merged", "spellings merged"), merge } */
+async function lsRun(job) {
+  if (!onlineNow()) { toast("Rename and Merge need a connection. Try again when you are back online.", true); return; }
+  const f = job.f, L = LISTF[f], todo = lsTodo(f, job.keys, job.to);
+  if (job.total == null) job.total = todo.length;
+  job.done = Math.max(0, job.total - todo.length);
+  job.note = L.label + " " + job.verb + ": " + job.from + (job.merge ? " into " : " to ") + job.to + ", " + plural(job.total, "product");
+  const ops = todo.map(p => lsProductOp(p, f, job.to));
+  const arr = ((S.lists && S.lists[L.doc]) || []).filter(x => { const k = normKey(x && x.name); return k && !job.keys.includes(k) && k !== normKey(job.to); })
+    .map(x => ({ name: oneSpace(x.name), key: normKey(x.name) })).concat([{ name: job.to, key: normKey(job.to) }]);
+  const tail = [{ op: "set", coll: "loadout_settings", id: "lists", merge: true, data: Object.assign({ [L.doc]: arr }, listWho()) }, mv("edit", { note: job.note })];
+  const chunks = []; for (let i = 0; i < ops.length; i += LS_BATCH) chunks.push(ops.slice(i, i + LS_BATCH));
+  if (chunks.length && chunks[chunks.length - 1].length + tail.length <= LS_BATCH) chunks[chunks.length - 1].push(...tail); else chunks.push(tail);
+  Object.assign(job, { state: "running", batches: chunks.length, batch: 0, demo: DEMO });
+  S.ls.run = job; render(true);
+  for (const ch of chunks) {
+    job.batch++;
+    const ok = await DB.commit(ch, L.one + " " + (job.merge ? "merge" : "rename"));
+    if (!ok && !DEMO) { job.state = "failed"; render(true); return; }
+    job.done += ch.filter(o => o.coll === "loadout_products").length;
+    if (S.ls.run === job) render(true);
+  }
+  if (!DEMO) listLocalSet(f, arr);
+  job.state = "done"; render(true);
+  if (!DEMO) toast(job.note);
+}
+function lsRunHTML() {
+  const r = S.ls.run; if (!r) return "";
+  const L = LISTF[r.f];
+  if (r.state === "running") return '<p class="loadmsg" role="status">' + (r.merge ? "Merging" : "Renaming") + ": " + fmtN(r.done) + " of " + plural(r.total, "product") + " done, batch " + fmtN(r.batch) + " of " + fmtN(r.batches) + ".</p>";
+  if (r.state === "failed") return '<div class="errbox" role="alert"><p>' + esc(L.label) + (r.merge ? " merge" : " rename") + " stopped after " + fmtN(r.done) + " of " + plural(r.total, "product") + ". The rest still carry the old " + L.one + ". Running it again picks up where it stopped and changes nothing twice.</p>" +
+    '<div class="btnrow"><button type="button" class="btn acc" data-act="lsRetry">Run it again</button><button type="button" class="btn" data-act="lsDismiss">Dismiss</button></div></div>';
+  return '<div class="impdone" role="status"><p><b>' + (r.demo ? "Done in the demo, nothing saved." : "Done.") + "</b> " + esc(r.note) + "." + (r.demo ? " It would have gone in " + plural(r.batches, "batch", "batches") + " of at most " + LS_BATCH + " writes." : "") + '</p><div class="btnrow"><button type="button" class="btn" data-act="lsDismiss">Dismiss</button></div></div>';
+}
+function lsGroupLi(g, i, lock) {
+  const L = LISTF[g.f];
+  return '<li><span class="lsgn"><b>' + esc(L.label) + ":</b> " + g.opts.map(o => esc(o.name) + ' <span class="z">(' + fmtN(o.n) + ")</span>").join(", ") + "</span>" +
+    '<button type="button" class="btn sm" data-act="lsGroup" data-id="' + i + '"' + (lock ? " disabled" : "") + ' title="Pick the spelling to keep; every product in the group takes it">Merge into one</button></li>';
+}
+function lsTableHTML(f, q, lock) {
+  const L = LISTF[f], all = valueList(f), rows = all.filter(e => !q || e.key.includes(q)), tid = "lists_" + L.doc;
+  const cols = [
+    { k: "name", label: L.label, sort: e => e.name.toLowerCase(), text: e => e.name, html: e => '<span class="pn">' + esc(e.name) + "</span>" + (e.spellings.length > 1 ? '<div class="pd">Saved as ' + e.spellings.map(([s, n]) => esc(s) + " (" + fmtN(n) + ")").join(", ") + "</div>" : "") },
+    { k: "n", label: "Products", r: true, sort: e => e.n, text: e => fmtN(e.n) },
+    { k: "from", label: "Spelling from", def: false, title: "Where the spelling shown comes from: the saved list, or the spelling most products use when the list has none", text: e => e.saved ? "The saved list" : "Most products" }
+  ];
+  const act = e => '<button type="button" class="btn sm" data-act="lsRename" data-f="' + f + '" data-id="' + esc(e.key) + '"' + (lock ? " disabled" : "") + ' title="Change the spelling on the list and on every product that carries it">Rename</button>' +
+    '<button type="button" class="btn sm" data-act="lsMerge" data-f="' + f + '" data-id="' + esc(e.key) + '"' + (lock || all.length < 2 ? " disabled" : "") + ' title="Fold this one into another entry; its products take that name">Merge into...</button>';
+  const empty = all.length ? "<p>Nothing matches '" + esc(S.ls.q.trim()) + "'.</p>" : "<p>No " + L.many + " yet. One appears here when a product gets it, or add one now.</p>";
+  return '<div class="sect"><div class="thead"><h3 class="lsh">' + L.Many + ' <span class="z">(' + fmtN(all.length) + ")</span></h3><span class=\"sp\">" +
+    '<button type="button" class="btn sm" data-act="columns" data-tbl="' + tid + '">Edit columns</button><button type="button" class="btn sm" data-act="lsAdd" data-f="' + f + '"' + (S.ls.run && S.ls.run.state === "running" ? " disabled" : "") + ' title="Put a ' + L.one + ' on the list before any product uses it">Add a ' + L.one + "</button></span></div>" +
+    tableHTML(tid, cols, rows, { empty, defaultSort: (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }), actions: act }) + "</div>";
+}
+function listsPageHTML() {
+  if (S.errors.products) return errorBox("products", "products");
+  if (!S.loaded.products) return skelTable([{ label: "Name" }, { label: "Products", r: true }], "Loading brands and categories");
+  const off = !onlineNow(), run = S.ls.run, lock = off || !!(run && run.state === "running"), q = normKey(S.ls.q);
+  let h = '<p class="hint" style="margin-top:0">Brand and Category on every product are picked from these two lists. Rename or merge an entry here and every product carrying it changes with it; product ids stay the same.</p>';
+  if (off) h += '<p class="lsoff" role="status">You are offline. Rename and Merge need a connection, so they wait until it is back.</p>';
+  h += lsRunHTML();
+  _lsG = lsGroups("brand").concat(lsGroups("category"));
+  const strong = _lsG.map((g, i) => [g, i]).filter(([g]) => !g.weak), weak = _lsG.map((g, i) => [g, i]).filter(([g]) => g.weak);
+  h += '<div class="sect"><h4 class="h4" title="Values that differ only by capitals or spaces are one entry already; this lists the products still saved more than one way.">Probably the same</h4>' +
+    (strong.length ? '<ul class="lsg">' + strong.map(([g, i]) => lsGroupLi(g, i, lock)).join("") + "</ul>" : '<p class="hint" style="margin-top:0">Nothing is saved two ways that differ only by capitals or spaces.</p>') +
+    (weak.length ? '<h4 class="h4 lsweak" title="These differ by punctuation, spaces, or a trailing s. They may be different things; merge only the ones that are not.">Look alike</h4><ul class="lsg">' + weak.map(([g, i]) => lsGroupLi(g, i, lock)).join("") + "</ul>" : "") + "</div>";
+  h += '<div class="toolbar lsbar"><label class="sr" for="lsQ">Search brands and categories</label><span class="srch"><input class="fld search" id="lsQ" type="search" value="' + esc(S.ls.q) + '" placeholder="Search brands and categories" title="Matches any part of a name; capitals and extra spaces do not matter"><button type="button" class="clr" data-act="clearSearch" data-for="lsQ" aria-label="Clear the search">&times;</button></span></div>';
+  h += lsTableHTML("brand", q, lock) + lsTableHTML("category", q, lock);
+  return h;
+}
+/* the three sheets: each closes by X, Cancel, or its button, and the run starts after it closes */
+function lsSheet(title, body, okLabel, plan, start) {
+  const w = openModal(title, body + '<p class="lssay" id="lsSay" aria-live="polite"></p>', '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok>' + esc(okLabel) + "</button>");
+  const ok = $("[data-ok]", w), say = $("#lsSay", w);
+  const paint = () => { const r = plan(w); say.textContent = r.say; ok.disabled = !r.go; };
+  w.addEventListener("input", paint); w.addEventListener("change", paint); wireGlow(w); paint();
+  ok.addEventListener("click", () => { const r = plan(w); if (!r.go) return; closeModal(w); lsRun(start(r)); });
+}
+const lsChange = n => plural(n, "product") + (n === 1 ? " changes" : " change");
+function lsRename(f, key) {
+  const L = LISTF[f], e = valueList(f).byKey.get(key); if (!e) return;
+  lsSheet("Rename " + e.name, '<label class="lab" for="lsNew">New name</label><input class="fld" id="lsNew" autocomplete="off" spellcheck="false" value="' + esc(tidyName(e.name)) + '">' +
+    '<p class="hint">' + (f === "brand" ? "Fix the capitals if this is not how the maker writes it." : "Fix the capitals if this is not how it should read.") + "</p>", "Rename", w => {
+    const to = oneSpace($("#lsNew", w).value), k = normKey(to), other = k && k !== key ? valueList(f).byKey.get(k) : null, keys = other ? [key, k] : [key];
+    const n = lsTodo(f, keys, to).length;
+    if (!to) return { go: false, say: "Type the new name." };
+    if (other) return { go: true, to, keys, other, say: other.name + " is already on the list with " + plural(other.n, "product") + ". Renaming merges the two: " + lsChange(n) + " to " + to + "." };
+    if (!n && to === e.name) return { go: false, say: "That is the name it has now." };
+    return { go: true, to, keys, say: n ? lsChange(n) + " from " + e.name + " to " + to + "." : "No product carries it yet; only the list changes." };
+  }, r => ({ f, keys: r.keys, to: r.to, from: e.name, verb: r.other ? "merged" : "renamed", merge: !!r.other }));
+}
+function lsMerge(f, key) {
+  const L = LISTF[f], e = valueList(f).byKey.get(key); if (!e) return;
+  const others = valueList(f).filter(x => x.key !== key);
+  lsSheet("Merge " + e.name, '<p style="margin-top:0">Every product with ' + esc(e.name) + " takes the " + L.one + " you keep, and " + esc(e.name) + " leaves the list.</p>" +
+    '<label class="lab" for="lsKeep" title="The entry that stays. Its spelling is the one every product ends up with.">' + "<abbr>Keep</abbr></label>" +
+    '<select class="fld" id="lsKeep" data-decide><option value="">Choose the ' + L.one + " to keep</option>" + others.map(x => '<option value="' + esc(x.key) + '">' + esc(x.name) + " (" + plural(x.n, "product") + ")</option>").join("") + "</select>", "Merge", w => {
+    const k = $("#lsKeep", w).value, keep = k && valueList(f).byKey.get(k);
+    if (!keep) return { go: false, say: "Choose the " + L.one + " to keep." };
+    const keys = [key, keep.key];
+    return { go: true, to: keep.name, keys, say: lsChange(lsTodo(f, keys, keep.name).length) + " to " + keep.name + "." };
+  }, r => ({ f, keys: r.keys, to: r.to, from: e.name, verb: "merged", merge: true }));
+}
+function lsGroup(i) {
+  const g = _lsG[i]; if (!g) return;
+  const L = LISTF[g.f];
+  lsSheet("Merge into one " + L.one, '<p style="margin-top:0">' + (g.weak ? "These look alike. Merge them only if they are the same " + L.one + "." : "This " + L.one + " is saved with different capitals or spaces.") + "</p>" +
+    '<fieldset class="lsfs"><legend class="lab">Keep this spelling</legend>' + g.opts.map((o, j) => '<label class="chk"><input type="radio" name="lsKeep" value="' + j + '"' + (o.name === g.def ? " checked" : "") + "> " + esc(o.name) + ' <span class="z">(' + plural(o.n, "product") + ")</span></label>").join("") + "</fieldset>", "Merge", w => {
+    const c = $('input[name="lsKeep"]:checked', w), o = c && g.opts[+c.value];
+    if (!o) return { go: false, say: "Choose the spelling to keep." };
+    return { go: true, to: o.name, say: lsChange(lsTodo(g.f, g.keys, o.name).length) + " to " + o.name + "." };
+  }, r => ({ f: g.f, keys: g.keys, to: r.to, from: g.opts.map(o => o.name).filter(n => n !== r.to).join(" and "), verb: g.weak ? "merged" : "spellings merged", merge: true }));
+}
+const lsNet = () => { if (S.view === "office" && S.officeSec === "lists") render(true); };
+window.addEventListener("online", lsNet); window.addEventListener("offline", lsNet);
 
 /* ---------------- people (admin, Console) ---------------- */
 function peopleHTML() {
@@ -8878,12 +9306,15 @@ const DATA_DICTIONARY = [
     ["updatedAt", "When the worker last wrote here"]] },
   { coll: "loadout_settings/counters", id: "counters", about: "The shared PO number counter (0.5.2). Read and bumped in one transaction with the PO it numbers, so two people never take the same number. Warehouse and admin write it.", fields: [
     ["po", "The last PO number handed out; it starts from the highest PO in Loadout on first use"], ["updatedBy", "Email of whoever took the last number"], ["updatedByName", "Their name"], ["updatedAt", "When"]] },
+  { coll: "loadout_settings/lists", id: "lists", about: "The brand and category pick lists (0.11.0). Optional: the lists are the values in use on products plus these entries, which record the display spelling and hold a value an admin added before any product uses it. Admins write it (the confirm on a new value, Office, Settings, Brands and categories, and the inventory sheet import for a new make).", fields: [
+    ["brands", "Array of { name, key }: name is the spelling shown and saved, key is the name trimmed, spaces collapsed, lower case, the one key every comparison uses"],
+    ["categories", "The same for categories"], ["updatedBy", "Email of whoever changed it last"], ["updatedByName", "Their name"], ["updatedAt", "When"]] },
   { coll: "loadout_products", id: "brand-model slug, or kind, type, and attributes slug", about: "The catalog: one document per product, whatever shelf it sits on.", fields: [
-    ["kind", "device, patch-cable, splitter, connector, wire, or other"], ["type", "The sheet's Type column, kept as typed"], ["brand", "Maker"], ["model", "Part or model number"],
+    ["kind", "device, patch-cable, splitter, connector, wire, or other"], ["type", "The sheet's Type column, kept as typed"], ["brand", "Maker, picked from the brand list and saved in its spelling (0.11.0); empty for cables and connectors with no brand"], ["model", "Part or model number"],
     ["description", "Free text"], ["name", "Display name: brand and model, or type and attributes"],
     ["connector1, connector2", "Connector at each end"], ["color", "Color"], ["length, lengthUnit", "Length and its unit (ft, m, in)"], ["gauge, gaugeUnit", "Wire gauge and unit (awg, mm)"],
     ["amps", "Current rating"], ["inputs, outputs", "Splitter ports"], ["sex", "Male or female"], ["band", "Band"], ["pins", "Pin count"], ["wireType", "Pair count or cable spec, as 23/4 or RG6"], ["grade", "GP, Riser, Plenum, or Shielded"],
-    ["unit", "each or ft"], ["upc", "Barcode, learned on first scan"], ["category", "Wire, Network, Camera, and so on"], ["consumable", "Shows in Consumables with a par level"],
+    ["unit", "each or ft"], ["upc", "Barcode, learned on first scan"], ["category", "Wire, Network, Camera, and so on, picked from the category list and saved in its spelling (0.11.0)"], ["consumable", "Shows in Consumables with a par level"],
     ["parLevel", "Reorder point in the product's unit"], ["defaultLocationId", "Usual shelf"], ["defaultLocationName", "Its name when set"], ["imageUrl", "Download link of the product photo (Firebase Storage)"], ["imagePath", "Storage path of the photo: loadout/products/{id}.jpg"], ["imageAt", "When the photo was last added or replaced"],
     ["photoSource", "Where the photo came from: camera (taken or picked on a phone or computer) or upc (chosen from the UPC lookup) (0.10.0)"],
     ["upcLookupAt", "When someone last answered Photo for this UPC for this product (0.10.0)"], ["upcLookupResult", "That answer: used (a lookup photo was saved), none (None of these), kept (Keep the current photo), or not_found (the lookup knew nothing) (0.10.0)"],
@@ -9063,7 +9494,8 @@ const REPORTS = [
         const k = key(p.id, lid); if (seen.has(k)) return; seen.add(k);
         const val = valueAt(p, lid), f = io.get(k) || { rin: 0, rout: 0 };
         if (!qty && !f.rin && !f.rout) return;
-        det.push({ p, name: productName(p), cat: p.category || "No category", lid, loc: lid ? locName(lid) : "No location", qty, unit: unitTxt(p.unit), cost: unitCost(p.id), value: val.miss && !val.v ? null : val.v, miss: val.miss, rin: f.rin, rout: f.rout });
+        /* 0.11.0 (PLAN 25): the category list's spelling, so "Audio" and "audio" are one row in By category */
+        det.push({ p, name: productName(p), cat: listSpell("category", p.category) || "No category", lid, loc: lid ? locName(lid) : "No location", qty, unit: unitTxt(p.unit), cost: unitCost(p.id), value: val.miss && !val.v ? null : val.v, miss: val.miss, rin: f.rin, rout: f.rout });
       };
       S.products.forEach(p => byLocation(p).forEach(e => push(p, e.locationId, e.qty)));
       io.forEach((f, k) => { const i = k.indexOf("|"), p = S.products.get(k.slice(0, i)); if (p) push(p, k.slice(i + 1), 0); });
@@ -9554,11 +9986,16 @@ function buildImportPlan(imp) {
   if (numericParts) warnings.push(numericParts + " part numbers were stored as numbers in Excel; they import as text without the trailing .0.");
 
   /* make alias table: every make, with what it becomes */
+  /* 0.11.0 (PLAN 25): a make already on the brand list starts as the list's
+     spelling; a new one starts tidied (tidyName), and the Becomes box is where
+     the admin corrects it. Whatever the box says lands on the list's spelling
+     when it matches an entry. */
   const aliasRows = makeV.keys().map(f => {
-    const preset = imp.aliases[f] != null ? imp.aliases[f] : (MAKE_ALIASES[f] || makeV.pick(f, { preferCased: true }));
+    const preset = imp.aliases[f] != null ? imp.aliases[f] : (MAKE_ALIASES[f] || (listEntry("brand", f) ? listSpell("brand", f) : tidyName(makeV.pick(f, { preferCased: true }))));
     return { fold: f, variants: makeV.variants(f), to: preset, count: raw.filter(r => clean(r.make).toLowerCase() === f).length };
   }).sort((a, b) => a.fold.localeCompare(b.fold));
-  const makeOf = s => { s = clean(s); if (!s) return ""; const a = aliasRows.find(x => x.fold === s.toLowerCase()); return a ? clean(a.to) : s; };
+  const makeOf = s => { s = clean(s); if (!s) return ""; const a = aliasRows.find(x => x.fold === s.toLowerCase()); return listSpell("brand", a ? clean(a.to) : s); };
+  const catOf = s => listSpell("category", s);
 
   const products = new Map(), locations = new Map(), stock = new Map(), containers = new Map(), itemsNew = [], itemsRename = [], movements = [];
   /* PLAN 12b item 3: a row with no count date is dated from the latest count date on its tab */
@@ -9606,7 +10043,7 @@ function buildImportPlan(imp) {
       const type = fixSlashCase(typeV.pick(clean(rec.type))), wireType = clean(rec.wireType), color = normColor(rec.color);
       const qv = rec.qty == null || clean(rec.qty) === "" ? 0 : Number(clean(rec.qty));
       if (!Number.isFinite(qv)) { skip("Feet left is not a number"); return; }
-      const d = { kind: "wire", unit: "ft", type: type || "Wire", wireType: wireType || null, color: color || null, grade: gradeOf(type, grades) || null, category: "Wire", consumable: true, brand: "", model: "" };
+      const d = { kind: "wire", unit: "ft", type: type || "Wire", wireType: wireType || null, color: color || null, grade: gradeOf(type, grades) || null, category: catOf("Wire"), consumable: true, brand: "", model: "" };
       d.name = [typeLabel(type) || "Unlabeled wire", wireType, color].filter(Boolean).join(", ");
       const pid = slug(["wire", type || "unlabeled", wireType, color].join("-"));
       if (!type) warnings.push("Box " + code + " (tab " + rec.tab + " row " + rec.row + ") has no type; it imports as Unlabeled wire.");
@@ -9629,7 +10066,7 @@ function buildImportPlan(imp) {
       return;
     }
     const make = makeOf(rec.make), part = clean(rec.part), type = fixSlashCase(typeV.pick(clean(rec.type)));
-    const d = { kind, unit: "each", type: type || "", brand: make, model: part, category: kind === "device" ? (type ? type[0].toUpperCase() + type.slice(1) : "Device") : kind === "patch-cable" ? "Cable" : kind === "splitter" ? "Splitter" : "Connector", consumable: kind !== "device" };
+    const d = { kind, unit: "each", type: type || "", brand: make, model: part, category: catOf(kind === "device" ? (type ? type[0].toUpperCase() + type.slice(1) : "Device") : kind === "patch-cable" ? "Cable" : kind === "splitter" ? "Splitter" : "Connector"), consumable: kind !== "device" };
     if (kind === "patch-cable") Object.assign(d, { connector1: clean(rec.c1) || null, connector2: clean(rec.c2) || null, color: normColor(rec.color) || null, length: numOrText(rec.length), lengthUnit: normLenUnit(rec.lenUnit) || null, gauge: numOrText(rec.diameter), gaugeUnit: normGaugeUnit(rec.diamUnit) || null, amps: numOrText(rec.amps) });
     if (kind === "splitter") Object.assign(d, { connector1: clean(rec.c1) || null, inputs: numOrText(rec.inputs), connector2: clean(rec.c2) || null, outputs: numOrText(rec.outputs) });
     if (kind === "connector") Object.assign(d, { sex: clean(rec.sex) || null, band: clean(rec.band) || null, pins: numOrText(rec.pins) });
@@ -9835,6 +10272,10 @@ function importOps(plan) {
   if (merged.length > (S.general.vendors || []).length) {
     ops.push({ op: "set", coll: "loadout_settings", id: "general", merge: true, data: { vendors: merged, updatedBy: S.user.email, updatedByName: S.user.name, updatedAt: NOW } });
   }
+  /* 0.11.0 (PLAN 25): a make the brand list does not have yet joins it in the spelling the alias table settled on */
+  const newBrands = new Map();
+  plan.products.forEach(p => { const b = p.data.brand, k = normKey(b); if (k && !listEntry("brand", b) && !newBrands.has(k)) newBrands.set(k, b); });
+  if (newBrands.size) ops.push(listAddOp("brand", Array.from(newBrands.values())));
   return ops;
 }
 
@@ -9932,6 +10373,8 @@ function impDoneHTML() {
 }
 /* demo-only hooks for checking the importer and the loading and error states by script */
 if (DEMO) window.Loadout = { importBuffer: (buf, name) => importLoad(buf, name || "workbook.xlsx"), state: S, render: () => render(true), setLive, sampleCsv: () => SAMPLE_CSV, board: BD,
+  /* 0.11.0 (PLAN 25): the matcher, the formatter, and the lists, for the self-test and the checks by script */
+  lists: { normKey, tidyName, brandList, categoryList, listSpell, importOps: () => S.imp && S.imp.plan ? importOps(S.imp.plan) : null },
   /* 0.5.0 checks by script: sync({online:false, pending:3}) drives the pill (sync(null) goes back to Demo);
      pending("products", id, true) puts the pending chip on a row; install("prompt"|"ios"|"menu"|"none"|null) picks the home screen card */
   sync: st => { S.demoSync = st ? { online: st.online !== false, pending: Math.max(0, num(st.pending)) } : null; paintSync(); return syncState(); },
@@ -10010,6 +10453,13 @@ document.addEventListener("click", e => {
     case "product": navProduct(id); break;
     case "scanProd": S.scan = { kind: "prod", id }; paintScanResult(); break;
     case "newProduct": { const pre = {}; if (b.dataset.upc) pre.upc = b.dataset.upc; if (b.dataset.prefill) pre.model = b.dataset.prefill; openProductForm(null, pre); break; }
+    /* 0.11.0 (PLAN 25): Office > Settings > Brands and categories */
+    case "lsRename": lsRename(b.dataset.f, id); break;
+    case "lsMerge": lsMerge(b.dataset.f, id); break;
+    case "lsGroup": lsGroup(+id); break;
+    case "lsAdd": cbAsk(b.dataset.f, "").then(n => { if (n) render(true); }); break;
+    case "lsRetry": if (S.ls.run) lsRun(S.ls.run); break;
+    case "lsDismiss": S.ls.run = null; render(true); break;
     case "newLocation": openLocationForm(null); break;
     case "editLocation": case "location": navLoc(id); break;
     case "newBox": openNewBox(P()); break;
@@ -10147,6 +10597,7 @@ document.addEventListener("input", e => {
   else if (t.id === "tfQ") { S.tkFilter.q = t.value; scheduleRender(); }
   else if (t.dataset && t.dataset.mf) { S.mvFilter[t.dataset.mf] = t.value; scheduleRender(); }
   else if (t.id === "lblQ") { S.labelQ = t.value; scheduleRender(); }
+  else if (t.id === "lsQ") { S.ls.q = t.value; scheduleRender(); }
   /* expand-in-place fields keep what is typed through live redraws */
   else if (t.dataset && t.dataset.xf && S.x) { if (!S.x.draft) S.x.draft = {}; S.x.draft[t.dataset.xf] = t.type === "checkbox" ? t.checked : t.value; }
 });

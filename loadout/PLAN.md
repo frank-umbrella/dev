@@ -860,6 +860,7 @@ Build T0 first. T1 and T2 are worker work and need the plan tier known.
 | 0.8.0 | Simple mode (section 18): Home with the doors (Pick up, Deliver, Pull, Audit), Job and Pull sheet words, Shelf (Stock and Units), Office (More and the Console), the Pick up step and Confirm a delivery screens, Audit a shelf, one strip and one next step per job card, the wall board as a six-card grid, every old address kept as an alias. Built 2026-11-05, not committed. |
 | 0.9.0 | Section 20: the focused Pull screen (`#pull/<jobId>`) in pick order, the Pull door split into pullable and waiting on orders, Bring back from a van with the Close job van rule, Receive a shipment as the fourth door (serial or MAC on shipment receive), Arrived for carrier drops, the non-zero progress line, the QR on the printed pull sheet, the board's phone layout (20.3), the leftover-words sweep, `loadout_settings/worker` in the data dictionary, and the tech rules run in the emulator (14 of 14). Built 2026-11-11, not committed, rules not deployed. |
 | 0.10.0 | Section 21.4 Photo from a UPC (the sheet after every UPC save, Find a photo, Review photos after an import, the demo fixtures; needs loadout-worker 0.3.0 deployed), 22.1 New job made plain (two choices, three hand-built steps, "Here is what the file says"; the same writes as 0.9.1), 22.2 More for techs (`officeWord()`), 23 the Job report, 24 the account block in the header and the Account sheet. Built 2026-11-11, not committed, no rules change. |
+| 0.11.0 | Section 25: Brand and Category as pick lists (comboboxes) on New product and the product panel, Type with suggestions by category, the admin's Add confirm with `tidyName`, the refusal for other roles, `normKey` in the Shelf filters, the Stock report by category, the inventory importer and the proposal file reader, `loadout_settings/lists`, and Office > Settings > Brands and categories (Rename, Merge into, Probably the same, Look alike, batches of 400). Built 2026-11-11, not committed, no rules change. |
 | 0.9.1 | Section 21.1 Shelf filters (Category from the product's own category, Type, Brand, Location, Consumables only; chips, the phone Filter sheet, session only) and 21.3 history as one vertical timeline everywhere; the home-screen strip, card, and Office > This phone on phones and tablets only; an odd last door spans both columns on Home; leftover "Stock" words. 21.2 stays an idea. Built 2026-11-11, not committed. |
 
 Each version is a release: bump the version everywhere, README changelog entry
@@ -2044,6 +2045,34 @@ as people go if they are an admin, and stored with correct capitals.
 - `kind` stays internal and unchanged. Product ids do not change when a
   brand is renamed; the readable name is rebuilt.
 
+**Built in 0.11.0** (2026-11-11, not committed). Everything above, with these
+choices and notes:
+
+- An admin who types a new value and presses Save (without choosing Add from
+  the list) gets the same confirm; Cancel leaves the field refused with
+  "Not on the list yet. Add it, pick one from the list, or clear the field."
+- The confirm's hint reads "Fix the capitals if this is not how the maker
+  writes it." for a brand and "Fix the capitals if this is not how it should
+  read." for a category, since a category has no maker.
+- A lower-case word with a digit ("c2g") becomes "C2g"; a short upper-case
+  word with a digit ("C2G") stays. The admin corrects the rest in the confirm.
+- Brands and categories is its own address (`#office/lists`), linked from a
+  section on Settings, with no card on Office. "Probably the same" lists a
+  value saved more than one way that differs only by case or spacing (one
+  list entry already, since the lists key on `normKey`); "Look alike" groups
+  entries that match once punctuation, spaces, and a trailing s are dropped.
+- Rename and Merge rewrite `name` only when it was built from the brand
+  (rebuilt) or carries the old spelling (swapped in place); a category is not
+  part of the name. Stock rows, units, and lines keep the product name they
+  were written with, as everywhere else (names are snapshots).
+- The inventory importer starts a new make tidied in the alias table (the
+  Becomes box is where the admin corrects it) and adds new makes to the
+  brand list. New categories from an import are not added to the lists
+  document; they are on the list because a product carries them.
+- Not done: nothing in this section is left out. A failed batch part way
+  through a run was checked by reading the code only; the demo refuses every
+  write, so it cannot fail half way.
+
 ## 26. A delivery animation (user idea, 2026-11-11; NOT scheduled, awaiting a choice)
 
 The user asked for a "3D Grand Theft Auto type" animation when product is
@@ -2111,3 +2140,51 @@ street name or coordinate goes into the file or the repo (it is public).
   to 30% of one 5-hour window and 2.5 to 4% of the week; a revision round
   adds 5 to 8% of a window. Length grows to about 5 seconds, still
   skippable with a tap.
+
+### 26.3 Feedback on preview 0.1.1, and version 0.2.0 (user, 2026-11-11)
+
+The user watched 0.1.1 and wants four changes.
+
+1. **The box is carried, not thrown.** Two employees in charcoal grey
+   polos and blue jeans take it out of the back of the van together, carry
+   it up the walk, and set it down at the door.
+2. **No green on the banner.**
+3. **The word.** "Delivered" may not be right; the user floated "Product
+   Reached Project" and is unsure. The preview gets a wording switch so it
+   can be read in place: **Product on site** (Fable's pick: three short
+   words, says where the product is), **Delivery complete**, and **Product
+   reached project** (the user's). And a color switch: **Brand** (white
+   lettering on a charcoal band with the company blue as the rule and the
+   mark, matching the van and the polos) and **Gold** (warm gold lettering
+   with a dark outline on a dark translucent band). The user picks; the
+   app ships one.
+4. **More 3D, in the direction of GTA V.** Honest scope: a browser scene
+   built from code will not look like a AAA game with artist-made models;
+   it can look like a polished 3D game rather than flat blocks. That means
+   real cast shadows, lit materials with some texture (asphalt, grass,
+   brick, roof), a rounder and more detailed van (arches, rims, mirrors,
+   lights, glass that catches the sky), better scene dressing, a low
+   cinematic chase camera with a little shake and letterbox bars, and the
+   ending handled the way that game does it: the world slows, dims and
+   loses color behind the banner as the words land hard.
+
+People are stylized (rounded limbs, a simple head and hair, no drawn
+faces), walk with a real cycle, and carry the box between them. They are
+nobody in particular. The scene grows to about 8 seconds and stays
+skippable. Phones get a lighter quality tier chosen by a quick speed test.
+Estimate: 350k to 550k Opus tokens, about 14 to 22% of one 5-hour window
+and 2 to 3% of the week, built after the window resets.
+
+### 26.4 Free assets approved (user, 2026-11-11)
+
+The user approved using free CC0 assets, downloaded only from the makers'
+own sites: Kenney (kenney.nl), Quaternius (quaternius.com) and Poly Haven
+(polyhaven.com). People, the van, cars, houses and street pieces come from
+those packs; a real sky image lights the scene; ground and wall textures
+come from Poly Haven. The shop building, the lot and road layout, the box
+and the banner stay custom. Each license is read before use and recorded
+in `delivery/credits.txt`. Shipped files live in `delivery/`, at most 2 MB
+each and 6 MB in all, and load only when the animation plays. Not used:
+Mixamo (unclear for a public repo) and any credit-required marketplace
+asset. The preview works from the published address only, since a browser
+blocks model files on a local file address.
