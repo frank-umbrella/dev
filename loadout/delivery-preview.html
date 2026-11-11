@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="version" content="0.1.0">
+<title>Loadout delivery preview v0.1.0</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="window.__threeFailed=true"></script>
+<style>
+/* Preview page only. The cutscene injects its own dlv- styles so it can be lifted into the app. */
+:root{--pv-bg:#10151f;--pv-btn:#222b3a;--pv-btn-on:#1e6fd9;--pv-text:#e8edf4;--pv-muted:#aab4c3;--pv-edge:#6b7a90;--pv-focus:#8cbcff}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--pv-bg);color:var(--pv-text);font:15px/1.45 "Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif}
+main{min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#stage{position:relative;background:#0b0f16;border:1px solid #2b3546;border-radius:8px;overflow:hidden;max-width:100%}
+.controls{display:flex;flex-wrap:wrap;gap:10px 16px;justify-content:center;align-items:center;max-width:100%}
+.seg{display:flex;gap:0}
+.seg button{border-radius:0}
+.seg button:first-child{border-radius:8px 0 0 8px}
+.seg button:last-child{border-radius:0 8px 8px 0}
+.seg button+button{border-left:0}
+.controls button{min-height:44px;min-width:44px;padding:0 16px;background:var(--pv-btn);color:var(--pv-text);border:1px solid var(--pv-edge);border-radius:8px;font:inherit;font-weight:600;cursor:pointer}
+.controls button[aria-pressed="true"]{background:var(--pv-btn-on);border-color:var(--pv-btn-on);color:#fff}
+.controls button:focus-visible{outline:3px solid var(--pv-focus);outline-offset:2px;position:relative;z-index:1}
+#status{margin:0;color:var(--pv-muted);font-size:14px;min-height:20px;text-align:center}
+.ver{color:var(--pv-muted);font-size:13px;margin:0}
+body.freeze main{padding:0;gap:0}
+body.freeze .controls,body.freeze #status,body.freeze .ver{display:none}
+body.freeze #stage{position:fixed;inset:0;width:100vw!important;height:100vh!important;border:0;border-radius:0}
+</style>
+</head>
+<body>
+<main>
+  <h1 class="sr">Loadout delivery cutscene preview</h1>
+  <div id="stage"></div>
+  <div class="controls">
+    <button type="button" id="btnPlay">Play again</button>
+    <button type="button" id="btnBanner">Banner only</button>
+    <div class="seg" role="group" aria-label="Frame size">
+      <button type="button" data-size="phone" aria-pressed="false">Phone</button>
+      <button type="button" data-size="land" aria-pressed="false">Landscape</button>
+      <button type="button" data-size="desk" aria-pressed="true">Desktop</button>
+    </div>
+    <div class="seg" role="group" aria-label="Playback speed">
+      <button type="button" data-speed="1" aria-pressed="true">1x</button>
+      <button type="button" data-speed="0.5" aria-pressed="false">0.5x</button>
+    </div>
+  </div>
+  <p id="status" aria-live="polite"></p>
+  <p class="ver">Preview v0.1.0. Tap the scene, or press Esc, Enter or Space, to skip.</p>
+</main>
+
+<script>
+/* ===== Delivery cutscene: playDelivery(container, { job, client, onDone }) -> { skip() } ===== */
+(function () {
+  'use strict';
+
+  // Timeline in seconds. Shot 1 the shop, shot 2 the house, shot 3 the banner.
+  var T_REV0 = 0.2, T_REV1 = 0.85, T_GO = 0.9, T_CUT = 2.4, T_BANNER = 4.0, T_LAND = 4.38;
+  var T_HOLD = T_LAND + 4.0, T_FADE = 0.45;
+  var HX = -150, HZ = 250; // where the house street sits, far outside the shop's fog range
+  var D2R = Math.PI / 180;
+
+  // Colors: Ledger tokens from index.html, Umbrella brand blue, and the scene's own muted ground set.
+  var C = {
+    ink: '#1a2233', accent: '#1e6fd9', deliver: '#166b3e', umbBlue: '#1A9BE8', umbInk: '#1a1f2b',
+    van: 0x3b4048, vanTrim: 0xa3aab3, vanGlass: 0x8b98a8, grass: 0x93ad6e, asphalt: 0x50555d,
+    road: 0x464a51, paint: 0xe9ecef, yellow: 0xe2b93b, concrete: 0xc9c6bf, brick: 0x9c5a44,
+    parapet: 0xae6c55, roofStrip: 0xe8e4da, roofEnd: 0x86664a, roofBox: 0x9aa0a6, glass: 0x3d566d
+  };
+
+  var MARK_PATHS = { // the Loadout hard-case mark, from favicon.svg (64x64 box)
+    lid: 'M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6'
+  };
+  var MARK_SVG = '<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><rect width="64" height="64" rx="14" fill="#1e6fd9"/>' +
+    '<g transform="translate(8,8) scale(.75)" fill="none" stroke="#fff"><rect x="8" y="20" width="48" height="34" rx="6" stroke-width="5"/>' +
+    '<path d="' + MARK_PATHS.lid + '" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke-width="4"/>' +
+    '<rect x="27" y="31" width="10" height="8" rx="2" fill="#fff" stroke="none"/></g></svg>';
+
+  var CSS = [
+    '.dlv-root{position:absolute;inset:0;overflow:hidden;container-type:size;background:linear-gradient(#b9d0e3 0%,#dce6ee 58%,#e9eef2 100%);cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}',
+    '.dlv-root canvas{position:absolute;inset:0;width:100%;height:100%;display:block}',
+    '.dlv-root.dlv-flat{background:#1a2233}',
+    '.dlv-banner{position:absolute;left:-8%;right:-8%;top:54%;transform-origin:50% 50%;opacity:0;pointer-events:none}',
+    '.dlv-flat .dlv-banner{top:50%;opacity:1;transform:translateY(-50%) rotate(-3deg)}',
+    '.dlv-band{background:#fbfaf6;border-top:5px solid #1a2233;border-bottom:5px solid #1a2233;box-shadow:0 10px 0 rgba(16,21,31,.28);display:flex;align-items:center;justify-content:center;gap:max(10px,2.6cqw);padding:max(10px,2.2cqh) 8%}',
+    '.dlv-band svg{flex:none;width:min(14cqw,19cqh,112px);height:min(14cqw,19cqh,112px)}',
+    '.dlv-txt{display:flex;flex-direction:column;min-width:0}',
+    '.dlv-word{font-family:"Segoe UI Black","Arial Black","Helvetica Neue",system-ui,sans-serif;font-weight:900;font-size:min(11.5cqw,16cqh,124px);line-height:1;letter-spacing:-.01em;color:#166b3e;',
+    'text-shadow:-2px -2px 0 #0b2a18,2px -2px 0 #0b2a18,-2px 2px 0 #0b2a18,2px 2px 0 #0b2a18,0 -2px 0 #0b2a18,0 2px 0 #0b2a18,-2px 0 0 #0b2a18,2px 0 0 #0b2a18,5px 6px 0 #b8d8c4}',
+    '.dlv-job{font-family:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;font-weight:700;font-size:max(15px,min(3.6cqw,5.4cqh,30px));color:#1a2233;margin-top:max(6px,1.2cqh);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+    '.dlv-skip{position:absolute;top:10px;right:10px;min-width:64px;min-height:44px;padding:0 16px;border:1px solid #8796ab;border-radius:8px;background:rgba(16,21,31,.82);color:#fff;font:600 15px/1 "Segoe UI",system-ui,sans-serif;cursor:pointer}',
+    '.dlv-skip:focus-visible{outline:3px solid #8cbcff;outline-offset:2px}',
+    '.dlv-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}'
+  ].join('\n');
+
+  var live = { instances: 0, listeners: 0 };
+  window.__dlvLive = live;
+
+  function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+  function lerp(a, b, k) { return a + (b - a) * k; }
+  function inOut(p) { p = clamp01(p); return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
+  function out3(p) { p = clamp01(p); return 1 - Math.pow(1 - p, 3); }
+  function outBack(p) { p = clamp01(p); var c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); }
+  function clean(s, dflt) {
+    var v = (s == null ? '' : String(s)).replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 60);
+    return v || dflt;
+  }
+  function jobLine(o) { return 'Job ' + clean(o.job, '1042') + ', ' + clean(o.client, 'Lakeview Dental'); }
+
+  function ensureCss() {
+    var el = document.getElementById('dlv-css');
+    if (el) return null;
+    el = document.createElement('style'); el.id = 'dlv-css'; el.textContent = CSS;
+    document.head.appendChild(el); return el;
+  }
+
+  // The banner DOM is the same in the 3D scene and the fallback, so the wording and marks match.
+  function buildBanner(root, line) {
+    var sr = document.createElement('p'); sr.className = 'dlv-sr'; sr.setAttribute('role', 'status');
+    sr.textContent = 'Delivered. ' + line; root.appendChild(sr);
+    var b = document.createElement('div'); b.className = 'dlv-banner'; b.setAttribute('aria-hidden', 'true');
+    b.innerHTML = '<div class="dlv-band">' + MARK_SVG + '<div class="dlv-txt"><div class="dlv-word">Delivered</div><div class="dlv-job"></div></div></div>';
+    b.querySelector('.dlv-job').textContent = line;
+    root.appendChild(b);
+    var skip = document.createElement('button'); skip.type = 'button'; skip.className = 'dlv-skip';
+    root.appendChild(skip);
+    return { banner: b, skipBtn: skip };
+  }
+
+  // No probe canvas here: an extra throwaway context is a wasted GPU context on a phone.
+  // play3D creates the one real renderer and throws if WebGL is missing, which lands in the fallback.
+  function canWebGL() { return !!window.WebGLRenderingContext; }
+
+  function playDelivery(container, opts) {
+    opts = opts || {};
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (opts.fallback || reduce || window.__threeFailed || typeof THREE === 'undefined' || !canWebGL()) {
+      return playFallback(container, opts, reduce ? 'reduced-motion' : (opts.fallback ? 'requested' : 'no-3d'));
+    }
+    try { return play3D(container, opts); } catch (e) {
+      if (window.console) console.warn('delivery 3D failed, showing banner', e);
+      return playFallback(container, opts, 'error');
+    }
+  }
+
+  /* ---------- Shared shell: root element, listeners, teardown ---------- */
+  function makeShell(container, opts, flat) {
+    var css = ensureCss();
+    var root = document.createElement('div'); root.className = 'dlv-root' + (flat ? ' dlv-flat' : '');
+    var line = jobLine(opts);
+    var parts = buildBanner(root, line);
+    container.appendChild(root);
+    var shell = { root: root, banner: parts.banner, skipBtn: parts.skipBtn, done: false, timers: [], cleanups: [] };
+    function on(target, type, fn, o) {
+      target.addEventListener(type, fn, o); live.listeners++;
+      shell.cleanups.push(function () { target.removeEventListener(type, fn, o); live.listeners--; });
+    }
+    shell.on = on;
+    shell.finish = function (reason, teardownExtra, silent) {
+      if (shell.done) return; shell.done = true;
+      shell.timers.forEach(clearTimeout);
+      if (teardownExtra) teardownExtra();
+      shell.cleanups.forEach(function (f) { f(); });
+      if (root.parentNode) root.parentNode.removeChild(root);
+      if (css && css.parentNode) css.parentNode.removeChild(css);
+      live.instances--;
+      if (!silent && typeof opts.onDone === 'function') opts.onDone({ reason: reason });
+    };
+    live.instances++;
+    return shell;
+  }
+
+  function bindSkip(shell, fn) {
+    shell.on(shell.root, 'pointerdown', function (e) { if (e.button === 0 || e.pointerType !== 'mouse') { e.preventDefault(); fn(); } });
+    shell.on(window, 'keydown', function (e) {
+      var tg = e.target, ctl = tg && tg.closest && tg.closest('button,a,input,select,textarea');
+      if (e.key !== 'Escape' && ctl && !shell.root.contains(ctl)) return; // let the page's own controls keep Enter and Space
+      if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); e.stopPropagation(); fn(); }
+    }, true);
+  }
+
+  /* ---------- Fallback: the banner alone, still, dismissible ---------- */
+  function playFallback(container, opts, why) {
+    var shell = makeShell(container, opts, true);
+    shell.root.setAttribute('data-mode', 'fallback-' + why);
+    shell.skipBtn.textContent = 'Done';
+    function end() { shell.finish('dismissed'); }
+    bindSkip(shell, end);
+    if (!opts.freeze) shell.timers.push(setTimeout(function () { shell.finish('timeout'); }, 4000));
+    window.__deliveryReady = true;
+    return { skip: end };
+  }
+
+  /* ---------- Geometry merging: one vertex-colored mesh per static set keeps draw calls low ---------- */
+  function Merger() { this.p = []; this.n = []; this.c = []; }
+  Merger.prototype.add = function (geom, color, m) {
+    var g = geom.index ? geom.toNonIndexed() : geom;
+    if (g !== geom) geom.dispose();
+    if (m) g.applyMatrix4(m);
+    g.computeVertexNormals();
+    var p = g.attributes.position.array, n = g.attributes.normal.array, col = new THREE.Color(color);
+    for (var i = 0; i < p.length; i += 3) {
+      this.p.push(p[i], p[i + 1], p[i + 2]); this.n.push(n[i], n[i + 1], n[i + 2]); this.c.push(col.r, col.g, col.b);
+    }
+    g.dispose();
+  };
+  Merger.prototype.build = function () {
+    var g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(this.p, 3));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(this.n, 3));
+    g.setAttribute('color', new THREE.Float32BufferAttribute(this.c, 3));
+    g.computeBoundingSphere();
+    return g;
+  };
+  function M(x, y, z, ry, rx, rz) {
+    return new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx || 0, ry || 0, rz || 0)).setPosition(x, y, z);
+  }
+  // box by its x/z extents and bottom y
+  function bx(mg, x0, x1, y0, y1, z0, z1, color) {
+    mg.add(new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0), color, M((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2));
+  }
+  function bxR(mg, cx, cy, cz, w, h, d, color, ry, rx, rz) { mg.add(new THREE.BoxGeometry(w, h, d), color, M(cx, cy, cz, ry, rx, rz)); }
+
+  var seed = 7;
+  function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+  var GREENS = [0x4f7a43, 0x3f6a3a, 0x5d8a4a, 0x47703f];
+  function tree(mg, x, z, s, pine) {
+    bx(mg, x - 0.22 * s, x + 0.22 * s, 0, 1.5 * s, z - 0.22 * s, z + 0.22 * s, 0x6b4f37);
+    var col = GREENS[Math.floor(rnd() * GREENS.length)];
+    if (pine) mg.add(new THREE.ConeGeometry(1.5 * s, 4.2 * s, 6), col, M(x, 1.2 * s + 2.1 * s, z, rnd() * 3));
+    else mg.add(new THREE.IcosahedronGeometry(1.7 * s, 0), col, M(x, 1.5 * s + 1.3 * s, z, rnd() * 3, rnd() * 0.5));
+  }
+  // a parked car: plain colored blocks, nose along +x before rotation
+  function car(mg, x, z, ry, color) {
+    var m = M(x, 0, z, ry);
+    function part(w, h, d, px, py, pz, c) { mg.add(new THREE.BoxGeometry(w, h, d), c, new THREE.Matrix4().multiplyMatrices(m, M(px, py, pz))); }
+    part(4.3, 0.75, 1.85, 0, 0.72, 0, color);
+    part(2.3, 0.62, 1.66, -0.25, 1.4, 0, color);
+    part(2.32, 0.42, 1.6, -0.25, 1.38, 0, 0x2c3440);
+    [[1.4, 0.93], [1.4, -0.93], [-1.4, 0.93], [-1.4, -0.93]].forEach(function (w) { part(0.7, 0.66, 0.24, w[0], 0.33, w[1], 0x1d2026); });
+  }
+
+  /* ---------- The shop: the south end unit of a long strip, lot, road, tree line ---------- */
+  function buildShop(mg) {
+    var F = -14; // building front, facing east
+    bx(mg, -28, F, 0, 5.2, -70, 6, C.brick);
+    bx(mg, -27.7, F - 0.3, 5.2, 5.26, -70, -8, C.roofStrip);
+    bx(mg, -27.7, F - 0.3, 5.2, 5.26, -8, 6, C.roofEnd);
+    // parapet edges plus the divider that sets the end unit apart
+    bx(mg, F - 0.3, F, 5.2, 5.8, -70, 6, C.parapet);
+    bx(mg, -28, -27.7, 5.2, 5.8, -70, 6, C.parapet);
+    bx(mg, -28, F, 5.2, 5.8, 5.7, 6, C.parapet);
+    bx(mg, -28, F, 5.2, 5.8, -70, -69.7, C.parapet);
+    bx(mg, -28, F, 5.2, 5.75, -8.15, -7.85, C.parapet);
+    [-22, -34, -46, -58].forEach(function (z) { bx(mg, -28, F, 5.2, 5.45, z - 0.1, z + 0.1, 0xd2cdc0); });
+    [[-20, -2, 1.9, 1.1, 1.5], [-24.5, 2.6, 1.4, 0.9, 1.4], [-19, -18, 1.8, 1, 1.5], [-23, -36, 1.4, 0.9, 1.4], [-20, -52, 1.8, 1, 1.5], [-24, -63, 1.4, 0.9, 1.4]].forEach(function (r) {
+      bx(mg, r[0] - r[2] / 2, r[0] + r[2] / 2, 5.26, 5.26 + r[3], r[1] - r[4] / 2, r[1] + r[4] / 2, C.roofBox);
+    });
+    // storefronts on the other units: glass, a door, a plain sign band with no lettering
+    var units = [[-70, -58], [-58, -46], [-46, -34], [-34, -22], [-22, -8]];
+    var bands = [0xd9ccb4, 0xcfd6dc, 0xe0d2c0, 0xd4cfc6, 0xcdd4cc];
+    units.forEach(function (u, i) {
+      bx(mg, F, F + 0.1, 0.3, 2.8, u[0] + 1.2, u[1] - 4, C.glass);
+      bx(mg, F, F + 0.12, 0, 2.5, u[1] - 3.4, u[1] - 1.6, 0x2a3340);
+      bx(mg, F, F + 0.08, 3.1, 4.6, u[0] + 1.5, u[1] - 1.5, bands[i]);
+    });
+    // the end unit: glass band, a door, and a dark sign band (the wordmark plane sits on it)
+    bx(mg, F, F + 0.1, 0.3, 2.8, -7.2, -1.4, C.glass);
+    bx(mg, F, F + 0.1, 0.3, 2.8, 2.2, 5.3, C.glass);
+    bx(mg, F, F + 0.14, 0, 2.6, -1.0, 1.8, 0x26303c);
+    bx(mg, F + 0.14, F + 0.2, 1.1, 1.5, 1.35, 1.5, 0xc9cdd2);
+    bx(mg, F, F + 0.1, 2.95, 5.05, -4.3, 4.3, 0x1a1f2b);
+    // ground: sidewalk, lots, aisle, small white-roof building, roads
+    bx(mg, F, -12, 0, 0.14, -72, 6, C.concrete);
+    bx(mg, -12, 4, 0, 0.05, -72, 12, C.asphalt);
+    bx(mg, -40, -12, 0, 0.05, 6, 12, C.asphalt);
+    bx(mg, -40, -28, 0, 0.05, -30, 6, C.asphalt);
+    bx(mg, 4, 6.5, 0, 0.05, 6, 12, C.asphalt);
+    bx(mg, 6.25, 6.5, 0, 0.16, -220, 6, C.concrete);
+    bx(mg, 6.25, 6.5, 0, 0.16, 12, 36, C.concrete);
+    bx(mg, 6.5, 29, 0, 0.04, -220, 220, C.road);
+    bx(mg, -70, 6.5, 0, 0.04, 36, 43, C.road);
+    bx(mg, -8, 0, 0, 4, 21, 29, 0xc9b8a2);
+    bx(mg, -7.8, -0.2, 4, 4.08, 21.2, 28.8, 0xe9e7e0);
+    bx(mg, -5, -2, 4.08, 4.8, 23.5, 26, C.roofBox);
+    // stall lines: one row nosed in to the building, one along the road
+    for (var k = 0; k <= 23; k++) {
+      var z = 3.6 - 3.2 * k;
+      bx(mg, -12, -6.6, 0.05, 0.07, z - 0.07, z + 0.07, C.paint);
+      if (k >= 1) bx(mg, -1.5, 3.9, 0.05, 0.07, z - 0.07, z + 0.07, C.paint);
+    }
+    // lane paint: two lanes each way and a center turn lane
+    for (var d = -220; d < 220; d += 9) {
+      bx(mg, 10.95, 11.15, 0.04, 0.06, d, d + 3, C.paint);
+      bx(mg, 24.45, 24.65, 0.04, 0.06, d, d + 3, C.paint);
+    }
+    [15.4, 15.75, 19.75, 20.1].forEach(function (x) { bx(mg, x, x + 0.15, 0.04, 0.06, -220, 220, C.yellow); });
+    bx(mg, 28.5, 28.65, 0.04, 0.06, -220, 220, C.paint);
+    bx(mg, 6.85, 7.0, 0.04, 0.06, -220, 5, C.paint);
+    bx(mg, 6.85, 7.0, 0.04, 0.06, 13, 35, C.paint);
+    bx(mg, 6.85, 7.0, 0.04, 0.06, 44, 220, C.paint);
+    // parked cars as plain blocks
+    var cars = [[-9.6, -1.2, 0, 0xb03a2e], [-9.6, -4.4, 0, 0xd9dcdf], [-9.6, -10.8, 0, 0x2e5d9a], [-9.6, -14, 0, 0x2d2f33],
+      [-9.6, -20.4, 0, 0x8e969e], [1.6, -4.4, Math.PI, 0xc9a227], [1.6, -10.8, Math.PI, 0x3e6b48], [1.6, -20.4, Math.PI, 0xe1e3e5]];
+    cars.forEach(function (c) { car(mg, c[0], c[1], c[2], c[3]); });
+    // a thick tree line across the road, a few trees behind the strip and on the grass strip
+    var i;
+    for (i = 0; i < 64; i++) tree(mg, 32 + rnd() * 5, -170 + i * 3.6 + rnd() * 2, 1.1 + rnd() * 0.7, rnd() < 0.3);
+    for (i = 0; i < 46; i++) tree(mg, 38 + rnd() * 10, -170 + i * 5 + rnd() * 3, 1.3 + rnd() * 0.8, rnd() < 0.4);
+    for (i = 0; i < 24; i++) tree(mg, -46 + rnd() * 12, -90 + i * 5 + rnd() * 3, 1.2 + rnd() * 0.7, rnd() < 0.3);
+    [-40, -30, -16, 22].forEach(function (z) { tree(mg, 5.25, z, 0.55, false); });
+    return cars;
+  }
+
+  /* ---------- The house street ---------- */
+  function buildHouse(mg) {
+    var x0 = HX, z0 = HZ;
+    bx(mg, x0 - 90, x0 + 90, 0, 0.04, z0 - 4, z0 + 4, C.road);
+    for (var d = -90; d < 90; d += 7) bx(mg, x0 + d, x0 + d + 2.6, 0.04, 0.06, z0 - 0.08, z0 + 0.08, C.yellow);
+    bx(mg, x0 - 90, x0 + 90, 0, 0.16, z0 - 4.3, z0 - 4, C.concrete);
+    bx(mg, x0 - 90, x0 + 90, 0, 0.12, z0 - 6.2, z0 - 4.3, C.concrete);
+    bx(mg, x0 - 90, x0 + 90, 0, 0.16, z0 + 4, z0 + 4.3, C.concrete);
+    function house(cx, wall, roof, door, w) {
+      var hw = w / 2;
+      bx(mg, cx - hw, cx + hw, 0, 3.6, z0 - 25, z0 - 16, wall);
+      var sh = new THREE.Shape(); sh.moveTo(-5.4, 0); sh.lineTo(5.4, 0); sh.lineTo(0, 3.1); sh.lineTo(-5.4, 0);
+      var g = new THREE.ExtrudeGeometry(sh, { depth: w + 1.2, bevelEnabled: false });
+      g.translate(0, 0, -(w + 1.2) / 2);
+      mg.add(g, roof, M(cx, 3.6, z0 - 20.5, Math.PI / 2));
+      bx(mg, cx - 1.8, cx + 1.8, 0, 0.35, z0 - 16, z0 - 14.2, C.concrete);
+      bx(mg, cx - 0.65, cx + 0.65, 0.35, 2.6, z0 - 16.08, z0 - 15.95, door);
+      bx(mg, cx - 3.6, cx - 1.6, 1.2, 2.6, z0 - 16.06, z0 - 15.95, 0x4c6378);
+      bx(mg, cx + 1.6, cx + 3.6, 1.2, 2.6, z0 - 16.06, z0 - 15.95, 0x4c6378);
+      bx(mg, cx - 0.8, cx + 0.8, 0, 0.08, z0 - 14.2, z0 - 6.2, C.concrete);
+    }
+    house(x0, 0xe3d6bf, 0x6a4d3a, 0x7a3b2e, 10);
+    house(x0 - 19, 0xb9c7cf, 0x4d5560, 0x2d4f7c, 9);
+    house(x0 + 19, 0xd8c9a8, 0x7b5a3c, 0x3e6b48, 9);
+    // mailbox and a few yard trees
+    bx(mg, x0 + 3.2, x0 + 3.35, 0, 1.1, z0 - 5.4, z0 - 5.25, 0x5b5f66);
+    bx(mg, x0 + 2.95, x0 + 3.6, 1.1, 1.5, z0 - 5.6, z0 - 5.05, 0x2d2f33);
+    tree(mg, x0 - 7.5, z0 - 11, 1.0, false); tree(mg, x0 + 8, z0 - 12, 1.15, false);
+    tree(mg, x0 - 27, z0 - 10, 1.2, true); tree(mg, x0 + 28, z0 - 9, 1.1, false);
+    for (var i = 0; i < 20; i++) tree(mg, x0 - 60 + i * 6 + rnd() * 2, z0 - 32 - rnd() * 6, 1.3 + rnd() * 0.8, rnd() < 0.4);
+    for (i = 0; i < 16; i++) { var tx = x0 - 50 + i * 6.5 + rnd() * 2, tz = z0 + 9 + rnd() * 5, ts = 1.2 + rnd() * 0.6, tp = rnd() < 0.3; if (tx < x0 - 8 || tx > x0 + 34) tree(mg, tx, tz, ts, tp); }
+  }
+
+  /* ---------- The van: charcoal cargo van, lighter grey trim and glass ---------- */
+  function buildVanBody() {
+    var mg = new Merger();
+    var sh = new THREE.Shape();
+    [[-3, 0.5], [3, 0.5], [3.05, 1.35], [2.5, 1.6], [1.75, 2.55], [1.4, 2.7], [-3, 2.7]].forEach(function (p, i) { if (i) sh.lineTo(p[0], p[1]); else sh.moveTo(p[0], p[1]); });
+    var g = new THREE.ExtrudeGeometry(sh, { depth: 2.1, bevelEnabled: false }); g.translate(0, 0, -1.05);
+    mg.add(g, C.van);
+    var ang = Math.atan2(0.95, -0.75);
+    bxR(mg, 2.14 + 0.03, 2.08 + 0.025, 0, 1.2, 0.05, 1.86, C.vanGlass, 0, 0, ang);
+    [1, -1].forEach(function (s) {
+      bx(mg, 1.35, 2.05, 1.62, 2.18, s * 1.05 - 0.02, s * 1.05 + 0.02, C.vanGlass);
+      bx(mg, 2.2, 2.45, 1.75, 2.0, s * 1.2 - 0.1, s * 1.2 + 0.1, 0x2d3137);
+      bx(mg, 3.0, 3.09, 1.0, 1.25, s * 0.75 - 0.22, s * 0.75 + 0.22, 0xf4ecc0);
+      bx(mg, -3.06, -3.0, 1.15, 1.85, s * 0.9 - 0.12, s * 0.9 + 0.12, 0xb8322a);
+      bx(mg, -3.04, -3.0, 1.95, 2.45, s * 0.48 - 0.38, s * 0.48 + 0.38, C.vanGlass);
+    });
+    bx(mg, 3.0, 3.22, 0.42, 0.86, -1.1, 1.1, C.vanTrim);
+    bx(mg, -3.22, -3.0, 0.42, 0.86, -1.1, 1.1, C.vanTrim);
+    bx(mg, 3.04, 3.08, 0.9, 1.25, -0.45, 0.45, 0x2d3137);
+    bx(mg, -3.0, 3.0, 0.42, 0.62, -1.08, 1.08, C.vanTrim);
+    bx(mg, -3.03, -3.0, 0.86, 2.6, -0.02, 0.02, 0x2a2e34);
+    return mg.build();
+  }
+  function buildWheel() {
+    var mg = new Merger();
+    mg.add(new THREE.CylinderGeometry(0.45, 0.45, 0.34, 10), 0x1d2026, M(0, 0, 0, 0, Math.PI / 2));
+    mg.add(new THREE.CylinderGeometry(0.24, 0.24, 0.36, 8), 0xb9bfc7, M(0, 0, 0, 0, Math.PI / 2));
+    bxR(mg, 0, 0, 0, 0.56, 0.1, 0.38, 0x6f767f);
+    return mg.build();
+  }
+
+  /* ---------- Canvas textures ---------- */
+  function rr(ctx, x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  // Umbrella Automation wordmark: two lines sharing a left edge, never centered (brand guide).
+  // Stand-in lettering: a heavy system sans stretched wide, since the brand face (Eurostile Black) is live text only.
+  function drawWordmark(ctx, x, y, h, maxW) {
+    var fs = h * 0.44, fam = '"Segoe UI Black","Arial Black","Helvetica Neue",Arial,sans-serif';
+    ctx.font = '900 ' + fs + 'px ' + fam; ctx.textBaseline = 'alphabetic';
+    var w = Math.max(ctx.measureText('UMBRELLA').width, ctx.measureText('AUTOMATION').width);
+    var sx = Math.min(1.22, maxW / w);
+    ctx.save(); ctx.translate(x, y); ctx.scale(sx, 1);
+    ctx.fillStyle = C.umbBlue; ctx.fillText('UMBRELLA', 0, fs * 0.98);
+    ctx.fillStyle = '#ffffff'; ctx.fillText('AUTOMATION', 0, fs * 2.08);
+    ctx.restore();
+  }
+  function drawMark(ctx, x, y, s) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(s / 64, s / 64);
+    ctx.fillStyle = C.accent; rr(ctx, 0, 0, 64, 64, 14); ctx.fill();
+    ctx.translate(8, 8); ctx.scale(0.75, 0.75);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; rr(ctx, 8, 20, 48, 34, 6); ctx.stroke();
+    ctx.lineCap = 'round'; ctx.stroke(new Path2D(MARK_PATHS.lid));
+    ctx.lineCap = 'butt'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(8, 35); ctx.lineTo(56, 35); ctx.stroke();
+    ctx.fillStyle = '#fff'; rr(ctx, 27, 31, 10, 8, 2); ctx.fill();
+    ctx.restore();
+  }
+  function canvasTex(w, h, draw, aniso) {
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    draw(c.getContext('2d'), w, h);
+    var t = new THREE.CanvasTexture(c); t.anisotropy = aniso; return t;
+  }
+
+  /* ---------- The 3D cutscene ---------- */
+  function play3D(container, opts) {
+    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    var shell = makeShell(container, opts, false);
+    var root = shell.root;
+    shell.skipBtn.textContent = 'Skip';
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x000000, 0);
+    root.insertBefore(renderer.domElement, root.firstChild);
+    var aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    var track = { geo: [], mat: [], tex: [] };
+    function G(g) { track.geo.push(g); return g; }
+    function Mt(m) { track.mat.push(m); return m; }
+    function Tx(t) { track.tex.push(t); return t; }
+
+    var scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0xdde6ec, 75, 190);
+    var camera = new THREE.PerspectiveCamera(45, 1, 0.5, 420);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.58));
+    var sun = new THREE.DirectionalLight(0xfff3e0, 0.78); sun.position.set(34, 52, 22); scene.add(sun);
+
+    var lambert = Mt(new THREE.MeshLambertMaterial({ vertexColors: true }));
+    var world = new Merger();
+    world.add(new THREE.PlaneGeometry(900, 900), C.grass, M(-60, 0, 80, 0, -Math.PI / 2));
+    var cars = buildShop(world);
+    buildHouse(world);
+    scene.add(new THREE.Mesh(G(world.build()), lambert));
+
+    // soft blob shadows (no shadow maps): one instanced mesh for the parked cars, one plane under the van
+    var blobTex = Tx(canvasTex(128, 128, function (ctx) {
+      var gr = ctx.createRadialGradient(64, 64, 6, 64, 64, 62);
+      gr.addColorStop(0, 'rgba(10,14,20,0.55)'); gr.addColorStop(0.6, 'rgba(10,14,20,0.32)'); gr.addColorStop(1, 'rgba(10,14,20,0)');
+      ctx.fillStyle = gr; ctx.fillRect(0, 0, 128, 128);
+    }, 1));
+    var blobMat = Mt(new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+    var blobGeo = G(new THREE.PlaneGeometry(1, 1)); blobGeo.rotateX(-Math.PI / 2);
+    var blobs = new THREE.InstancedMesh(blobGeo, blobMat, cars.length);
+    cars.forEach(function (c, i) {
+      blobs.setMatrixAt(i, new THREE.Matrix4().compose(new THREE.Vector3(c[0], 0.09, c[1]), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, c[2], 0)), new THREE.Vector3(5.6, 1, 2.9)));
+    });
+    scene.add(blobs);
+
+    // wordmark on the shop's sign band
+    var signTex = Tx(canvasTex(1024, 256, function (ctx, w, h) {
+      ctx.fillStyle = C.umbInk; ctx.fillRect(0, 0, w, h);
+      drawWordmark(ctx, 54, 22, h - 30, w - 108);
+    }, aniso));
+    var signMat = Mt(new THREE.MeshLambertMaterial({ map: signTex, emissive: 0x777777, emissiveMap: signTex }));
+    var sign = new THREE.Mesh(G(new THREE.PlaneGeometry(8.2, 2.05)), signMat);
+    sign.position.set(-13.86, 4.0, 0); sign.rotation.y = Math.PI / 2; scene.add(sign);
+
+    // the van
+    var van = new THREE.Group(), body = new THREE.Group();
+    van.add(body); scene.add(van);
+    body.add(new THREE.Mesh(G(buildVanBody()), lambert));
+    var vanTex = Tx(canvasTex(1024, 352, function (ctx, w, h) {
+      ctx.fillStyle = '#3b4048'; ctx.fillRect(0, 0, w, h);
+      drawWordmark(ctx, 60, 58, 240, w - 120);
+    }, aniso));
+    var vanMat = Mt(new THREE.MeshLambertMaterial({ map: vanTex, emissive: 0x666666, emissiveMap: vanTex, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
+    var panelGeo = G(new THREE.PlaneGeometry(4.1, 1.41));
+    [1, -1].forEach(function (s) {
+      var p = new THREE.Mesh(panelGeo, vanMat);
+      p.position.set(-0.75, 1.68, s * 1.056); if (s < 0) p.rotation.y = Math.PI;
+      body.add(p);
+    });
+    var wheelGeo = G(buildWheel()), wheels = [];
+    [[2.0, 0.98], [2.0, -0.98], [-2.0, 0.98], [-2.0, -0.98]].forEach(function (w) {
+      var m = new THREE.Mesh(wheelGeo, lambert); m.position.set(w[0], 0.45, w[1]); van.add(m); wheels.push(m);
+    });
+    var vanBlob = new THREE.Mesh(blobGeo, blobMat); vanBlob.scale.set(7.4, 1, 3.4); vanBlob.position.y = 0.1; van.add(vanBlob);
+
+    // the box with the Loadout mark on its face
+    var cardboard = function (mark, tape) {
+      return Tx(canvasTex(256, 256, function (ctx) {
+        ctx.fillStyle = '#c69c6d'; ctx.fillRect(0, 0, 256, 256);
+        ctx.strokeStyle = '#9c7449'; ctx.lineWidth = 10; ctx.strokeRect(5, 5, 246, 246);
+        if (tape) { ctx.fillStyle = '#d9c19a'; ctx.fillRect(104, 0, 48, 256); }
+        if (mark) drawMark(ctx, 48, 48, 160);
+      }, aniso));
+    };
+    var plain = Mt(new THREE.MeshLambertMaterial({ map: cardboard(false, false) }));
+    var top = Mt(new THREE.MeshLambertMaterial({ map: cardboard(false, true) }));
+    var face = Mt(new THREE.MeshLambertMaterial({ map: cardboard(true, false), emissive: 0x333333, emissiveMap: track.tex[track.tex.length - 1] }));
+    var box = new THREE.Mesh(G(new THREE.BoxGeometry(1.15, 1.1, 1.15)), [face, plain, top, plain, face, plain]);
+    scene.add(box);
+    var boxBlob = new THREE.Mesh(blobGeo, blobMat); boxBlob.scale.set(1.9, 1, 1.9); scene.add(boxBlob);
+
+    /* --- motion paths, all pure functions of t so a frozen frame is exact --- */
+    var P0 = new THREE.Vector2(-9.2, 2), PC = new THREE.Vector2(-3.5, 2), P2 = new THREE.Vector2(-5.5, -1.5);
+    function bez(s) { var a = (1 - s) * (1 - s), b = 2 * (1 - s) * s, c = s * s; return new THREE.Vector2(a * P0.x + b * PC.x + c * P2.x, a * P0.y + b * PC.y + c * P2.y); }
+    function bezD(s) { return new THREE.Vector2(2 * (1 - s) * (PC.x - P0.x) + 2 * s * (P2.x - PC.x), 2 * (1 - s) * (PC.y - P0.y) + 2 * s * (P2.y - PC.y)); }
+    var Lr = 0; for (var q = 1; q <= 40; q++) Lr += bez(q / 40).distanceTo(bez((q - 1) / 40));
+    var drive = new THREE.CatmullRomCurve3([[-5.5, -1.5], [-3.5, 2.5], [-0.5, 7], [3.5, 9], [9, 9], [14, 7.5], [18, 4], [21, -1], [22.25, -7], [22.25, -25], [22.25, -60], [22.25, -160]]
+      .map(function (p) { return new THREE.Vector3(p[0], 0, p[1]); }), false, 'centripetal');
+    var Ld = drive.getLength();
+    function driveDist(tau) { return 5 * tau + 14 * tau * tau; }
+    function vanPose(t) { // {x, z, fx, fz, dist}
+      var d, f, pt;
+      if (t < T_CUT) {
+        if (t < T_REV0) return { x: P0.x, z: P0.y, fx: -1, fz: 0, dist: 0 };
+        if (t < T_GO) {
+          var s = inOut((t - T_REV0) / (T_REV1 - T_REV0)), b = bez(s), bd = bezD(Math.max(s, 0.001)).normalize();
+          return { x: b.x, z: b.y, fx: -bd.x, fz: -bd.y, dist: -s * Lr };
+        }
+        d = driveDist(t - T_GO); var u = Math.min(d / Ld, 1);
+        pt = drive.getPointAt(u); f = drive.getTangentAt(u);
+        return { x: pt.x, z: pt.z, fx: f.x, fz: f.z, dist: -Lr + d };
+      }
+      var tau = t - T_CUT, k = out3(tau / 0.78);
+      var x = HX + lerp(14, -3.5, k);
+      return { x: x, z: HZ - 2, fx: -1, fz: 0, dist: 500 + (HX + 14 - x) };
+    }
+    function boxPose(t) { // null before it leaves the van
+      var tau = t - T_CUT, t0 = 0.62, t1 = 1.12;
+      if (tau < t0) return null;
+      var sx = HX - 3.5, sz = HZ - 3.3, ex = HX + 1.1, ez = HZ - 15.1, rest = 0.9;
+      if (tau < t1) {
+        var p = (tau - t0) / (t1 - t0), e = 1 - Math.pow(1 - p, 1.6);
+        return { x: lerp(sx, ex, e), y: lerp(1.9, rest, p) + 3.4 * Math.sin(Math.PI * p), z: lerp(sz, ez, e), rx: -Math.PI * 2 * (1 - out3(p)), sq: 1 };
+      }
+      var b = tau - t1, y = rest, sq = 1;
+      if (b < 0.22) { y = rest + 0.42 * Math.sin(Math.PI * b / 0.22); if (b < 0.05) sq = 1 - 0.18 * Math.sin(Math.PI * b / 0.05); }
+      else if (b < 0.34) y = rest + 0.1 * Math.sin(Math.PI * (b - 0.22) / 0.12);
+      return { x: ex, y: y, z: ez, rx: 0, sq: sq };
+    }
+
+    /* --- camera: spherical blend around a moving look target, framing adapts to aspect --- */
+    var V = THREE.Vector3;
+    function sph(off) { var r = off.length(); return { r: r, az: Math.atan2(off.x, off.z), el: Math.asin(off.y / r) }; }
+    function fromSph(s) { return new V(Math.sin(s.az) * Math.cos(s.el) * s.r, Math.sin(s.el) * s.r, Math.cos(s.az) * Math.cos(s.el) * s.r); }
+    function angLerp(a, b, k) { var d = b - a; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return a + d * k; }
+    function camShot(t, vp) { // returns {pos, look, hfov}
+      if (t < T_CUT) {
+        var pa = inOut(t / 1.0);
+        var lookA = new V(lerp(-8.5, -6, pa), 1, lerp(1, 2.5, pa));
+        var sA = { r: lerp(44, 34, pa), az: 45 * D2R, el: 40 * D2R };
+        if (t < 1.0) return { look: lookA, pos: lookA.clone().add(fromSph(sA)), hfov: 64 };
+        var e = inOut((t - 1.0) / (T_CUT - 1.0));
+        var vl = new V(vp.x + vp.fx * 7, 1.2, vp.z + vp.fz * 7);
+        var look = lookA.clone().lerp(vl, e);
+        var sB = { r: 14, az: Math.atan2(-vp.fx, -vp.fz), el: 15 * D2R };
+        var s = { r: lerp(sA.r, sB.r, e), az: angLerp(sA.az, sB.az, e), el: lerp(sA.el, sB.el, e) };
+        return { look: look, pos: look.clone().add(fromSph(s)), hfov: lerp(64, 70, e) };
+      }
+      var tau = t - T_CUT;
+      var C0 = new V(HX + 13, 5, HZ + 13), L0 = new V(HX - 1, 1.4, HZ - 6);
+      var C1 = new V(HX + 6.8, 4.2, HZ - 5.5), L1 = new V(HX + 0.9, 0.1, HZ - 13.4);
+      var C2 = new V(HX + 6.2, 4.0, HZ - 6.6);
+      var drift = new V(lerp(-1.2, 0, out3(tau / 0.7)), 0, 0);
+      if (tau < 0.7) return { pos: C0.clone().add(drift), look: L0, hfov: 66 };
+      if (tau < 1.6) { var k = inOut((tau - 0.7) / 0.9); return { pos: C0.clone().lerp(C1, k), look: L0.clone().lerp(L1, k), hfov: 66 }; }
+      return { pos: C1.clone().lerp(C2, out3((tau - 1.6) / 4)), look: L1, hfov: 66 };
+    }
+    var aspect = 1;
+    function placeCamera(cs) {
+      // portrait frames trade some width for size so the van stays readable; cap the vertical fov, then back off
+      var hf = aspect < 1 ? cs.hfov * 0.72 : cs.hfov, cap = aspect < 1 ? 80 : 72;
+      var need = 2 * Math.atan(Math.tan(hf * D2R / 2) / aspect) / D2R;
+      var vf = Math.max(38, Math.min(cap, need)), k = 1;
+      if (need > cap) k = Math.tan(need * D2R / 2) / Math.tan(cap * D2R / 2);
+      camera.fov = vf; camera.aspect = aspect; camera.updateProjectionMatrix();
+      camera.position.copy(cs.look).add(cs.pos.clone().sub(cs.look).multiplyScalar(k));
+      camera.lookAt(cs.look);
+    }
+
+    /* --- one frame of state at time t --- */
+    var WR = 0.45, h = 1 / 60;
+    function apply(t) {
+      var vp = vanPose(t), a = vanPose(t - h), b = vanPose(t + h);
+      van.position.set(vp.x, 0, vp.z);
+      van.rotation.y = Math.atan2(-vp.fz, vp.fx);
+      var v0 = (vp.dist - a.dist) / h, v1 = (b.dist - vp.dist) / h, acc = (v1 - v0) / h;
+      var yaw0 = Math.atan2(-a.fz, a.fx), yaw1 = Math.atan2(-b.fz, b.fx), dy = yaw1 - yaw0;
+      if (dy > Math.PI) dy -= 2 * Math.PI; if (dy < -Math.PI) dy += 2 * Math.PI;
+      var spd = Math.abs((v0 + v1) / 2);
+      // suspension: nose lifts under throttle, dips under braking, leans out of turns, small road bob
+      body.rotation.z = Math.max(-0.07, Math.min(0.07, acc * 0.0016 * (v1 < 0 ? -1 : 1)));
+      body.rotation.x = Math.max(-0.06, Math.min(0.06, (dy / (2 * h)) * Math.min(spd, 30) * 0.004));
+      body.position.y = Math.sin(t * 19) * 0.025 * Math.min(spd / 8, 1);
+      wheels.forEach(function (w) { w.rotation.z = -vp.dist / WR; });
+      var bp = boxPose(t);
+      box.visible = boxBlob.visible = !!bp;
+      if (bp) {
+        box.position.set(bp.x, bp.y, bp.z); box.rotation.set(bp.rx, 0, 0); box.scale.set(1 + (1 - bp.sq) * 0.6, bp.sq, 1 + (1 - bp.sq) * 0.6);
+        boxBlob.position.set(bp.x, 0.4, bp.z); var lift = clamp01((bp.y - 0.9) / 4); boxBlob.scale.set(1.9 - lift, 1, 1.9 - lift);
+      }
+      placeCamera(camShot(t, vp));
+      // banner lands at T_BANNER with a small overshoot and a short shake of the scene under it
+      var bn = shell.banner, p = (t - T_BANNER) / (T_LAND - T_BANNER);
+      if (p <= 0) { bn.style.opacity = '0'; bn.style.transform = 'scale(1.9)'; }
+      else {
+        var e = outBack(p);
+        bn.style.opacity = String(Math.min(1, p * 3));
+        bn.style.transform = 'scale(' + (1.9 - 0.9 * e).toFixed(4) + ') rotate(' + (-3 - 6 * (1 - out3(p))).toFixed(3) + 'deg)';
+      }
+      var sh = t - T_LAND, cv = renderer.domElement;
+      cv.style.transform = (sh > 0 && sh < 0.28) ? 'translate(' + (Math.sin(sh * 70) * 5 * (1 - sh / 0.28)).toFixed(2) + 'px,' + (Math.cos(sh * 55) * 4 * (1 - sh / 0.28)).toFixed(2) + 'px)' : '';
+      root.style.opacity = t > T_HOLD ? String(1 - clamp01((t - T_HOLD) / T_FADE)) : '1';
+    }
+
+    function resize() {
+      var w = Math.max(1, root.clientWidth), hh = Math.max(1, root.clientHeight);
+      aspect = w / hh; renderer.setSize(w, hh, false);
+    }
+    resize();
+    var ro = window.ResizeObserver ? new ResizeObserver(function () { resize(); if (frozen) { apply(startT); renderer.render(scene, camera); } }) : null;
+    if (ro) ro.observe(root); else shell.on(window, 'resize', resize);
+
+    var speed = opts.speed > 0 ? opts.speed : 1, startT = opts.t > 0 ? +opts.t : 0, frozen = !!opts.freeze;
+    var raf = 0, t0 = performance.now(), frames = 0, statT0 = 0;
+    function teardown() {
+      cancelAnimationFrame(raf);
+      if (ro) ro.disconnect();
+      window.__dlvInfo = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, frames: frames, fps: statT0 ? Math.round(frames / ((performance.now() - statT0) / 1000)) : 0 };
+      track.geo.forEach(function (g) { g.dispose(); });
+      track.mat.forEach(function (m) { m.dispose(); });
+      track.tex.forEach(function (x) { x.dispose(); });
+      var gl = renderer.getContext();
+      renderer.dispose(); if (gl && !gl.isContextLost()) renderer.forceContextLoss();
+      scene = camera = null;
+    }
+    function skip() {
+      if (shell.done || shell.skipping) return;
+      if (frozen) { shell.finish('skip', teardown); return; }
+      shell.skipping = true; cancelAnimationFrame(raf);
+      root.style.transition = 'opacity .18s ease-out'; root.style.opacity = '0';
+      shell.timers.push(setTimeout(function () { shell.finish('skip', teardown); }, 190));
+    }
+    bindSkip(shell, skip);
+    var handle = { skip: skip };
+    // if the GPU drops the context mid-scene, swap to the still banner instead of leaving a blank frame
+    shell.on(renderer.domElement, 'webglcontextlost', function (e) {
+      e.preventDefault();
+      if (shell.done) return;
+      shell.finish('context-lost', teardown, true);
+      handle.skip = playFallback(container, opts, 'context-lost').skip;
+    });
+
+    function loop(now) {
+      if (shell.done) return;
+      var t = startT + (now - t0) / 1000 * speed;
+      apply(t); renderer.render(scene, camera);
+      if (!statT0) statT0 = now; frames++;
+      if (t >= T_HOLD + T_FADE) { shell.finish('done', teardown); return; }
+      raf = requestAnimationFrame(loop);
+    }
+    if (frozen) {
+      apply(startT); renderer.render(scene, camera);
+      window.__dlvInfoLive = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles };
+      window.__deliveryReady = true;
+    } else raf = requestAnimationFrame(loop);
+    return { skip: function () { handle.skip(); } };
+  }
+
+  window.playDelivery = playDelivery;
+})();
+
+/* ===== Preview page wiring ===== */
+(function () {
+  'use strict';
+  var q = new URLSearchParams(location.search);
+  var stage = document.getElementById('stage'), status = document.getElementById('status');
+  var SIZES = { phone: [390, 844], land: [844, 390], desk: [1280, 720] };
+  var size = 'desk', speed = 1, cur = null;
+  var freeze = q.get('freeze') === '1';
+  if (freeze) document.body.classList.add('freeze');
+
+  function fit() {
+    if (freeze) return;
+    var s = SIZES[size], availW = document.documentElement.clientWidth - 32, availH = window.innerHeight - 190;
+    var k = Math.min(1, availW / s[0], Math.max(0.3, availH / s[1]));
+    stage.style.width = Math.round(s[0] * k) + 'px'; stage.style.height = Math.round(s[1] * k) + 'px';
+  }
+  function start(fallback) {
+    if (cur) { var old = cur; cur = null; old.skip(); }
+    status.textContent = fallback ? 'Showing the banner only (the reduced-motion and no-3D version).' : 'Playing at ' + speed + 'x.';
+    var me = playDelivery(stage, {
+      job: q.get('job'), client: q.get('client'), speed: speed, fallback: fallback,
+      t: parseFloat(q.get('t')) || 0, freeze: freeze,
+      onDone: function (r) { if (cur === me) { cur = null; status.textContent = 'Finished (' + r.reason + '). Press Play again to watch it again.'; } }
+    });
+    cur = me;
+    var r = stage.querySelector('.dlv-root'), m = r && r.getAttribute('data-mode');
+    if (!fallback && m) status.textContent = 'Showing the still banner (' + m.replace('fallback-', '').replace('-', ' ') + ').';
+  }
+  function press(groupAttr, val) {
+    document.querySelectorAll('[data-' + groupAttr + ']').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-' + groupAttr) === val)); });
+  }
+  document.getElementById('btnPlay').addEventListener('click', function () { start(false); });
+  document.getElementById('btnBanner').addEventListener('click', function () { start(true); });
+  document.querySelectorAll('[data-size]').forEach(function (b) {
+    b.addEventListener('click', function () { size = b.getAttribute('data-size'); press('size', size); fit(); });
+  });
+  document.querySelectorAll('[data-speed]').forEach(function (b) {
+    b.addEventListener('click', function () { speed = parseFloat(b.getAttribute('data-speed')); press('speed', b.getAttribute('data-speed')); start(false); });
+  });
+  window.addEventListener('resize', fit);
+  fit();
+  start(q.get('fallback') === '1');
+})();
+</script>
+</body>
+</html>
