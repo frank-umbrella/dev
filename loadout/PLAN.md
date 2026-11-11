@@ -859,6 +859,7 @@ Build T0 first. T1 and T2 are worker work and need the plan tier known.
 | 0.6.0 | loadout-worker: T1 Zapier intake (if Premium) or T2 API intake and note push (if Unlimited and approved); nightly CSV export to the project's Storage bucket, listed under Console > Backups (0.6.1); carrier tracking poll if wanted. Settings shows the tier and last sync. |
 | 0.8.0 | Simple mode (section 18): Home with the doors (Pick up, Deliver, Pull, Audit), Job and Pull sheet words, Shelf (Stock and Units), Office (More and the Console), the Pick up step and Confirm a delivery screens, Audit a shelf, one strip and one next step per job card, the wall board as a six-card grid, every old address kept as an alias. Built 2026-11-05, not committed. |
 | 0.9.0 | Section 20: the focused Pull screen (`#pull/<jobId>`) in pick order, the Pull door split into pullable and waiting on orders, Bring back from a van with the Close job van rule, Receive a shipment as the fourth door (serial or MAC on shipment receive), Arrived for carrier drops, the non-zero progress line, the QR on the printed pull sheet, the board's phone layout (20.3), the leftover-words sweep, `loadout_settings/worker` in the data dictionary, and the tech rules run in the emulator (14 of 14). Built 2026-11-11, not committed, rules not deployed. |
+| 0.9.1 | Section 21.1 Shelf filters (Category from the product's own category, Type, Brand, Location, Consumables only; chips, the phone Filter sheet, session only) and 21.3 history as one vertical timeline everywhere; the home-screen strip, card, and Office > This phone on phones and tablets only; an odd last door spans both columns on Home; leftover "Stock" words. 21.2 stays an idea. Built 2026-11-11, not committed. |
 
 Each version is a release: bump the version everywhere, README changelog entry
 with the why, small commits.
@@ -1691,3 +1692,317 @@ pointer in portrait) it switches to a phone layout:
 Built in 0.9.0: checked at 360, 375, and 412 wide (no horizontal scroll, all
 seven demo jobs reachable, smallest text 14 px, dark and light), and at
 1600 by 900 (3 by 2 grid, page 1 of 2, rotation bar on).
+
+## 21. Shelf filters (0.9.1) and product photos from a UPC (idea)
+
+### 21.1 Shelf filters (user, 2026-11-11; build as 0.9.1)
+
+Shelf has tabs, a Consumables toggle and search, and no way to narrow by
+what a product is. With 268 products the list needs it.
+
+- Four filters, each "All" by default: **Category** (the product's own
+  free-text `category`, such as Network, Audio, Cable, Wire; compared
+  without regard to case or extra spaces and shown in the spelling most
+  products use; a product with an empty category falls under its kind's
+  plain label: Devices, Patch cables, Splitters, Connectors, Wire, Other.
+  `kind` itself is internal), **Type** (the sheet's Type values, narrowed to
+  the chosen category), **Brand** (compared the same case-blind way),
+  **Location**. Consumables only moves in beside them as a fifth
+  toggle. Every option shows its count and only values that exist appear.
+- Desktop: the filters sit in one row at the top of Shelf, above the table.
+  Phone: one **Filter** button beside search that opens the app's bottom
+  sheet; it reads "Filter, 2" when two are on.
+- Active filters show as chips under the search field, each removable, with
+  "Clear filters" at the end. Filters combine with the tab and the search.
+- They apply to All and Low. Out with people and Locations keep their own
+  lists.
+- Filters last for the session and reset on reload; a filter that silently
+  survives a week hides products from the person looking for them.
+- Empty result: "No products match these filters." with Clear filters.
+
+Built in 0.9.1: the row of selects shows when the Shelf card is wider than
+720 px, the Filter button below that; option counts are worked out with the
+other filters applied, so every count equals the rows it shows; Location
+means stock there (counted rows, open boxes, units in stock or staged), or
+the default location for a product with nothing on hand. Consumables only
+is a session filter too and left the address.
+
+### 21.2 Product photos from a UPC (not scheduled; findings 2026-11-11)
+
+Today a photo is taken or picked by a person on the product's panel and
+stored in the project's Storage bucket. Nothing looks a photo up.
+
+Tested: the free UPCitemdb lookup (100 lookups a day, no key) returned the
+right product and two retailer photos for a real networking UPC from the
+shop's sheet, and the wrong product for a well-known sample barcode. So it
+finds name-brand devices and cannot be trusted blind. A browser cannot call
+it (it only allows its own site), so the lookup has to go through
+loadout-worker.
+
+Limits: only products that carry a UPC can be looked up (a handful today;
+the 143 patch cables with no make or part number never will), the photos
+are retailer images linked from other sites (copy the chosen one into
+Storage, never hotlink), and a match must be confirmed by a person.
+
+Shape if built: on a product with a UPC and no photo, a **Find a photo**
+button (admin and warehouse) asks the worker, shows the name it found and
+up to four photos, and the person picks one or none; the worker copies the
+pick into Storage. A bulk "Find photos for N products" on Office runs the
+same thing as a review queue. For everything without a UPC: the phone
+camera as today, plus a plain drawn icon per category so rows are not
+blank.
+
+### 21.3 History as a vertical timeline (user, 2026-11-11; build in 0.9.1)
+
+"Show history" on a product, unit or location, the Timeline on a job and a
+PO, and "Last movements" all draw the same four-column text rows (when,
+who, type, what). The user wants it to read as a timeline.
+
+- One shared component, so every history looks the same: a vertical rail
+  down the left with a dot per event; events grouped under day headings
+  (Today, Yesterday, then the date) with newest first.
+- Each event: the time, the verb as its heading (Pulled, Staged, Picked up,
+  Delivered, Brought back, Received, Arrived, Audited, Corrected, Cut,
+  Reading, Checked out, Checked in, Moved, Written off, Edited), one plain
+  sentence of what happened (product, from where to where, for which job),
+  and who did it. The quantity sits at the right as a signed number for
+  counted stock ("-4", "+100", "-180 ft") and is absent for edits.
+- The dot's color is the movement family, using the colors the type labels
+  already have: into the shop green, moving toward a job blue, corrections
+  amber, write-offs red, edits grey. Color is never the only signal: the
+  verb heading carries the meaning.
+- A unit's history also shows where it is now as the first, open-ended
+  entry ("Now: with Tech, job 1058, since Nov 9" or "Now: Warehouse").
+- Long histories show the latest 40 with "Show older" (20 more a tap).
+- Phone: time and who drop under the sentence; nothing scrolls sideways.
+  Print keeps the rail as a thin line.
+
+Built in 0.9.1: `timelineHTML` and the `.tl` styles, so all five callers
+changed at once; `MV_VERB` sits beside `MV_LABEL`, which tables and exports
+keep. Families: receive, check in, return, Brought back, and Audited green;
+pull, stage, pick up, deliver, check out, and move blue; reading, cut, and
+adjust (Corrected) amber; write-off red; edit and note grey. A move and an
+arrival show a plain number, since they change where stock is, not how
+much. The product, unit, and location history keeps every row it reads
+(it stopped at 25), and the PO Timeline every row (it stopped at 30); Last
+movements on the Scan card stays at five.
+
+### 21.4 Photo from a UPC, decided (user, 2026-11-11): build as worker 0.3.0 + app 0.10.0
+
+The user's shape replaces the "Find a photo" idea in 21.2: **the moment a
+UPC goes onto a product, look the photo up and ask.**
+
+- **When it asks.** Right after a UPC is saved on a product: Scan's "Set
+  UPC" and "Link to a product", the UPC field on the product panel, and New
+  product. Products that already carry a UPC get a "Find a photo" button on
+  their panel, and Office > Import shows "Review photos for N products"
+  after an import adds UPCs. Never automatic, never silent.
+- **What it shows** (one sheet, "Photo for this UPC"): the name and brand
+  the lookup found, set beside the product's own name; a plain warning when
+  they do not share a brand or model word ("The lookup calls this ...;
+  check that it is the same product."); up to four photos to choose from.
+  - No photo on the product yet: **Use this photo** / **None of these**.
+  - A photo already there: the current photo beside the found one, **Keep
+    the current photo** / **Replace it with this one**.
+  - Nothing found, or the lookup is unreachable: one line saying so and
+    Close; the UPC is saved either way.
+- **What it stores.** The chosen photo goes through the app's existing
+  upload (resized, into the project's Storage, same rules as a camera
+  photo), never linked from the retailer. The product records
+  `photoSource: "upc"`, and `upcLookupAt` / `upcLookupResult` (used, none,
+  kept, not_found) so the same UPC is not asked twice; the panel's button
+  can ask again.
+- **How it is fetched.** A browser cannot call the lookup service, so
+  loadout-worker gains two signed-in endpoints: `GET /upc/lookup?upc=`
+  (name, brand, model, photo count) and `GET /upc/photo?upc=&i=` (the photo
+  bytes, images only, size-capped), both requiring a Firebase sign-in whose
+  roster role is admin or warehouse, both answering only to the app's own
+  address. The worker fetches a photo only from the list that UPC's lookup
+  returned, so it cannot be used to fetch arbitrary addresses.
+- **Limits to say plainly in the app.** The free lookup allows 100 a day
+  and is shared with other users of the hosting network, so "Lookup is busy,
+  try again later" is a normal state; it knows name-brand boxed products
+  and little else; photos are retailer product shots, for this internal
+  tool only.
+- Demo mode answers from fixtures with drawn placeholder pictures marked
+  Demo and makes no network call.
+
+## 22. New job, made plain (user, 2026-11-11; build in 0.10.0)
+
+The user: "New job, import a Portal CSV" confuses employees, most of all
+the ones with no Portal access. Today the sheet opens on two tabs, "Import
+a Portal CSV" (the default) and "Build by hand", and the import tab shows a
+column-mapping table before anything else. It assumes the person knows what
+Portal is, what a CSV is, and where to get one.
+
+### 22.1 Decisions
+
+- **Say what a job is, once, at the top:** "A job is the list of product
+  one client's install needs. Loadout uses it to show what to pull, what to
+  order, and what was delivered."
+- **Two plain choices instead of two jargon tabs**, each a large card with
+  a sentence:
+  1. **Make the list yourself.** "Pick products from the shelf list and
+     type how many. For service calls and small jobs." First and
+     preselected for the warehouse role.
+  2. **Use a proposal file.** "The office downloads this from Portal when a
+     client accepts a proposal. If someone sent you a file ending in .csv,
+     choose this." First for admin. Under it, for people without Portal:
+     "No file? Ask the office to send the proposal file, or make the list
+     yourself." A "Where the file comes from" disclosure holds the three
+     Portal steps for the office.
+  The word CSV appears only as "(.csv)" after "proposal file". Buttons and
+  empty states say "New job", never "Import a Portal CSV".
+- **Make the list yourself, in three short steps:**
+  1. *Who it is for*: client (pick one or type a new name), job name with
+     an example ("Service call, lobby TV"), install date and bay, both
+     optional.
+  2. *The list*: one search field over the shelf list, a Scan button beside
+     it, tap a product to add it, a minus/plus stepper for the quantity
+     (feet for wire). Each added line shows what is on the shelf ("12 on
+     the shelf" / "Only 2 on the shelf, 4 will be short"). "Not on the
+     list? Type it" adds a note line. Rooms are optional: "Group by room"
+     reveals the area field, hidden by default.
+  3. *Check and create*: the list with its totals in one sentence ("7 lines:
+     5 on the shelf, 2 to order"), **Create job**, which lands on the job's
+     Pull screen for people who can pull.
+- **Use a proposal file, without the mapping wall:** choose or drop the
+  file, then "Here is what the file says": client, job, and the lines in
+  plain words, each marked *On the shelf list*, *New to Loadout (will be
+  added)*, or *Kept as a note (no brand or model)*. The column table shows
+  only when Loadout could not find the columns it needs; otherwise it sits
+  closed under "Something look wrong? Fix the columns". Skipped rows sit
+  closed under a count. Pasting text stays, under "Paste the text instead".
+- **Admin only, one line:** when the Portal connection is on, "Accepted
+  proposals arrive here on their own; look for jobs marked To review."
+- Nothing about what gets written changes: same ids, same line fields, same
+  saved column map, same re-import behavior, Add lines to an existing job
+  uses the same two choices.
+
+### 22.2 The last tab's name by role (user, 2026-11-11; build in 0.10.0)
+
+The user asked whether Office should be called Settings, or whether it is
+an admin view. It is neither: every role has the tab and sees its own
+sections, and Settings is one section inside it. Decided: the tab, its
+screen heading, its crumbs and every message that names it read **More**
+for the tech role (Labels, Movements, This phone, About) and **Office**
+for admin, warehouse and accounting. One helper returns the word for the
+signed-in role so no string hard-codes it; hashes stay `#office/...` for
+everyone. The storyboard says "Office (More for techs)" once and uses
+Office after that.
+
+## 23. A report for one job (user, 2026-11-11; build in 0.10.0)
+
+The user asked whether Reports can show all the product for one proposal or
+job. Not today. Delivered has a "By client and job" view, but it lists only
+what was delivered inside the date range. The full picture of a job lives
+on the job page, which accounting cannot open and which does not export.
+
+**Job report**, a new report beside Delivered:
+
+- Pick the job by client, job name, job number or proposal number (one
+  search field; the latest twenty jobs listed under it). A job page gains
+  "Open as a report" for admin and accounting.
+- One row per pull sheet line: room, product, brand and model, needed,
+  pulled, staged, picked up, delivered, brought back, still to order, the
+  PO and its status, and with costs on the unit cost and the line total.
+  Serialized units list under their line with serial or MAC and where each
+  is now. Wire shows feet and the boxes it was cut from.
+- A header block: client, job, proposal number, bay, install date, status,
+  who pulled, picked up and delivered, with dates. A totals row. With costs
+  on: product value needed, delivered, and still out.
+- Views: Every line (default), Only what is not delivered yet, Only what
+  was ordered. Sort, Columns, CSV and XLSX export, and Print, like every
+  other report. No date range: a job is whole.
+- Open to admin and accounting, like the rest of Reports.
+
+## 24. Who is signed in, in the header (user, 2026-11-11; build in 0.10.0)
+
+Today the footer says "Signed in as <email>, Role: Admin" and the header
+has the sync pill and a Sign out button. The user wants the role up top by
+the name, under the sync pill, and out of the footer.
+
+- **Header, right side, one account block**: the sync pill on the first
+  line with the person's name beside it; the role on the second line under
+  them, in the muted text color ("Admin", "Warehouse", "Tech",
+  "Accounting"). The whole block is one button that opens a small Account
+  sheet: name, email, role with one sentence on what the role can do, and
+  **Sign out**. The bare Sign out button leaves the header, so a stray tap
+  cannot sign a person out mid-pull.
+- **Phone**: the pill, with the role under it; the name lives in the
+  Account sheet. The block is a 44 px target and the header keeps its
+  48 px shrinking behavior. Nothing wraps or pushes the logo.
+- **Footer**: version only. The "Signed in as" and "Role" lines go.
+- Demo mode shows the demo role there the same way; the board has no
+  header and is unchanged.
+
+## 25. Brand and category as pick lists (user, 2026-11-11; build as 0.11.0)
+
+Brand and category are free-text fields today, so the same brand can be
+saved three ways and a filter shows it three times. The user wants drop-down
+choices on add and edit, matched without regard to case, new values added
+as people go if they are an admin, and stored with correct capitals.
+
+- **Pick or type.** On New product and the product panel, Brand and
+  Category are comboboxes: typing narrows the list of values already in
+  use (each with its product count); picking one saves that value's stored
+  spelling. Matching ignores case and extra spaces, so "sonos", "SONOS" and
+  " Sonos " all land on "Sonos". Type keeps its text field with the same
+  suggestions, narrowed to the chosen category.
+- **New values, admin only.** When nothing matches, an admin sees "Add
+  'middle atlantic' as a new brand". It opens a small confirm with the name
+  already formatted and editable: "Save as: Middle Atlantic". Other roles
+  see "Not on the list. Ask an admin to add it." and cannot save a new
+  value; they can leave the field empty.
+- **Capitals.** A word typed all lower case, or all upper case and longer
+  than four letters, gets a capital first letter and lower case after
+  ("UBIQUITI" becomes "Ubiquiti"). A word with capitals inside it or four
+  letters or fewer in upper case is kept as typed ("QSC", "URC", "iPort",
+  "HDMI"). Small joining words (of, and, the) stay lower case inside a
+  name. The admin sees the result before saving and can correct it.
+- **One list, used everywhere.** The same lists feed the Shelf filters, the
+  Stock report's By category view, the inventory importer and the proposal
+  file reader, so a file that says "SONOS" lands on "Sonos". The importer's
+  saved make aliases keep working and feed the brand list.
+- **Tidy what is there.** Office > Settings gains "Brands and categories":
+  both lists with counts, **Rename** (rewrites every product that carries
+  the value, in batches, with one movement-style note in the history), and
+  **Merge** one entry into another. Entries that differ only by case or
+  spacing are flagged at the top as "Probably the same".
+- `kind` stays internal and unchanged. Product ids do not change when a
+  brand is renamed; the readable name is rebuilt.
+
+## 26. A delivery animation (user idea, 2026-11-11; NOT scheduled, awaiting a choice)
+
+The user asked for a "3D Grand Theft Auto type" animation when product is
+delivered, cheaply, with an estimate first. Token figures are from this
+project's own builds (0.8.2 door counts: about 200k Opus tokens; worker
+0.3.0: about 140k; 0.9.0: about 625k). Fable's share is the brief and one
+review, about 15k to 25k each time.
+
+| Option | What it is | Opus tokens | Risk |
+| --- | --- | --- | --- |
+| A. Top-down drive | A small top-down city block drawn in canvas, the van drives from the shop to a house, a box drops, a banner reads "Delivered" with the job. About 3 seconds. No library. This is the look of the first two GTA games. | 80k to 150k | Low |
+| B. Low-poly 3D | A real 3D scene (three.js): van, road, house, camera swing, box drop, banner. | 250k to 400k | Medium: a library to load and cache offline, slow phones, hard to check without screenshots |
+| C. CSS 3D card | The banner alone, tilted and stamped, no scene. | 40k to 70k | Lowest, least fun |
+
+Rules for any of them: an homage, not a copy (own wording, own font, no
+game logos or sounds); plays once when a delivery is confirmed and can be
+tapped away; off under reduced motion; a switch in This phone / Account to
+turn it off; never blocks the next tap; nothing on the TV board. Built
+first as a stand-alone preview file so it can be judged before it goes in
+the app. Recommended: A.
+
+### 26.1 Direction from the user (2026-11-11)
+
+Leaning to **B, low-poly 3D**. The van is charcoal grey. Both marks appear
+in the scene: the Umbrella Automation wordmark on the van's side (two
+lines sharing a left edge, never centered, per the brand guide), and the
+Loadout hard-case mark on the box that gets dropped and on the closing
+banner. Estimate with the marks: 280k to 450k Opus tokens, one revision
+round adds 100k to 150k. In plan terms, measured on 2026-11-11 (about 1.1M
+Opus tokens of builds plus Fable's own work used 59% of a 5-hour window and
+8% of the week): roughly 15 to 25% of one 5-hour window and 2 to 3.5% of
+the week. Still awaiting a go-ahead. Build as `delivery-preview.html`
+first; in the app the 3D library loads only when the animation plays and
+falls back to the banner alone when offline or on a slow phone.

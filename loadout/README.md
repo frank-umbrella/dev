@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.9.0**.
+Current version: **0.9.1**.
 
 ## Files
 
@@ -214,15 +214,34 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   search (brand, model, UPC, box label, and now a unit's serial or MAC),
   sorting, a Columns manager, and tabs for All, Low (with Reorder), Out with
   people (the old Units, Out list: same columns, Check in and Nudge), and
-  Locations; Consumables only is a filter button on All (wire boxes with feet
-  left). A product with serialized units lists them in place under its name:
+  Locations. **Filters** (0.9.1, PLAN 21.1) narrow All and Low by what a
+  product is: Category (the product's own category, such as Network or
+  Cable; a blank one falls under its kind, such as Patch cables), Type (the
+  sheet's Type, narrowed to the category picked), Brand, and Location (stock
+  there, or the default location for a product with none), plus Consumables
+  only (wire boxes with feet left). Each option shows its count and only
+  values that exist appear; case and extra spaces do not split a category or
+  a brand. On a wide screen they sit in one row above the table; on a phone
+  a Filter button beside search ("Filter, 2") opens them in a sheet whose
+  confirm reads "Show 12 products". Active filters show as chips under the
+  search, each removable, with Clear filters. They last until the page
+  reloads and never go in the address. Out with people and Locations keep
+  their own lists. A product with serialized units lists them in place under its name:
   serial or MAC (last six; the full value is on the unit), where it is or who
   has it, since when, Check in or Check out, and Open unit. All units opens
   the full Units list (`#shelf/units`). A product or location row opens in place under itself: fields in
   two columns, on hand by location, boxes, and one row of buttons (Save,
   Receive or Receive a box, Pull for job, Move, Count, Adjust, Serialize,
   Reorder, Print label, Show history); the Scan card shows the first of the
-  same buttons, in the same order. One is open at a time, marked by a blue
+  same buttons, in the same order. **History** (0.9.1, PLAN 21.3) reads as a
+  timeline everywhere it shows (a product, unit, or location's Show history,
+  the Timeline on a job and a PO, Last movements on the Scan card): newest
+  first under Today, Yesterday, and dated headings, a rail with a dot per
+  event colored by family (green into the shop, blue toward a job, amber
+  corrections, red write-offs, grey edits), the verb as the heading
+  (Pulled, Received, Brought back), one sentence, the time and who, and the
+  signed quantity at the right ("-4", "+100", "-180 ft"). A unit's history
+  opens on where it is now. The latest 40 show first; Show older adds 20. One is open at a time, marked by a blue
   bar down its left edge; Escape or the chevron at its top right closes it,
   and the address carries it
   (`#shelf/p/<id>`, `#shelf/l/<id>`), so a link lands on it open. Modals stay
@@ -285,9 +304,10 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   the wall board part, also has **Open the demo board** (`?demo=1&board=1`),
   to show the TV screen without signing a TV in. Office also carries the Add
   to home screen card until it is dismissed on that device. **This phone**
-  (0.8.1, `#office/phone`, every role) never goes away: the install steps for
-  the browser in hand, the address and Copy address on a desktop, and Show
-  the tip again once the strip or the card was dismissed.
+  (0.8.1, `#office/phone`, every role) never goes away on a phone or tablet:
+  the install steps for the browser in hand, and Show the tip again once the
+  strip or the card was dismissed. Since 0.9.1 it is not listed on a
+  computer, and `#office/phone` there lands on Office.
 - **Old addresses**: every link an older build printed or bookmarked still
   opens: `#tickets`, `#ticket/<id>`, `#stock/...`, `#items/...`,
   `#more/...`, and `#console/...` land on the 0.8.0 screen and the address
@@ -318,7 +338,10 @@ Home, Jobs, Scan (the raised button), Shelf, Office.
   photo, Replace photo, and Remove photo for admin and warehouse. The photo
   is shrunk to 1200 px and saved as JPEG before upload, and shows on the Scan
   product card and in an optional Photo column (off by default; turn it on in
-  Columns). Adding or removing a photo needs a connection.
+  Columns). Adding or removing a photo needs a connection. **Product photos
+  from a UPC** are not built: PLAN 21.2 records what a lookup found (it
+  finds name-brand devices, needs a person to confirm each match, and would
+  run through loadout-worker) and the shape it would take if scheduled.
 
 Roles: the account named in the rules as the project owner becomes admin on
 its first sign-in; everyone else lands as Tech until an admin changes the role
@@ -438,8 +461,11 @@ no signal.
   Safari's toolbar, scroll down, and tap **Add to Home Screen**. The card under
   Office shows the same two steps.
 
-The card and the strip each go away on that device once dismissed. Office >
-This phone (0.8.1) is for everyone and never goes away: it shows the same
+The whole home-screen feature (the strip, the card, and Office > This phone)
+is for phones and tablets only (0.9.1): a desktop or laptop browser never
+shows it, even when Chrome or Edge offer their own install. The card and the
+strip each go away on that device once dismissed. Office > This phone
+(0.8.1) is for every role and never goes away on a phone: it shows the same
 steps for the browser in hand, and **Show the tip again** brings the card and
 the strip back. On a phone the sign-in screen says to sign in first, then use
 Office > This phone: sign-in is a Google popup, and an app opened from the
@@ -962,6 +988,42 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.9.1 (2026-11-11)
+
+Shelf holds 268 products, and the only ways to narrow it were a tab, the
+Consumables button, and search. Someone looking for "the patch cables in the
+storage room" had to know what to type. History drew the same four-column
+rows everywhere, which read like a spreadsheet when the question is "what
+happened to this, in order" (PLAN 21).
+
+- **Shelf filters** (PLAN 21.1): Category, Type, Brand, and Location, each
+  All by default, with Consumables only beside them. Category is the
+  product's own category (Network, Cable, Wire), and a product with none
+  falls under its kind; Type narrows to the category picked; case and extra
+  spaces do not split a category or brand. Every option shows its count, so
+  picking one shows exactly that many. One row on a wide screen; a Filter
+  button beside search on a phone, with a sheet that says how many products
+  it will show. Chips under the search remove one filter each, and Clear
+  filters removes them all. They reset on reload, so a filter set last week
+  never hides a product from the person looking for it, and Consumables
+  only no longer rides in the address either.
+- **History as a timeline** (PLAN 21.3): one component for a product, unit,
+  or location's history, the job and PO Timeline, and Last movements on the
+  Scan card. Day headings, a dot per event in its family's color, the verb
+  as the heading, one sentence, who and when, and the signed quantity on the
+  right. A unit's history opens on where it is now. Show older pages through
+  long histories 20 at a time; the product, unit, and location history no
+  longer stops at 25 and the PO Timeline no longer at 30.
+- **The home-screen tip is for phones and tablets only.** Desktop Chrome and
+  Edge offer their own install, which made the strip, the Office card, and
+  Office > This phone show on a computer. A computer now sees none of them;
+  `#office/phone` lands on Office, and the desktop "open this address on
+  your phone" state is gone.
+- **Home**: with five doors on a wide screen, Audit a shelf spans the full
+  width instead of sitting alone at half width.
+- Words: three leftover "on Stock" and "under Stock" strings and the
+  Consumables tooltip now say Shelf.
 
 ### 0.9.0 (2026-11-11)
 

@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.9.0</title>
+<title>Loadout v0.9.1</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.9.0">
+<meta name="loadout-version" content="0.9.1">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -316,21 +316,60 @@ select.fld{appearance:none;padding-right:30px;background-image:linear-gradient(4
 }
 
 /* ---------- timeline ---------- */
-.tl{list-style:none;margin:0;padding:0;container-type:inline-size}
-.tl li{display:grid;grid-template-columns:128px 90px 84px minmax(0,1fr);gap:4px 10px;padding:9px 0;border-bottom:1px solid var(--m-line);font-size:13px;align-items:baseline}
-.tl li:last-child{border-bottom:0}
-.tl .when{color:var(--m-muted);font-size:12px;white-space:nowrap}
-.tl .by{font-weight:600;overflow-wrap:anywhere}
-.tl .what{min-width:0;overflow-wrap:anywhere}
+/* 0.9.1 (PLAN 21.3): one vertical timeline for every history. The rail is
+   a 2px divider-colored line (decoration, aria-hidden); the 10px dot carries
+   the family in the status text colors, each 3:1 or better on the card and
+   on card2 (the open panel): green #166b3e 6.55 / 5.94, blue #1a5cb5 6.48 /
+   5.87, amber #8a5a14 5.91 / 5.36, red #a82e29 6.80 / 6.16, grey #5b6675
+   5.83 / 5.28; the Now ring #1a2233 15.90 / 14.42. The rail (#dde3ea) is
+   decoration and carries nothing. The verb heading says the same in words. Day headings use the
+   Ledger ruled line, the same as an area header on a job. */
+.tl{container-type:inline-size;min-width:0}
+.tl h5{margin:var(--s3) 0 0;padding:0 0 4px;font-size:13.5px;font-weight:700;color:var(--m-text);border-bottom:1.5px solid var(--m-text)}
+.tl h5:first-child{margin-top:0}
+.tl ol{list-style:none;margin:0;padding:0}
+.tle{position:relative;display:grid;grid-template-columns:18px 104px minmax(0,1fr) auto;grid-template-areas:"dot meta body qty";gap:0 var(--s2);padding:var(--s1) 0;font-size:13px}
+.tle+.tle{border-top:1px solid var(--m-line)}
+.tle::before{content:"";position:absolute;left:4px;top:0;bottom:0;width:2px;background:var(--m-line)}
+.tlday>.tle:first-child::before{top:14px}
+.tlday>.tle:last-child::before{bottom:auto;height:14px}
+.tlday>.tle:only-child::before{display:none}
+.tld{grid-area:dot;position:relative;z-index:1;width:10px;height:10px;margin-top:5px;border-radius:50%;background:var(--m-muted);box-shadow:0 0 0 2px var(--m-card)}
+.xp .tld{box-shadow:0 0 0 2px var(--m-card2)}
+.f-in .tld{background:var(--m-ok-text)}
+.f-out .tld{background:var(--m-info-text)}
+.f-fix .tld{background:var(--m-warn-text)}
+.f-off .tld{background:var(--m-bad-text)}
+.tle.now .tld{background:var(--m-card);border:2px solid var(--m-text)}
+.xp .tle.now .tld{background:var(--m-card2)}
+.tlb{grid-area:body;min-width:0}
+.tlv{margin:0;font-size:13.5px;font-weight:700;color:var(--m-text);line-height:1.45}
+.tls{margin:1px 0 0;overflow-wrap:anywhere}
+.tlm{grid-area:meta;margin:0;color:var(--m-muted);font-size:12.5px;line-height:1.45;padding-top:1px}
+.tlm time{display:block;white-space:nowrap}
+.tlby{display:block;overflow-wrap:anywhere}
+.tlc{display:none}
+.tlq{grid-area:qty;font-weight:700;white-space:nowrap;text-align:right;line-height:1.45}
+.tle.now{grid-template-areas:"dot body body body"}
+.tle:focus-visible{outline:2px solid var(--m-accent);outline-offset:2px}
+.tlmore{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s1) var(--s2);margin-top:var(--s2)}
+.tlmore .hint{margin:0}
+/* phone, or a narrow column: the sentence first, then time and who on one muted line */
+@container (max-width:519.98px){
+  .tle{grid-template-columns:18px minmax(0,1fr) auto;grid-template-areas:"dot body qty" "dot meta qty"}
+  .tlm{padding-top:2px}
+  .tlm time,.tlby{display:inline}
+  .tlc{display:inline}
+}
+@media print{
+  .tle::before{width:1px;background:#888!important}
+  .tld,.f-in .tld,.f-out .tld,.f-fix .tld,.f-off .tld{background:#fff!important;border:1.5px solid #000;box-shadow:none}
+}
 .mv{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--m-muted)}
 .mv.pull,.mv.move,.mv.checkout{color:var(--m-info-text)}
 .mv.receive,.mv.checkin{color:var(--m-ok-text)}
 .mv.reading,.mv.cut,.mv.adjust,.mv.return{color:var(--m-warn-text)}
 .mv.writeoff{color:var(--m-bad-text)}
-@container (max-width:520px){
-  .tl li{grid-template-columns:auto auto minmax(0,1fr)}
-  .tl .what{grid-column:1/-1}
-}
 
 /* ---------- scan ---------- */
 .scangrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
@@ -881,7 +920,6 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
 .phonesec ol li{margin:4px 0}
 .phonesec .btnrow{margin-top:var(--s1)}
 /* the address is copied character for character, so it reads in the mono face and wraps anywhere */
-.phonesec .addr{display:block;font:14px/1.4 var(--m-mono);background:var(--m-card2);border:1px solid var(--m-line);border-radius:var(--m-radius);padding:var(--s1) var(--s2);overflow-wrap:anywhere;color:var(--m-text);user-select:all}
 .phonesec .again{margin-top:var(--s3);padding-top:var(--s2);border-top:1px solid var(--m-line)}
 .signin-card .a2pre{display:none;font-size:12.5px;color:var(--m-muted);margin:8px 0 0}
 @media (max-width:639.98px),(pointer:coarse){.signin-card .a2pre{display:block}}
@@ -992,6 +1030,35 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
   .srch .fld{padding-right:48px}
 }
 .modal .filters{display:grid;grid-template-columns:minmax(0,1fr);margin:0}
+/* ---------- Shelf filters (0.9.1, PLAN 21.1) ----------
+   One row of labelled selects on a wide card, each as wide as its longest
+   option ("Patch cables (171)" never truncates); under 720px of card the
+   Filter button sits beside search and opens the same controls in a sheet.
+   Active filters are chips under the search on both, each with a remove
+   control (44px on the phone) and Clear filters at the end. These are
+   filters with "All" as a real default, not unset decisions: no glow. */
+.shelfc{container:shelf/inline-size}
+.filters.sfilt{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s3);align-items:flex-end;margin-bottom:var(--s2)}
+.sfilt>div{flex:0 1 auto;min-width:0;max-width:100%}
+.sfilt .lab{margin-top:0}
+.sfilt select.fld{width:auto;min-width:8.5em;max-width:100%}
+.filters.sfilt>.chk{margin:0}
+.modal .filters.sfilt{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+.modal .sfilt .lab{margin-top:var(--s2)}
+.modal .sfilt>div:first-child .lab{margin-top:0}
+.modal .sfilt select.fld{width:100%}
+.modal .filters.sfilt>.chk{margin-top:var(--s2)}
+.toolbar .filtbar{margin:0;flex:none}
+.shelfc .srch{flex-basis:160px}
+.fchips{display:flex;flex-wrap:wrap;gap:var(--s1);align-items:center;margin:0 0 var(--s2)}
+.fchip{padding:2px 2px 2px 10px;font-size:13px;gap:2px}
+.fchip .fx{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:28px;min-height:28px;padding:0;border:0;border-radius:999px;background:none;color:var(--m-muted);font-size:18px;line-height:1;cursor:pointer}
+.fchip .fx:hover{color:var(--m-text);background:var(--m-bg2)}
+@container shelf (max-width:720px){
+  .filtbar{display:flex}
+  .filters.sfilt{display:none}
+}
+@media (max-width:640px),(pointer:coarse){.fchip .fx{min-width:44px;min-height:44px}}
 
 /* ---------- phone ---------- */
 @media (max-width:640px){
@@ -1038,8 +1105,8 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
 /* 12c item 7, on any phone or touch screen: 15px body text on cards, 13px muted meta, nothing smaller */
 @media (max-width:640px),(pointer:coarse){
   .btn.sm{font-size:13px}
-  body,.tbl,.onhand li,.crow,.ship dd,.ship ul,.pkg .what,.pkg dd,.tl li,.chead .pn,.rcv,.olpick,.a2card .a2t p,.a2card ol,.tipsheet p,.dict .tbl td:first-child,.tc,.tc .pd,.trk,.tbl tr.grp td,.dh b{font-size:15px}
-  .hint,.pd,.locs,.chip,.st,.lab,.h4,.mcard h4,.tbl th,.sv .k,.sv .u,.meta dt,.meta dd small,.unit,.mv,.tl .when,.sync,.brand .v,.who span,.foot,.pkey,.seg button,.seg button b,.dh .st,.dh .dd,.lines .st,.crumb,.loadmsg,.err,.tcp,.tch .tn,.trgh span,.trgh small,.pkg .when,.pkg dt,.pkg dd small,.ship dt,.carrier,.rhint,.camhint,.cam .read,.forticket label,.res .rk,.res .rm,.wkchip,.earlier,.lnote,.pexp,.lateA,.tbl tr.grp td span,.req,.demobar,.day .empty,.drop p,.step b,button.chip,pre.note{font-size:13px}
+  body,.tbl,.onhand li,.crow,.ship dd,.ship ul,.pkg .what,.pkg dd,.tle,.tlv,.chead .pn,.rcv,.olpick,.a2card .a2t p,.a2card ol,.tipsheet p,.dict .tbl td:first-child,.tc,.tc .pd,.trk,.tbl tr.grp td,.dh b{font-size:15px}
+  .hint,.pd,.locs,.chip,.st,.lab,.h4,.mcard h4,.tbl th,.sv .k,.sv .u,.meta dt,.meta dd small,.unit,.mv,.tlm,.sync,.brand .v,.who span,.foot,.pkey,.seg button,.seg button b,.dh .st,.dh .dd,.lines .st,.crumb,.loadmsg,.err,.tcp,.tch .tn,.trgh span,.trgh small,.pkg .when,.pkg dt,.pkg dd small,.ship dt,.carrier,.rhint,.camhint,.cam .read,.forticket label,.res .rk,.res .rm,.wkchip,.earlier,.lnote,.pexp,.lateA,.tbl tr.grp td span,.req,.demobar,.day .empty,.drop p,.step b,button.chip,pre.note{font-size:13px}
 }
 /* ---------- 0.8.0 simple mode (PLAN 18): doors, job cards, pick up, deliver, audit, office ----------
    One color per job, the status pill text values from the palette above,
@@ -1052,7 +1119,9 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
 .band.audit{background:var(--job-audit)}.band.pull{background:var(--job-pull)}.band.pickup{background:var(--job-pickup)}.band.deliver{background:var(--job-deliver)}
 .band + .mcard{border-top-left-radius:0;border-top-right-radius:0}
 .doors{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s2)}
-@media (min-width:900px){.doors{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* 0.9.1: an odd last door (five for warehouse and admin) spans both columns
+   instead of sitting alone at half width; fitDoors measures it as it lays out */
+@media (min-width:900px){.doors{grid-template-columns:repeat(2,minmax(0,1fr))}.doors>.door:last-child:nth-child(odd){grid-column:1/-1}}
 .door{display:grid;grid-template-columns:36px minmax(0,1fr);align-items:center;gap:2px var(--s2);min-height:76px;padding:var(--s2) var(--s3);border-radius:var(--m-radius);color:#fff;text-decoration:none}
 .door svg{width:30px;height:30px;grid-row:1/3}
 .door > b{font-size:18px;line-height:1.2}
@@ -1220,7 +1289,7 @@ a.textbtn{display:inline-flex;align-items:center}
   <header class="top">
     <div class="brand">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.9.0</span>
+      Loadout <span class="v" id="verBadge">v0.9.1</span>
     </div>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
@@ -1256,7 +1325,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.9.0</span>
+    <span id="footVer">Loadout v0.9.1</span>
     <span id="footWho"></span>
     <span id="footRole"></span>
     <span id="footSync"></span>
@@ -1285,7 +1354,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.9.0";
+const VERSION = "0.9.1";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -1432,6 +1501,8 @@ const S = {
   loaded: {}, errors: {},
   view: "home", unitsOpen: new Set(), stockTab: "all", itemsTab: "out", officeSec: null, flowJob: null, flow: null, auditLoc: null, aud: null,
   search: "", activeLoc: null, pendingUpcFor: null,
+  /* 0.9.1: Shelf filters (session only, PLAN 21.1) and how far each timeline is paged */
+  sf: { cat: "", type: "", brand: "", loc: "" }, tlN: {},
   /* 0.5.0: queue holds one entry per write batch the server has not
      acknowledged yet (the sync pill's count); demoSync is the demo hook's
      stand-in for the real sync state; photoBusy is the product whose photo
@@ -1865,10 +1936,12 @@ function enhanceFilters() {
   $$(".view").forEach(v => $$(".filters", v).forEach((f, i) => {
     if (f.dataset.fb || !filtCtls(f).length) return;
     f.dataset.fb = "1"; f.dataset.fk = v.id + ":" + i;
-    const n = filtCount(f), bar = document.createElement("div");
+    const n = filtCount(f), bar = document.createElement("div"), L = f.dataset.fbl;
     bar.className = "filtbar";
-    bar.innerHTML = '<button type="button" class="btn" data-act="filters" data-fk="' + esc(f.dataset.fk) + '" aria-haspopup="dialog">' + (n ? "Filters, " + n + " on" : "Filters") + "</button>";
-    f.parentNode.insertBefore(bar, f);
+    /* 0.9.1: a view can name its button (data-fbl, "Filter, 2"), give it a tooltip, and seat it beside another control (data-fbafter) */
+    bar.innerHTML = '<button type="button" class="btn" data-act="filters" data-fk="' + esc(f.dataset.fk) + '" aria-haspopup="dialog"' + (f.dataset.fbtip ? ' title="' + esc(f.dataset.fbtip) + '"' : "") + ">" + (L ? (n ? L + ", " + n : L) : n ? "Filters, " + n + " on" : "Filters") + "</button>";
+    const at = f.dataset.fbafter ? v.querySelector(f.dataset.fbafter) : null;
+    if (at) at.after(bar); else f.parentNode.insertBefore(bar, f);
   }));
 }
 function openFilters(fk) {
@@ -1882,10 +1955,18 @@ function openFilters(fk) {
   filtCtls(clone).forEach(i => Object.keys(i.dataset).forEach(k => delete i.dataset[k]));
   $$(".tipq", clone).forEach(b => b.remove()); $$(".labrow", clone).forEach(r => { while (r.firstChild) r.parentNode.insertBefore(r.firstChild, r); r.remove(); });
   $$("[data-tipd]", clone).forEach(e => delete e.dataset.tipd);
-  const w = openModal("Filters", "", '<button type="button" class="btn" data-fclear>Clear filters</button><button type="button" class="btn acc" data-close>Done</button>', { noFocus: true });
+  /* 0.9.1: data-fshow names the confirm with the live result ("Show 12 products") */
+  const w = openModal("Filters", "", '<button type="button" class="btn" data-fclear>Clear filters</button><button type="button" class="btn acc" data-close data-fdone>' + esc(f.dataset.fshow || "Done") + "</button>", { noFocus: true });
   const body = w.querySelector(".mbody"); body.appendChild(clone);
   const mine = () => filtCtls(clone);
-  const resync = () => { const o = orig(); if (!o) return; const oc = filtCtls(o); mine().forEach((c, i) => { const x = oc[i]; if (!x || c === document.activeElement) return; if (c.type === "checkbox") c.checked = x.checked; else c.value = x.value; }); };
+  /* the page redraws after each change: options that narrowed (Type under a
+     Category), counts in labels (data-fsync), and the confirm follow it */
+  const resync = () => {
+    const o = orig(); if (!o) return; const oc = filtCtls(o);
+    mine().forEach((c, i) => { const x = oc[i]; if (!x) return; if (c.tagName === "SELECT" && c.innerHTML !== x.innerHTML) c.innerHTML = x.innerHTML; if (c === document.activeElement && c.tagName !== "SELECT") return; if (c.type === "checkbox") c.checked = x.checked; else c.value = x.value; });
+    const os = $$("[data-fsync]", o); $$("[data-fsync]", clone).forEach((e, i) => { if (os[i]) e.textContent = os[i].textContent; });
+    const d = w.querySelector("[data-fdone]"); if (d && o.dataset.fshow) d.textContent = o.dataset.fshow;
+  };
   const mirror = (c, type) => {
     const o = orig(); if (!o) return;
     const x = filtCtls(o)[mine().indexOf(c)]; if (!x) return;
@@ -2122,7 +2203,7 @@ function firestoreStore(user) {
       olUnsubs.set(id, u);
     });
   }
-  const toMap = (key) => docs => { const m = new Map(); docs.forEach(d => m.set(d.id, d)); S[key] = m; _lastMv = null; _shelf = null; };
+  const toMap = (key) => docs => { const m = new Map(); docs.forEach(d => m.set(d.id, d)); S[key] = m; _lastMv = null; _shelf = null; _sfLocs = null; _sfSpell = null; };
   /* one op onto a batch or a transaction (both take set, update, delete) */
   function applyOp(w, o) {
     if (o.op === "add") { w.set(fs.doc(fs.collection(db, o.coll)), conv(o.data)); return; }
@@ -3843,7 +3924,7 @@ let _rq = 0;
 function scheduleRender() { if (_rq) return; _rq = requestAnimationFrame(() => { _rq = 0; render(false); }); }
 function render(force) {
   if (!S.user) return;
-  _lastMv = null; _shelf = null;
+  _lastMv = null; _shelf = null; _sfLocs = null; _sfSpell = null;
   if (BOARD) { renderBoard(); return; }
   const ae = document.activeElement;
   const fid = ae && ae.id && $("#main").contains(ae) ? ae.id : null;
@@ -4124,7 +4205,7 @@ function renderTicket() {
   }
   h += "</div>";
   const tl = ticketTimeline(t);
-  h += '<div class="two"><div class="mcard"><h4>Timeline</h4>' + (tl.length ? timelineHTML(tl.slice(0, 40)) + (tl.length > 40 ? '<p class="hint">Showing the latest 40 of ' + tl.length + ". Office, Movements holds the rest.</p>" : "") : '<p class="hint">Nothing has moved yet.</p>') + "</div>" +
+  h += '<div class="two"><div class="mcard"><h4>Timeline</h4>' + (tl.length ? timelineHTML(tl, { key: "tk:" + t.id }) : '<p class="hint">Nothing has moved yet.</p>') + "</div>" +
     '<div class="mcard"><div class="thead"><h4>Portal note</h4><span class="sp"><button type="button" class="btn sm acc" data-act="tkCopy">Copy</button></span></div><pre class="note">' + esc(portalBlock(t)) + '</pre><p class="hint">Paste into the proposal\'s internal notes. The order lines read from the purchase orders. Loadout writes it there itself once the Portal API is on.</p></div></div>';
   el.innerHTML = h;
   /* the Week view's line buttons land here with the line in view */
@@ -5526,8 +5607,9 @@ const OFFICE = [
   ["import", "Import inventory sheet", "Bring the shop's inventory spreadsheet in.", r => r === "admin"],
   ["backups", "Backups", "The nightly copies of the data, to download by day.", r => r === "admin" || r === "accounting"],
   ["export", "Export everything", "Every collection as a workbook or zipped CSVs.", r => r === "admin" || r === "accounting"],
-  /* 0.8.1: every role, every device; the strip and the card can be dismissed, this cannot */
-  ["phone", "This phone", "Put Loadout on the home screen, or get the tip back.", () => true],
+  /* 0.8.1: every role; the strip and the card can be dismissed, this cannot.
+     0.9.1: phones and tablets only (a2Device); a computer never sees it */
+  ["phone", "This phone", "Put Loadout on the home screen, or get the tip back.", () => a2Device()],
   ["about", "About", "Version, what changed, and what each field means.", () => true]
 ];
 const officeCan = k => { const o = OFFICE.find(x => x[0] === k); return !!o && o[3](S.role); };
@@ -5540,9 +5622,11 @@ function renderOffice(force) {
     const list = OFFICE.filter(o => o[3](S.role));
     el.innerHTML = '<div class="mcard"><div class="thead"><h2 class="vt">Office</h2></div>' + installCardHTML() +
       '<div class="ocards">' + list.map(o => '<a class="oc" href="#' + (o[0] === "orders" ? "orders" : o[0] === "audit" ? "audit" : "office/" + o[0]) + '"><b>' + esc(o[1]) + "</b><span>" + esc(o[2]) + "</span></a>").join("") + "</div>" +
-      (list.length < OFFICE.length ? '<p class="hint">' + (S.role === "accounting" ? "Orders, people, settings, and the warehouse sections are for the admin." : "Orders, reports, people, settings, and the rest are for the admin.") + "</p>" : "") + "</div>";
+      (OFFICE.some(o => o[0] !== "phone" && !o[3](S.role)) ? '<p class="hint">' + (S.role === "accounting" ? "Orders, people, settings, and the warehouse sections are for the admin." : "Orders, reports, people, settings, and the rest are for the admin.") + "</p>" : "") + "</div>";
     return;
   }
+  /* 0.9.1: #office/phone on a computer lands on Office itself */
+  if (sec === "phone" && !a2Device()) { S.officeSec = null; setHash(); renderOffice(force); return; }
   const crumb = '<div class="crumb"><a class="textbtn" href="#office">Office</a> / ' + esc(officeName(sec)) + "</div>";
   if (!officeCan(sec)) { _offBuilt = ""; el.innerHTML = '<div class="mcard">' + crumb + '<div class="empty"><p>' + esc(officeName(sec)) + ' is not open to your role.</p><a class="btn" href="#office">Back to Office</a></div></div>'; return; }
   /* forms keep what is typed: Import and Settings only redraw when asked to */
@@ -5605,6 +5689,103 @@ function matchesSearch(p, q) {
   if (itemsFor(p.id).some(i => i.status !== "retired" && unitMatches(i, q))) return true;
   return allBoxesFor(p.id).some(c => String(c.label).toLowerCase().includes(q));
 }
+/* ---------------- Shelf filters (0.9.1, PLAN 21.1) ----------------
+   Category, Type, Brand, Location, each "All" by default, on All and Low
+   (and on Consumables only, which is All narrowed). They live in S.sf for
+   the session: never in the hash or storage, so a reload starts clean and
+   no filter silently hides a product next week. */
+const SF_CAT = { device: "Devices", "patch-cable": "Patch cables", splitter: "Splitters", connector: "Connectors", wire: "Wire", other: "Other" };
+const SF_NAME = { cat: "Category", type: "Type", brand: "Brand", loc: "Location" };
+const sfKind = p => KINDS.includes(p.kind) ? p.kind : "other";
+const sfOnN = () => ["cat", "type", "brand", "loc"].filter(k => S.sf[k]).length;
+/* where each product has stock (counted rows, open boxes, units in stock or
+   staged), worked out once per redraw; a product with none counts at its
+   default location */
+var _sfLocs = null;
+function sfLocsOf(p) {
+  if (!_sfLocs) {
+    _sfLocs = new Map(); const add = (pid, lid) => { if (!pid || !lid) return; if (!_sfLocs.has(pid)) _sfLocs.set(pid, new Set()); _sfLocs.get(pid).add(lid); };
+    S.stock.forEach(r => { if (num(r.qty) > 0) add(r.productId, r.locationId); });
+    S.containers.forEach(c => { if (c.status !== "empty") add(c.productId, c.locationId); });
+    S.items.forEach(i => { if (inStockItem(i)) add(i.productId, i.locationId); });
+  }
+  const s = _sfLocs.get(p.id);
+  return s && s.size ? s : new Set(p.defaultLocationId ? [p.defaultLocationId] : []);
+}
+/* Category is the product's own free-text category (Network, Audio, Cable);
+   kind is internal and only names the group when the category is blank.
+   Category, Type, and Brand compare without regard to case or extra spaces,
+   and each shows in the spelling most products use. */
+const sfNorm = s => String(s == null ? "" : s).replace(/\s+/g, " ").trim().toLowerCase();
+function sfRaw(p, k) { return k === "cat" ? (sfNorm(p.category) ? p.category : "") : k === "type" ? p.type : p.brand; }
+function sfKey(p, k) {
+  if (k === "cat") { const c = sfNorm(p.category); return c ? "c:" + c : "k:" + sfKind(p); }
+  const v = sfNorm(sfRaw(p, k)); return v ? "v:" + v : "";
+}
+var _sfSpell = null;
+function sfLabel(k, key) {
+  if (k === "loc") return locName(key);
+  if (key.startsWith("k:")) return SF_CAT[key.slice(2)] || key.slice(2);
+  if (!_sfSpell) {
+    _sfSpell = {};
+    ["cat", "type", "brand"].forEach(f => { const m = _sfSpell[f] = new Map(); S.products.forEach(p => { const kk = sfKey(p, f); if (!kk || kk.startsWith("k:")) return; const s = String(sfRaw(p, f)).replace(/\s+/g, " ").trim(); if (!m.has(kk)) m.set(kk, new Map()); const c = m.get(kk); c.set(s, (c.get(s) || 0) + 1); }); });
+  }
+  const c = _sfSpell[k] && _sfSpell[k].get(key);
+  return c ? Array.from(c.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0] : key.slice(2);
+}
+function sfVals(p, k) { return k === "loc" ? Array.from(sfLocsOf(p)) : [sfKey(p, k)].filter(Boolean); }
+function sfPass(p, skip) {
+  return ["cat", "type", "brand", "loc"].every(k => k === skip || !S.sf[k] || sfVals(p, k).includes(S.sf[k]));
+}
+/* the options for one filter: values that exist in the list the other
+   filters leave, with their counts, so picking one shows exactly that many */
+function sfOptions(base, k) {
+  const m = new Map();
+  base.forEach(p => { if (sfPass(p, k)) sfVals(p, k).forEach(v => m.set(v, (m.get(v) || 0) + 1)); });
+  if (S.sf[k] && !m.has(S.sf[k])) m.set(S.sf[k], 0);
+  const out = Array.from(m.entries());
+  return out.sort((a, b) => sfLabel(k, a[0]).localeCompare(sfLabel(k, b[0])));
+}
+const SF_TIP = {
+  cat: "The category on each product, such as Network or Cable. A product with no category sits under its kind, such as Patch cables.",
+  type: "The inventory sheet's Type column. The list narrows to the category picked, and resets when the category changes.",
+  loc: "Products with stock at that location. A product with nothing on hand counts at its default location, so it can still be found where it lives."
+};
+function sfRowHTML(base, consN) {
+  const sel = (k, id) => {
+    const opts = sfOptions(base, k);
+    return "<div>" + '<label class="lab" for="' + id + '"' + (SF_TIP[k] ? ' title="' + esc(SF_TIP[k]) + '"><abbr>' + SF_NAME[k] + "</abbr>" : ">" + SF_NAME[k]) + "</label>" +
+      '<select class="fld" id="' + id + '" data-sf="' + k + '"><option value="">All</option>' +
+      opts.map(([v, n]) => '<option value="' + esc(v) + '"' + (S.sf[k] === v ? " selected" : "") + ">" + esc(sfLabel(k, v)) + " (" + fmtN(n) + ")</option>").join("") + "</select></div>";
+  };
+  const show = S.stockTab === "low" ? null : '<label class="chk" title="Only products marked consumable, with wire boxes listed under each by-the-foot product"><input type="checkbox" id="sfCons" data-sf="cons"' + (S.stockTab === "consumables" ? " checked" : "") + '> <span data-fsync>Consumables only (' + fmtN(consN) + ")</span></label>";
+  return sel("cat", "sfCat") + sel("type", "sfType") + sel("brand", "sfBrand") + sel("loc", "sfLoc") + (show || "");
+}
+function sfChipsHTML() {
+  const on = ["cat", "type", "brand", "loc"].filter(k => S.sf[k]).map(k => [k, SF_NAME[k] + ": " + sfLabel(k, S.sf[k])]);
+  if (S.stockTab === "consumables") on.push(["cons", "Consumables only"]);
+  if (!on.length) return "";
+  return '<div class="fchips" role="group" aria-label="Active filters">' + on.map(([k, t]) => '<span class="chip fchip">' + esc(t) + '<button type="button" class="fx" data-act="sfRm" data-id="' + k + '" aria-label="Remove filter ' + esc(t) + '" title="Remove this filter">&times;</button></span>').join("") +
+    '<button type="button" class="textbtn" data-act="sfClear">Clear filters</button></div>';
+}
+function sfSet(k, v) {
+  if (k === "cons") { S.stockTab = v ? "consumables" : "all"; setHash(); }
+  else { S.sf[k] = v; if (k === "cat") S.sf.type = ""; }
+  render(true);
+}
+function sfRemove(k) {
+  const all = $$("#v-stock .fchips .fx"), i = all.findIndex(b => b.dataset.id === k);
+  if (k === "cons") { S.stockTab = "all"; setHash(); } else S.sf[k] = "";
+  render(true);
+  const left = $$("#v-stock .fchips .fx"), next = left[Math.min(i, left.length - 1)] || $("#stockSearch");
+  if (next) next.focus();
+}
+function sfClear(focus) {
+  S.sf = { cat: "", type: "", brand: "", loc: "" };
+  if (S.stockTab === "consumables") { S.stockTab = "all"; setHash(); }
+  render(true); toast("Filters cleared");
+  if (focus) { const s = $("#stockSearch"); if (s) s.focus(); }
+}
 function renderStock() {
   const el = $("#v-stock");
   const prods = Array.from(S.products.values());
@@ -5614,30 +5795,39 @@ function renderStock() {
   /* 0.8.0 (PLAN 18.1): Stock and Units are one screen. Consumables stays as a filter on All, not a tab */
   const tabs = [["all", "All", prods.length], ["low", "Low", low.length], ["out", "Out with people", outN], ["locations", "Locations", S.locations.size]];
   const tabOn = S.stockTab === "consumables" ? "all" : S.stockTab;
-  let html = '<div class="mcard"><div class="thead"><h2 class="vt">Shelf</h2><span class="sp">' +
+  const loading = !S.loaded.products || !S.loaded.stock || !S.loaded.containers || !S.loaded.items || !S.loaded.locations;
+  const errd = ["products", "stock", "containers", "items", "locations"].find(c => S.errors[c]);
+  /* 0.9.1: the filters sit on All, Low, and Consumables only; Out with people and Locations keep their own lists */
+  const filtTab = S.stockTab === "all" || S.stockTab === "low" || S.stockTab === "consumables";
+  const showF = filtTab && !loading && !errd && prods.length > 0;
+  const base = (S.stockTab === "low" ? low : S.stockTab === "consumables" ? cons : prods).filter(p => matchesSearch(p, q));
+  const list = base.filter(p => sfPass(p)), fOn = sfOnN();
+  const consN = prods.filter(p => p.consumable && matchesSearch(p, q) && sfPass(p)).length;
+  let html = '<div class="mcard shelfc"><div class="thead"><h2 class="vt">Shelf</h2><span class="sp">' +
     /* finding 22: Consumables has a Columns button too, for its "Counted by the each" table */
     '<button type="button" class="btn sm" data-act="columns" data-tbl="' + (S.stockTab === "locations" ? "locations" : S.stockTab === "consumables" ? "consumables" : S.stockTab === "out" ? "items" : "catalog") + '">Edit columns</button>' +
     '<a class="btn sm" href="#shelf/units" title="Every serialized unit by status: out, in stock, staged, installed, returned">All units</a>' +
     '<button type="button" class="btn sm" data-act="go" data-view="office" data-sub="labels" title="Opens the label sheet picker under Office">Print labels</button>' +
     (isWriter() ? (S.stockTab === "locations" ? '<button type="button" class="btn sm acc" data-act="newLocation">New location</button>' : '<button type="button" class="btn sm acc" data-act="newProduct">New product</button>') : "") +
-    '</span></div><div class="toolbar"><div class="seg" role="group" aria-label="Stock lists">' +
+    '</span></div><div class="toolbar"><div class="seg" role="group" aria-label="Shelf lists">' +
     tabs.map(([k, l, n]) => '<button type="button" aria-pressed="' + (tabOn === k) + '" class="' + (tabOn === k ? "on " : "") + (k === "low" ? "warnt" : "") + '" data-act="stockTab" data-tab="' + k + '">' + l + "<b>" + n + "</b></button>").join("") + "</div>" +
-    (tabOn === "all" ? '<button type="button" class="btn sm" data-act="stockTab" data-tab="' + (S.stockTab === "consumables" ? "all" : "consumables") + '" aria-pressed="' + (S.stockTab === "consumables") + '" title="Only products marked consumable, with wire boxes listed under each by-the-foot product">Consumables only<b style="margin-left:6px">' + cons.length + "</b></button>" : "") +
-
     '<label class="sr" for="stockSearch">Search</label><span class="srch"><input class="fld search" id="stockSearch" type="search" value="' + esc(S.search) + '" placeholder="' + (S.stockTab === "locations" ? "Search area or shelf" : S.stockTab === "out" ? "Serial, MAC, product, or holder" : "Brand, model, UPC, box, serial, or MAC") + '" title="Matches brand, model, type, the learned UPC, box labels like A826, and a unit\'s serial or MAC. Press / to jump here."><button type="button" class="clr" data-act="clearSearch" data-for="stockSearch" aria-label="Clear the search">&times;</button></span></div>';
-  const loading = !S.loaded.products || !S.loaded.stock || !S.loaded.containers || !S.loaded.items || !S.loaded.locations;
-  const errd = ["products", "stock", "containers", "items", "locations"].find(c => S.errors[c]);
+  /* 0.9.1 (PLAN 21.1): one row of filters above the table on a wide card; on
+     a narrow one the Filter button beside search opens the same controls in
+     the app's sheet (enhanceFilters). Chips under it on both. */
+  if (showF) html += '<div class="filters sfilt" data-fbl="Filter" data-fbafter=".srch" data-fbtip="Narrow the list by category, type, brand, and location" data-fshow="Show ' + fmtN(list.length) + " product" + (list.length === 1 ? "" : "s") + '">' + sfRowHTML(base, consN) + "</div>" + sfChipsHTML();
+  /* the filters' empty state: say the filters did it and offer the way out */
+  const fEmpty = fOn && !list.length && base.length ? (q ? "<p>Nothing matches '" + esc(S.search.trim()) + "' with these filters.</p>" : "<p>No products match these filters.</p>") + '<button type="button" class="btn" data-act="sfClear">Clear filters</button>' : null;
   if (errd) html += errorBox(S.stockTab === "locations" ? "locations" : "products", errd);
   else if (loading) html += skelTable(productCols().filter(c => c.def !== false), S.stockTab === "locations" ? "Loading locations" : "Loading products");
   else if (S.stockTab === "locations") html += locationsTable(q);
   else if (S.stockTab === "out") html += unitsTableHTML(UNIT_TABS[0], S.search, "stockSearch");
-  else if (S.stockTab === "consumables") html += consumablesHTML(cons.filter(p => matchesSearch(p, q)), q);
+  else if (S.stockTab === "consumables") html += fEmpty ? '<div class="empty">' + fEmpty + "</div>" : consumablesHTML(list, q);
   else {
-    const list = (S.stockTab === "low" ? low : prods).filter(p => matchesSearch(p, q));
     if (!prods.length) html += '<div class="empty"><p>No products yet. Scan a box on the shelf or import the inventory sheet to start the catalog.</p>' + (isAdmin() ? '<button type="button" class="btn acc" data-act="go" data-view="more" data-sub="import">Import the inventory sheet</button>' : "") + "</div>";
     else {
       /* 12c item 11: an empty list reads inside the table, under its headers, with the next step */
-      const empty = q ? "<p>Nothing matches '" + esc(S.search.trim()) + "'." + (isWriter() ? " Add it as a new product?" : "") + "</p>" + (isWriter() ? '<button type="button" class="btn acc" data-act="newProduct" data-prefill="' + esc(S.search.trim()) + '">Add as a new product</button>' : "")
+      const empty = fEmpty ? fEmpty : q ? "<p>Nothing matches '" + esc(S.search.trim()) + "'." + (isWriter() ? " Add it as a new product?" : "") + "</p>" + (isWriter() ? '<button type="button" class="btn acc" data-act="newProduct" data-prefill="' + esc(S.search.trim()) + '">Add as a new product</button>' : "")
         : '<p>Nothing is under its par level. Products marked consumable with a par level show here when they run low.</p><button type="button" class="btn" data-act="stockTab" data-tab="all">Show every product</button>';
       html += tableHTML("catalog", productCols(), list, {
         empty,
@@ -5735,8 +5925,94 @@ function locationsTable(q) {
 }
 
 /* ---------------- product detail: now a panel under the row (productPanel) ---------------- */
-function timelineHTML(list) {
-  return '<ol class="tl">' + list.map(m => '<li><span class="when">' + esc(fmtWhen(m.at)) + '</span><span class="by">' + esc(m.byName || m.by || "") + '</span><span class="mv ' + esc(m.type) + '">' + esc(MV_LABEL[m.type] || m.type) + '</span><span class="what">' + esc(mvWhat(m)) + "</span></li>").join("") + "</ol>";
+/* 0.9.1 (PLAN 21.3): every history is one vertical timeline. Newest first,
+   one <ol> per day under its heading, a rail down the left with a dot per
+   event in its family color, the verb as the event's heading, one sentence,
+   the time and who, and the signed quantity at the right. o.key pages it
+   (the latest 40, then 20 more per Show older); o.now is a unit's open-ended
+   first entry. Movements tables and exports keep MV_LABEL. */
+const TL_FIRST = 40, TL_MORE = 20;
+function timelineHTML(list, o = {}) {
+  const shown = o.key ? Math.max(TL_FIRST, S.tlN[o.key] || 0) : list.length, part = list.slice(0, shown);
+  const today = isoDay(new Date()), yest = isoDay(new Date(Date.now() - 86400000));
+  const days = [];
+  part.forEach(m => { const d = toDate(m.at) || new Date(), k = isoDay(d); let g = days[days.length - 1]; if (!g || g.k !== k) days.push(g = { k, d, ms: [] }); g.ms.push(m); });
+  let h = '<div class="tl"' + (o.key ? ' data-k="' + esc(o.key) + '"' : "") + ">";
+  if (o.now) h += '<ol class="tlday"><li class="tle now"><span class="tld" aria-hidden="true"></span><div class="tlb"><h6 class="tlv">Now</h6><p class="tls">' + esc(o.now) + "</p></div></li></ol>";
+  days.forEach(g => {
+    h += "<h5>" + (g.k === today ? "Today" : g.k === yest ? "Yesterday" : esc(fmtDate(g.d))) + '</h5><ol class="tlday">' + g.ms.map(m => {
+      const k = mvKind(m), q = mvSigned(m, k), d = toDate(m.at);
+      return '<li class="tle f-' + k.fam + '"><span class="tld" aria-hidden="true"></span><div class="tlb"><h6 class="tlv">' + esc(k.verb) + '</h6><p class="tls">' + esc(mvSentence(m, k.verb)) + "</p></div>" +
+        '<p class="tlm">' + (d ? '<time datetime="' + esc(d.toISOString()) + '">' + esc(fmtTime(d)) + "</time>" : "") + ((m.byName || m.by) ? '<span class="tlc">, </span><span class="tlby">' + esc(m.byName || m.by) + "</span>" : "") + "</p>" +
+        (q ? '<span class="tlq">' + esc(q) + "</span>" : "") + "</li>";
+    }).join("") + "</ol>";
+  });
+  if (o.key && list.length > shown) h += '<div class="tlmore"><button type="button" class="btn sm" data-act="tlMore" data-id="' + esc(o.key) + '" title="Shows the next ' + TL_MORE + ' events, all already loaded">Show older</button><span class="hint">Showing the latest ' + fmtN(shown) + " of " + fmtN(list.length) + ".</span></div>";
+  return h + "</div>";
+}
+/* the verb and the color family of one movement. Families: in (into the
+   shop, green), out (toward a job, blue), fix (corrections, amber), off
+   (write-offs, red), edit (edits and notes, grey). A few notes name a
+   step more exactly than the type does. */
+const MV_VERB = { receive: "Received", pull: "Pulled", move: "Moved", stage: "Staged", deliver: "Delivered", cut: "Cut", reading: "Reading", adjust: "Corrected", checkout: "Checked out", checkin: "Checked in", return: "Returned", writeoff: "Written off", edit: "Edited", pickup: "Picked up", note: "Note" };
+const MV_FAM = { receive: "in", checkin: "in", return: "in", pull: "out", stage: "out", pickup: "out", deliver: "out", checkout: "out", move: "out", reading: "fix", cut: "fix", adjust: "fix", writeoff: "off", edit: "edit", note: "edit" };
+function mvKind(m) {
+  const n = String(m.note || ""), t = m.type;
+  if (t === "move" && /^Brought back/i.test(n)) return { verb: "Brought back", fam: "in" };
+  if (t === "edit" && /^Audit of /i.test(n)) return { verb: "Audited", fam: "in" };
+  if (t === "adjust" && /^Installed at /i.test(n)) return { verb: "Installed", fam: "out" };
+  if (t === "adjust" && /^Serialized/i.test(n)) return { verb: "Serialized", fam: "edit" };
+  if (/^Arrived at /i.test(n)) return { verb: "Arrived", fam: MV_FAM[t] || "edit" };
+  /* an older pull row that put stock from a bay back on a shelf */
+  if (t === "pull" && m.fromLocationId && m.toLocationId && !pullableLoc(m.fromLocationId) && pullableLoc(m.toLocationId)) return { verb: "Moved", fam: "out" };
+  return { verb: MV_VERB[t] || MV_LABEL[t] || t, fam: MV_FAM[t] || "edit" };
+}
+/* the right-hand number: + into the shop, - toward a job, the stored sign
+   for corrections and write-offs; plain for a move or an arrival, which
+   change where stock is, not how much; none for edits and notes */
+function mvSigned(m, k) {
+  if (k.fam === "edit" || m.qty == null) return "";
+  const n = m.type === "cut" && m.cut ? -num(m.cut.length) : num(m.qty);
+  if (!n) return "";
+  const ft = m.unit === "ft" ? " ft" : "", a = fmtN(Math.abs(n)) + ft;
+  if (k.verb === "Moved" || k.verb === "Arrived") return a;
+  const sign = k.fam === "in" ? "+" : k.fam === "out" ? "-" : n > 0 ? "+" : "-";
+  return sign + a;
+}
+/* mvWhat without what the heading and the quantity now carry */
+function mvSentence(m, verb) {
+  const t = m.type, bits = [];
+  let s = m.productName || "";
+  if (m.containerLabel) bits.push("box " + m.containerLabel);
+  if (m.itemLabel) bits.push("unit " + m.itemLabel);
+  if (m.cut) bits.push("marks " + fmtN(m.cut.fromMark) + " to " + fmtN(m.cut.toMark) + " ft");
+  if (bits.length) s += (s ? ", " : "") + bits.join(", ");
+  const sp = () => (s ? " " : "");
+  if (m.fromLocationName) s += sp() + "from " + m.fromLocationName;
+  if (m.toLocationName) s += sp() + (t === "edit" ? "" : t === "receive" ? "into " : t === "adjust" || t === "reading" || t === "note" || t === "cut" ? "at " : "to ") + m.toLocationName;
+  if (m.holderName && t === "checkout") s += sp() + "to " + m.holderName;
+  let n = String(m.note || "").trim();
+  if (n && m.ticketNumber) n = n.split(", job #" + m.ticketNumber).join("");
+  /* the job once: a note that still names it ("Job #1042 created") carries it */
+  const noteJob = m.ticketNumber && n.toLowerCase().includes("job #" + String(m.ticketNumber).toLowerCase());
+  if (m.jobName && !noteJob) s += (s ? ", " : "") + "for " + m.jobName;
+  if (m.ticketNumber && !noteJob) s += (s ? ", " : "") + "job #" + m.ticketNumber;
+  if (n && verb) { const v = new RegExp("^" + verb.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "[:,]?\\s+", "i"); if (v.test(n)) { n = n.replace(v, ""); n = n.charAt(0).toUpperCase() + n.slice(1); } }
+  if (/^between locations\.?$/i.test(n)) n = "";
+  if (n) s += (s ? ". " : "") + n;
+  s = s.charAt(0).toUpperCase() + s.slice(1);
+  return s && !/[.!?]$/.test(s) ? s + "." : s;
+}
+/* a unit's open-ended first entry on its history */
+function unitNowText(it) {
+  const t = it.ticketId ? S.tickets.get(it.ticketId) : null, job = t ? "job #" + t.number : it.jobName || "";
+  const at = it.locationId ? locName(it.locationId) : "no location", since = d => (toDate(d) ? ", since " + fmtDate(d) : "");
+  if (it.status === "checked_out") return "With " + (it.holderName || "someone") + (job ? ", " + job : "") + since(it.checkedOutAt);
+  if (it.status === "installed") return "Installed" + (it.jobName ? " at " + it.jobName : "") + (t ? ", job #" + t.number : "");
+  if (it.status === "retired") return "Retired" + since(it.updatedAt);
+  if (it.status === "staged") return "Staged in " + at + (job ? " for " + job : "") + since(it.updatedAt || it.createdAt);
+  if (it.status === "returned") return "Back from a site at " + at + ", waiting for a look" + since(it.checkedInAt || it.updatedAt);
+  return "In stock at " + at + since(it.checkedInAt || it.updatedAt || it.createdAt);
 }
 function statusPill(st) { return pill("unit", st); }
 function whereItem(i) {
@@ -5794,7 +6070,7 @@ function openProductForm(p, prefill = {}) {
     f("description", "Description") +
     '<div class="grid2">' + f("upc", "UPC", "Learned the first time a box is scanned. Type it only if you have it in front of you.", "text", ' inputmode="numeric"') +
     '<div><label class="lab" for="pf_def" title="Where Check in and Receive point first">' + "<abbr>Default location</abbr></label><select class=\"fld\" id=\"pf_def\">" + locOptions(d.defaultLocationId, { blankLabel: "None" }) + "</select></div></div>" +
-    '<div class="grid2"><div><label class="chk" title="Consumables show on the Consumables tab and go Low below their par level."><input type="checkbox" id="pf_cons"' + (d.consumable ? " checked" : "") + "> Consumable</label></div>" +
+    '<div class="grid2"><div><label class="chk" title="Consumables show under Consumables only on Shelf and go Low below their par level."><input type="checkbox" id="pf_cons"' + (d.consumable ? " checked" : "") + "> Consumable</label></div>" +
     f("parLevel", "Par level", "Reorder point in the product's unit. Below this the product shows as Low.", "number", ' min="0" step="any"') + "</div>" +
     (S.general.showCosts ? '<div><label class="lab" for="pf_lastCost" title="Used for the QR threshold: units received at or above the threshold in Settings get their own QR.">' + '<abbr>Last cost</abbr></label><div class="money"><input class="fld" id="pf_lastCost" data-money inputmode="decimal" value="' + (d.lastCost != null ? num(d.lastCost).toFixed(2) : "") + '"></div></div>' : "") +
     '<details class="more"' + (ATTR_FIELDS.some(([k]) => d[k]) ? " open" : "") + '><summary>Attributes</summary><div class="grid3">' + ATTR_FIELDS.map(([k, l, t]) => f(k, l, "", t || "text")).join("") + "</div></details>" +
@@ -5959,7 +6235,7 @@ function renderOrder() {
   h += '<h4 class="h4" style="margin-top:18px">Shipments</h4>' + (ships.length ? '<div class="ships">' + ships.map(s => shipCardHTML(o, s)).join("") + "</div>" : '<p class="hint" style="margin-top:0">No shipments yet.' + (W && !draft && o.status !== "cancelled" ? " Add one when the vendor sends tracking." : draft ? " Shipments come after Mark ordered." : "") + "</p>");
   h += "</div>";
   const tl = orderTimeline(o);
-  h += '<div class="mcard"><h4>Timeline</h4>' + (tl.length ? timelineHTML(tl.slice(0, 30)) : '<p class="hint">Nothing has happened on this PO yet.</p>') + "</div>";
+  h += '<div class="mcard"><h4>Timeline</h4>' + (tl.length ? timelineHTML(tl, { key: "po:" + o.id }) : '<p class="hint">Nothing has happened on this PO yet.</p>') + "</div>";
   el.innerHTML = h;
   wireGlow(el);
   if (!S.ordHist[o.id]) { S.ordHist[o.id] = "loading"; DB.movementsWhere("orderId", o.id).then(list => { S.ordHist[o.id] = list; if (S.view === "order") scheduleRender(); }).catch(() => { S.ordHist[o.id] = []; }); }
@@ -6045,7 +6321,7 @@ function openPoAddLine(o) {
   $("#paProd", w).addEventListener("input", () => { const p = find(); $("#paHint", w).textContent = p ? qtyTxt(p, onHandOf(p)) + " on hand" + (p.unit === "ft" ? ". Quantity is in feet." : ".") : ""; if (p) $("#paQty", w).value = reorderQty(p); });
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const p = find(), q = num($("#paQty", w).value), e = $("#paErr", w);
-    if (!p) { e.textContent = "Pick a product from the list. New products are added under Stock first."; e.hidden = false; return; }
+    if (!p) { e.textContent = "Pick a product from the list. New products are added under Shelf first."; e.hidden = false; return; }
     if (!(q > 0)) { e.textContent = "Type a quantity above zero."; e.hidden = false; return; }
     const r = draftOps(o, [{ p, qty: q }], null); closeModal(w);
     if (await commitChunks(r.ops, poLabel(o))) toast(productName(p) + " added to " + (o.number ? "PO " + o.number : "the draft"));
@@ -6574,7 +6850,7 @@ function curHash() {
   if (v === "order") return "#order/" + e(S.orderId || "");
   /* 0.8.0 (PLAN 18): the new words in the address; the old ones still open (routeAlias) */
   if (v === "tickets") return "#jobs";
-  if (v === "stock") return S.x && S.x.kind === "p" ? "#shelf/p/" + e(S.x.id) : S.x && S.x.kind === "l" ? "#shelf/l/" + e(S.x.id) : S.stockTab === "all" ? "#shelf" : "#shelf/" + S.stockTab;
+  if (v === "stock") return S.x && S.x.kind === "p" ? "#shelf/p/" + e(S.x.id) : S.x && S.x.kind === "l" ? "#shelf/l/" + e(S.x.id) : S.stockTab === "all" || S.stockTab === "consumables" ? "#shelf" : "#shelf/" + S.stockTab; /* 0.9.1: Consumables only is a session filter, kept out of the address like the others */
   if (v === "items") return S.x && S.x.kind === "i" ? "#shelf/units/i/" + e(S.x.id) : "#shelf/units/" + S.itemsTab;
   if (v === "office") return "#office" + (S.officeSec ? "/" + S.officeSec + (S.officeSec === "reports" ? "/" + S.repTab : "") : "");
   if (v === "pickup" || v === "deliver") return "#" + v + (S.flowJob ? "/" + e(S.flowJob) : "");
@@ -6599,6 +6875,7 @@ function xClose() {
 function stockShows(p) {
   const q = S.search.trim().toLowerCase();
   if (!matchesSearch(p, q)) return false;
+  if (!sfPass(p) && S.stockTab !== "out" && S.stockTab !== "locations") return false;
   if (S.stockTab === "all") return true;
   if (S.stockTab === "low") return isLow(p);
   if (S.stockTab === "out") return false;
@@ -6609,7 +6886,7 @@ function stockShows(p) {
 function navProduct(id) {
   const p = S.products.get(id); if (!p && S.loaded.products) { toast("That product is not in the catalog.", true); return; }
   closeAllModals(); if (S.view === "scan") stopCamera();
-  S.view = "stock"; if (!p || !stockShows(p)) { S.stockTab = "all"; S.search = ""; }
+  S.view = "stock"; if (!p || !stockShows(p)) { S.stockTab = "all"; S.search = ""; S.sf = { cat: "", type: "", brand: "", loc: "" }; }
   xSet("p", id); setHash(); render(true); scrollToX();
 }
 function navItem(id) {
@@ -6631,7 +6908,9 @@ function xDraft(rec, keys) {
 function xHistHTML() {
   if (!S.x.showHist) return "";
   const h = S.x.hist;
-  return '<div class="sect"><h4 class="h4">History</h4>' + (h == null || h === "loading" ? '<p class="loadmsg">Loading history</p>' : h === "error" ? '<p class="err">Could not load the history. Check your connection and try again.</p>' : h.length ? timelineHTML(h) : '<p class="hint">Nothing has moved yet.</p>') + "</div>";
+  /* 0.9.1: a unit's history opens on where it is now */
+  const it = S.x.kind === "i" ? S.items.get(S.x.id) : null, now = it ? unitNowText(it) : null;
+  return '<div class="sect"><h4 class="h4">History</h4>' + (h == null || h === "loading" ? '<p class="loadmsg">Loading history</p>' : h === "error" ? '<p class="err">Could not load the history. Check your connection and try again.</p>' : h.length || now ? timelineHTML(h, { key: S.x.kind + ":" + S.x.id, now }) + (h.length ? "" : '<p class="hint">Nothing has moved yet.</p>') : '<p class="hint">Nothing has moved yet.</p>') + "</div>";
 }
 function xLoadHist() {
   const x = S.x; if (!x) return;
@@ -6641,7 +6920,7 @@ function xLoadHist() {
     const fields = x.kind === "p" ? [["productId"]] : x.kind === "i" ? [["itemId"]] : [["toLocationId"], ["fromLocationId"]];
     Promise.all(fields.map(([f]) => DB.movementsWhere(f, x.id))).then(lists => {
       const m = new Map(); lists.forEach(l => l.forEach(v => m.set(v.id, v)));
-      if (S.x === x) { x.hist = Array.from(m.values()).sort((a, b) => (toDate(b.at) || 0) - (toDate(a.at) || 0)).slice(0, 25); scheduleRender(); }
+      if (S.x === x) { x.hist = Array.from(m.values()).sort((a, b) => (toDate(b.at) || 0) - (toDate(a.at) || 0)); scheduleRender(); }
     }).catch(() => { if (S.x === x) { x.hist = "error"; scheduleRender(); } });
   }
   render(true);
@@ -6662,7 +6941,7 @@ function productPanel(p) {
       fi("parLevel", "Par level", "Reorder point in the product's unit. Below this the product shows as Low and joins the low-stock list.", ' type="number" min="0" step="any" inputmode="decimal"') +
       '<div><label class="lab" for="xf_defaultLocationId" title="Where Check in, Receive, and Reorder point first">' + '<abbr>Default location</abbr></label><select class="fld" id="xf_defaultLocationId" data-xf="defaultLocationId">' + locOptions(d.defaultLocationId, { blankLabel: "None" }) + "</select></div>" +
       '<div><label class="lab" for="xf_upc" title="Learned the first time a box is scanned. Set by scan opens Scan and takes the next barcode.">' + '<abbr>UPC</abbr></label><div class="upcrow"><input class="fld mono" id="xf_upc" data-xf="upc" inputmode="numeric" value="' + esc(d.upc) + '"><button type="button" class="btn sm" data-act="xupc" data-id="' + esc(p.id) + '">Set by scan</button></div></div>' +
-      '<div><label class="chk" title="Consumables show on the Consumables tab and go Low below their par level."><input type="checkbox" id="xf_consumable" data-xf="consumable"' + (d.consumable === true || d.consumable === "true" ? " checked" : "") + "> Consumable</label></div>" +
+      '<div><label class="chk" title="Consumables show under Consumables only on Shelf and go Low below their par level."><input type="checkbox" id="xf_consumable" data-xf="consumable"' + (d.consumable === true || d.consumable === "true" ? " checked" : "") + "> Consumable</label></div>" +
       (S.general.showCosts ? '<div><label class="lab" for="xf_lastCost" title="Used for the QR threshold: units received at or above the threshold in Settings get their own QR.">' + '<abbr>Last cost</abbr></label><div class="money"><input class="fld" id="xf_lastCost" data-xf="lastCost" data-money inputmode="decimal" value="' + esc(d.lastCost) + '"></div></div>' : "") + "</div>" +
       '<details class="more"' + (S.x.attrOpen ? " open" : "") + ' data-xattr><summary>Type, description, and attributes</summary><div class="xgrid">' +
       '<div><label class="lab" for="xf_kind">Kind</label><select class="fld" id="xf_kind" data-xf="kind">' + KINDS.map(k => '<option value="' + k + '"' + (d.kind === k ? " selected" : "") + ">" + KIND_LABEL[k] + "</option>").join("") + "</select></div>" +
@@ -6695,7 +6974,7 @@ function productActions(p, where) {
   if (!scan && W && onShelf) a.push(B("serialize", "Serialize", "Give units already on the shelf their own QR so each one can be checked out and followed"));
   if (!scan && W) a.push(B("reorder", "Reorder", "Puts it on a draft purchase order for stock"));
   if (!scan) a.push('<button type="button" class="btn" data-act="printOne" data-kind="prod" data-id="' + id + '">Print label</button>');
-  a.push(scan ? B("product", "Open details", "Opens the product on Stock with every action and its history") : '<button type="button" class="btn" data-act="xhist" aria-pressed="' + !!(S.x && S.x.showHist) + '">Show history</button>');
+  a.push(scan ? B("product", "Open details", "Opens the product on Shelf with every action and its history") : '<button type="button" class="btn" data-act="xhist" aria-pressed="' + !!(S.x && S.x.showHist) + '">Show history</button>');
   return a.join("");
 }
 function unitActions(it, where) {
@@ -8620,7 +8899,7 @@ function buildImportPlan(imp) {
     const pulled = kind === "device" && !!(pullDate || pullFor);
     /* lessons 9 and 10: Condition, a serial or MAC, or a pull makes serialized units */
     if (kind === "device" && (cond || serRaw || pulled)) {
-      if (S.stock.has(pid + "__" + locId) && num(S.stock.get(pid + "__" + locId).qty) > 0) warnings.push(where + " now makes serialized units, and the same product already has a shelf count there from an earlier import. Check it on Stock so it is not counted twice.");
+      if (S.stock.has(pid + "__" + locId) && num(S.stock.get(pid + "__" + locId).qty) > 0) warnings.push(where + " now makes serialized units, and the same product already has a shelf count there from an earlier import. Check it on Shelf so it is not counted twice.");
       /* a MAC is 12 hex characters once a leading "(AV)" style tag and separators are set aside; anything else is a serial, kept as typed */
       const mac = serRaw ? macOf(serRaw) : "", serial = serRaw && !mac ? serRaw : "";
       const tail = mac ? hexOnly(mac).toUpperCase().slice(-6) : serial.replace(/[^0-9a-z]/gi, "").toUpperCase().slice(-6);
@@ -8929,6 +9208,16 @@ document.addEventListener("click", e => {
     /* 0.6.0: the ... sheet of a card footer, the phone Filters sheet, a search field's clear button */
     case "moreActs": openMoreActs(b.closest(".acts")); break;
     case "filters": openFilters(b.dataset.fk); break;
+    /* 0.9.1: a timeline's Show older reveals 20 more already loaded, and focus lands on the first of them */
+    case "tlMore": {
+      const n0 = Math.max(TL_FIRST, S.tlN[id] || 0); S.tlN[id] = n0 + TL_MORE; render(true);
+      const box = document.querySelector('.tl[data-k="' + CSS.escape(id) + '"]'), li = box && box.querySelectorAll("li.tle:not(.now)")[n0];
+      if (li) { li.tabIndex = -1; li.focus(); }
+      break;
+    }
+    /* 0.9.1 (PLAN 21.1): Shelf filters, a chip's remove control, and Clear filters */
+    case "sfRm": sfRemove(id); break;
+    case "sfClear": sfClear(true); break;
     case "clearSearch": { const f = document.getElementById(b.dataset.for); if (f) { f.value = ""; f.dispatchEvent(new Event("input", { bubbles: true })); f.focus(); } break; }
     case "retry": if (DB && DB.retry) DB.retry(b.dataset.coll); render(true); break;
     case "go": closeAllModals(); go(b.dataset.view, b.dataset.sub); break;
@@ -9027,7 +9316,6 @@ document.addEventListener("click", e => {
     case "a2Hide": a2Dismiss(b.dataset.k); paintA2(); if (S.view === "office") render(true); break;
     case "a2How": a2Dismiss("strip"); paintA2(); go("office"); break;
     case "a2Back": a2Reset(); break;
-    case "a2Copy": a2CopyAddr(); break;
     case "xupc": { const p = P(); if (!p) break; S.x = null; S.pendingUpcFor = p.id; go("scan"); toast("Scan the barcode on the box for " + productName(p)); break; }
     case "adjust": openAdjust(P()); break;
     case "serialize": openSerialize(P()); break;
@@ -9085,6 +9373,7 @@ document.addEventListener("change", e => {
   const t = e.target;
   if (t.id === "photoFile") { const f = t.files && t.files[0], p = S.photoFor && S.products.get(S.photoFor); S.photoFor = null; if (f && p) doSetPhoto(p, f).then(ok => ok && toast("Photo saved")); return; }
   if (t.dataset && t.dataset.flowchk && S.flow) { if (t.checked) S.flow.off.delete(t.dataset.flowchk); else S.flow.off.add(t.dataset.flowchk); render(true); return; }
+  if (t.dataset && t.dataset.sf) { sfSet(t.dataset.sf, t.type === "checkbox" ? t.checked : t.value); return; }
   if (t.dataset && t.dataset.rr) { S.rr = Object.assign({}, rrGet(), { [t.dataset.rr]: t.value }); render(true); }
   else if (t.dataset && t.dataset.rf) { S.rf[t.dataset.rf] = t.value; render(true); }
   else if (t.dataset && t.dataset.mf && t.tagName === "SELECT") { S.mvFilter[t.dataset.mf] = t.value; scheduleRender(); }
@@ -9119,7 +9408,7 @@ function applyHash() {
   if (v === "pull") S.pullJob = sub || null;
   if (v === "audit") { S.auditLoc = sub || null; if (!sub) S.aud = null; }
   S.x = null;
-  if (v === "stock") { if (sub === "p" && rest) { xSet("p", rest); const p = S.products.get(rest); if (S.stockTab === "locations" || !p || !stockShows(p)) { S.stockTab = "all"; S.search = ""; } } else if (sub === "l" && rest) { S.stockTab = "locations"; xSet("l", rest); } else if (sub) S.stockTab = sub; }
+  if (v === "stock") { if (sub === "p" && rest) { xSet("p", rest); const p = S.products.get(rest); if (S.stockTab === "locations" || !p || !stockShows(p)) { S.stockTab = "all"; S.search = ""; S.sf = { cat: "", type: "", brand: "", loc: "" }; } } else if (sub === "l" && rest) { S.stockTab = "locations"; xSet("l", rest); } else if (sub) S.stockTab = sub; }
   if (v === "items") { if (sub === "i" && rest) { S.itemsTab = "all"; xSet("i", rest); } else if (sub) S.itemsTab = sub; }
   if (v === "ticket") { S.ticketId = sub || null; if (DB) DB.syncLines(); }
   if (v === "order") { S.orderId = sub || null; if (DB && DB.syncOrderLines) DB.syncOrderLines(); }
@@ -9150,15 +9439,24 @@ window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); A2.evt
 window.addEventListener("appinstalled", () => { A2.evt = null; A2.installed = true; paintA2(); if (S.view === "office") render(true); });
 const SHARE_SVG = '<svg class="shareic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
 function a2Standalone() { try { return A2.installed || matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; } catch (e) { return false; } }
+/* 0.9.1: the tip is for phones and tablets only. Desktop Chrome and Edge
+   fire beforeinstallprompt too, so the event alone no longer decides; a
+   narrow desktop window does not count as a phone either. A2.evt stays
+   stored for a2Prompt. */
+function a2Ios() { const ua = navigator.userAgent || ""; return /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); }
+function a2Handheld() {
+  if (a2Ios() || /Android/i.test(navigator.userAgent || "")) return true;
+  try { return matchMedia("(pointer:coarse)").matches; } catch (e) { return false; }
+}
+/* Office > This phone is listed only here: a phone or tablet, or the demo's &install= forcing a state */
+function a2Device() { return A2.force ? A2.force !== "none" : a2Handheld(); }
 /* prompt: Chrome's own dialog; ios: the Share steps; menu: another phone browser; none: nothing to offer */
 function a2Mode() {
   if (A2.force) return A2.force === "home" ? "none" : A2.force;
-  if (a2Standalone() || BOARD) return "none";
+  if (a2Standalone() || BOARD || !a2Handheld()) return "none";
   if (A2.evt) return "prompt";
-  const ua = navigator.userAgent || "";
-  if (/iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) return "ios";
-  if (matchMedia("(max-width:640px)").matches || matchMedia("(pointer:coarse)").matches) return "menu";
-  return "none";
+  if (a2Ios()) return "ios";
+  return "menu";
 }
 function a2Off(k) { try { return localStorage.getItem("loadout.a2hs." + k) === "1"; } catch (e) { return false; } }
 function a2Dismiss(k) { try { localStorage.setItem("loadout.a2hs." + k, "1"); } catch (e) {} A2.hidden = Object.assign({}, A2.hidden, { [k]: true }); }
@@ -9188,21 +9486,12 @@ function phoneHTML() {
   let h;
   if (m === "prompt") h = why + '<div class="btnrow"><button type="button" class="btn acc" data-act="a2Add" title="Opens the browser\'s own install dialog. Nothing is added until you confirm there.">Add to home screen</button></div>';
   else if (m === "ios") h = why + "<ol><li>Tap Share " + SHARE_SVG + " in Safari's toolbar.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li></ol>";
-  else if (m === "menu") h = why + "<p>Open the browser menu and pick Add to Home screen or Install app.</p>";
-  else h = "<p>Open this address on your phone, then come back here.</p>" +
-    '<code class="addr" id="a2Addr">' + esc(a2Addr()) + "</code>" +
-    '<div class="btnrow"><button type="button" class="btn" data-act="a2Copy" title="Copies the address so you can send it to your phone by text or email.">Copy address</button></div>';
+  else h = why + "<p>Open the browser menu and pick Add to Home screen or Install app.</p>";
   /* the tip only comes back on a phone, so the button shows only where it can */
   const gone = [a2Hidden("strip") && "the tip under the header", a2Hidden("card") && "the card on Office"].filter(Boolean);
   if (m !== "none" && gone.length)
     h += '<div class="again"><p class="hint">' + gone.join(" and ").replace(/^t/, "T") + (gone.length > 1 ? " were" : " was") + ' dismissed on this device.</p><div class="btnrow"><button type="button" class="btn" data-act="a2Back" title="Brings back the tip under the header and the card at the top of Office on this device.">Show the tip again</button></div></div>';
   return '<div class="phonesec">' + h + "</div>";
-}
-/* the app's own address, without the demo or any other query */
-function a2Addr() { return location.origin + location.pathname; }
-async function a2CopyAddr() {
-  try { await navigator.clipboard.writeText(a2Addr()); toast("Address copied"); }
-  catch (e) { toast("Copy did not work here. Select the address and copy it.", true); }
 }
 function a2Reset() {
   try { localStorage.removeItem("loadout.a2hs.strip"); localStorage.removeItem("loadout.a2hs.card"); } catch (e) {}
