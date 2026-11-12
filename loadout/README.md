@@ -23,7 +23,7 @@ Current version: **0.10.0**.
 | `manifest.json` | Add to Home Screen: standalone, named Loadout, opens on Home (`start_url` `./#home`). |
 | `sw.js` | Service worker: keeps the app shell, the zxing barcode fallback, and the Firebase modules on the device so Loadout opens with no signal. The cache name carries the version. |
 | `og-image.svg`, `og-image.png` | Link preview card in the house style. |
-| `PLAN.md`, `design-preview.html`, `storyboard.html` | Plan, design switcher, and the owner's storyboard. |
+| `PLAN.md`, `design-preview.html`, `storyboard.html` | Plan, design switcher, and the owner's storyboard. The storyboard opens on In pictures (a nine-panel comic, the flow chart, and a sheet per role), then Overview, Test drive, Storyboard (26 sketches in the comic's order), SOP, and Tech spec; `?tab=`, `?print=1`, `?all=1`, and `?sheet=<role>` pick what it shows and prints. |
 | `simple-preview.html` | The 0.8.0 Simple mode switcher (PLAN 18): option A, three doors, and the word Pull sheet, as approved. |
 | `samples/` | Real data for testing the importer. Git-ignored; never commit it. |
 
@@ -406,8 +406,11 @@ its address, and on Home already it scrolls back to the top.
   were done and offers Run it again, which only touches products still
   carrying the old value. Both need a connection, and say so when offline.
   **About**:
-  the data dictionary for every collection, rendered from `DATA_DICTIONARY`
-  in the code, with the readability rules. **Export everything**: every
+  the version, then **How Loadout works** (0.12.0, PLAN 29.3), one row for
+  every role that opens `storyboard.html?tab=pictures` (the nine-panel comic
+  and the flow chart) in a new tab, then the data dictionary for every
+  collection, rendered from `DATA_DICTIONARY` in the code, with the
+  readability rules. **Export everything**: every
   collection as one workbook or as zipped CSVs, file names stamped with the
   date and time. **Backups** (0.6.1): the nightly copies loadout-worker
   writes to the project's Storage bucket, newest day first with a status
@@ -1196,6 +1199,34 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.12.0 (2026-11-12)
+
+The storyboard's pictures no longer matched the app: most of its sketches
+were drawn before 0.8.0, with menus and screens that have since moved. The
+owner also asked for the whole process in a form anyone in the shop can take
+in at a glance, without reading the procedures.
+
+- **In pictures**, the storyboard's new first tab and the page it opens on.
+  A nine-panel comic follows one job from the client's yes to the shelf
+  audit, with the same three people throughout (Office, Warehouse, Tech),
+  each step's title in its door color, and the real screen element of that
+  step on the phone or monitor. Each panel's title opens the same step in
+  the Storyboard. Under it, the flow chart in three lanes, with the side
+  path for what is short, the way back from a van, the audit loop, and one
+  strip, Where the product is: Shelf, Bay, Van, Client. The comic and the
+  chart print on one page each.
+- **Your job in Loadout.** One sheet per role (Warehouse, Tech, Office,
+  Accounting): the doors and screens that role uses, in order. Pick a role
+  and print its sheet for the wall or the van.
+- **The storyboard, redrawn.** All 15 sketches were checked against the
+  demo; ten were redrawn and eleven added (Home and its doors, the board on
+  a phone, the Pull screen, Receive a shipment, Confirm a delivery, Close
+  job, Audit a shelf, Shelf with its filters, the photo sheet, the Job
+  report, and the account block). The 26 panels follow the comic's order and
+  each ends with a link to its procedure. The Overview opens with the chart.
+- **How Loadout works** under Office (More for techs), About opens the
+  comic and the chart in a new tab, so anyone can find them from the phone.
 
 ### 0.11.1 (2026-11-11)
 

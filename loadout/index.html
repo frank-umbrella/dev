@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.11.1</title>
+<title>Loadout v0.12.0</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.11.1">
+<meta name="loadout-version" content="0.12.0">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -1010,6 +1010,9 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
 .dict .pd{margin:0 0 6px}
 .dict .tbl td:first-child{font-family:var(--m-mono);font-size:12.5px;width:30%}
 .about p{max-width:78ch}
+/* 0.12.0 (PLAN 29.3): the How Loadout works row, button then its one line */
+.abouthow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:14px 0 4px;padding:12px 0;border-top:1px solid var(--m-line);border-bottom:1px solid var(--m-line)}
+.abouthow .hint{margin:0}
 /* ---------- Console > Backups (0.6.1) ----------
    The status line, then the days; a day opens in place to its files.
    The failed-run line uses the warn treatment of a late package card:
@@ -1469,7 +1472,7 @@ a.textbtn{display:inline-flex;align-items:center}
     <!-- 0.10.0: the mark and name are one link to the person's Home; a relative hash keeps the demo's query string -->
     <a class="brand" href="#home" id="brandHome" aria-label="Loadout, go to Home">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.11.1</span>
+      Loadout <span class="v" id="verBadge">v0.12.0</span>
     </a>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
@@ -1508,7 +1511,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.11.1</span>
+    <span id="footVer">Loadout v0.12.0</span>
   </footer>
 
   <nav class="tabbar" aria-label="Views">
@@ -1534,7 +1537,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.11.1";
+const VERSION = "0.12.0";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -2409,7 +2412,9 @@ const TIPS = {
   "ntAdd": "Adds this product to the list, or one more if it is already on it.",
   "submit:plScanForm": "Uses the scanned or typed code: a shelf picks the location, a unit ticks that unit, and the UPC confirms the product.",
   "submit:rsScanForm": "Counts one for the line with this UPC; the first scan of a line starts it at 1.",
-  "submit:manualForm": "Looks up the typed code as if it were scanned."
+  "submit:manualForm": "Looks up the typed code as if it were scanned.",
+  /* 0.12.0 (PLAN 29.3) */
+  "aboutHow": "Opens the comic and the flow chart in a new tab: the whole process, shelf to client, on two printable pages."
 };
 /* no tooltip on a plain way out of a sheet or a step */
 const TIP_PLAIN = /^(cancel|close|back|done|next|keep working)$/i;
@@ -9818,6 +9823,9 @@ const DATA_DICTIONARY = [
 function aboutHTML() {
   return '<div class="about"><p style="margin-top:0"><b>Loadout v' + esc(VERSION) + '.</b> The shop\'s inventory: shelf counts, wire boxes, serialized units, jobs, and purchase orders, in Firestore project watchtower-6fbe1. ' +
     "Each person's table layouts are saved on their own /users/{uid} document under loadoutLayout.</p>" +
+    /* 0.12.0 (PLAN 29.3): every role reaches the comic and the flow chart from the phone */
+    '<div class="abouthow"><a class="btn" href="storyboard.html?tab=pictures" target="_blank" rel="noopener" data-tk="aboutHow">How Loadout works</a>' +
+    '<p class="hint">The nine-panel comic and the flow chart.</p></div>' +
     '<h4 class="h4" style="margin-top:16px">Readability rules</h4>' +
     "<p>The data has to read without the app. Collections are flat with plain English names, one per kind of thing, nested at most one level (job and order lines). Field names are English words; qty, ft, and id are the only abbreviations. " +
     "Every record that points at another carries the readable name beside the id, written at the moment of the change, so a row reads on its own in the database console or a CSV; names are snapshots, and renaming a client does not rewrite history. " +

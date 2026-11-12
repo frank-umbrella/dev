@@ -862,6 +862,7 @@ Build T0 first. T1 and T2 are worker work and need the plan tier known.
 | 0.10.0 | Section 21.4 Photo from a UPC (the sheet after every UPC save, Find a photo, Review photos after an import, the demo fixtures; needs loadout-worker 0.3.0 deployed), 22.1 New job made plain (two choices, three hand-built steps, "Here is what the file says"; the same writes as 0.9.1), 22.2 More for techs (`officeWord()`), 23 the Job report, 24 the account block in the header and the Account sheet. Built 2026-11-11, not committed, no rules change. |
 | 0.11.0 | Section 25: Brand and Category as pick lists (comboboxes) on New product and the product panel, Type with suggestions by category, the admin's Add confirm with `tidyName`, the refusal for other roles, `normKey` in the Shelf filters, the Stock report by category, the inventory importer and the proposal file reader, `loadout_settings/lists`, and Office > Settings > Brands and categories (Rename, Merge into, Probably the same, Look alike, batches of 400). Built 2026-11-11, not committed, no rules change. |
 | 0.11.1 | Section 27: the `TIPS` table (one sentence per action, keyed by action and a context word), `tipFor` in the panel builders, the fill pass in the MutationObserver for every button and button-styled link drawn as a string, the confirm sheets' button taking the sheet's own sentence, `Loadout.tipAudit()`, and What do these do? under action rows on a coarse pointer. Section 28: the Home link on the five door screens (28.1); Rename (admin, through the Brands and categories runner), Archive and Unarchive (admin, empty locations only), Show archived, the Kind tooltips, and the Settings line for locations (28.2). Built 2026-11-11, not committed, no rules change. |
+| 0.12.0 | Section 29: a documentation release. `storyboard.html` opens on a new In pictures tab (the nine-panel comic with the words of 29.1, the flow chart in three lanes with Where the product is, and Your job in Loadout, a printable sheet per role); every sketch checked against the demo, ten redrawn and eleven added, 26 panels in the comic's order, each linked to its SOP; the Overview opens with the chart. In the app only Office, About, How Loadout works (29.3) and the version. Built 2026-11-12, not committed, no rules change. |
 | 0.9.1 | Section 21.1 Shelf filters (Category from the product's own category, Type, Brand, Location, Consumables only; chips, the phone Filter sheet, session only) and 21.3 history as one vertical timeline everywhere; the home-screen strip, card, and Office > This phone on phones and tablets only; an odd last door spans both columns on Home; leftover "Stock" words. 21.2 stays an idea. Built 2026-11-11, not committed. |
 
 Each version is a release: bump the version everywhere, README changelog entry
@@ -2283,3 +2284,93 @@ Kind tooltips follow the code: a vehicle can be pulled from like a shelf,
 a van cannot, and neither counts a line as "in a van" (that is the line's
 picked-up quantity). New location now also refuses a name another location
 has, and a name whose label code belongs to a renamed location says so.
+
+## 29. Loadout in pictures: a comic, a flow chart, and a refreshed storyboard (user, 2026-11-12; build as 0.12.0)
+
+**Built in 0.12.0** (2026-11-12, not committed). The speech is HTML over the
+drawn bubble, sized in container units so it wraps the same at every width.
+The flow chart is one SVG with two layouts; below 900 px a script moves its
+boxes into three columns so no word drops under 12 px. Office steps (1, 4,
+8) have no door, so their band is the pale nav-on blue.
+
+The user asked for the storyboard and the flow chart to be improved and for
+a nine-panel comic strip that makes the process plain. The storyboard has
+been patched release after release; its captions are current but most of
+its 19 sketches were drawn before 0.8.0 and no longer look like the app.
+
+### 29.1 A new first tab: "In pictures"
+
+Two things, each printable on one page, for a person who will not read the
+rest.
+
+**The comic, nine panels, three by three** (one column on a phone). Flat
+drawn figures in charcoal polos and jeans, nobody in particular, named only
+by role. Each panel has a number, a short title on a band in that step's
+door color, one speech line, and one caption under it. Words are final:
+
+| # | Title | Who and what | Says | Caption |
+| --- | --- | --- | --- | --- |
+| 1 | A client says yes | Office, at a desk, the screen reads New job | "Client said yes. I will make the job." | A job is the list of product one install needs. |
+| 2 | The warehouse sees it | Warehouse, phone in hand, the Pull door reads 1 job to pull; the TV on the wall shows the job | "One to pull." | Home shows what is waiting behind each door. |
+| 3 | Pull | Warehouse at a shelf, box in hand, the phone button reads Pull 4 | "Four from Shelf B." | Shelf to the job's bay. Tap Pull and the count drops. |
+| 4 | Something is short | A pull sheet line marked Short 2; Office at the screen | "Two short. Ordering them." | Loadout says what the shelf cannot cover. |
+| 5 | The box arrives | Warehouse at the dock door with a carrier's box, the phone reads Receive | "It is here. Into Bay 2." | Receive a shipment puts it with the job. |
+| 6 | Pick up | Tech loading the charcoal van from the bay | "Loading Bay 2. It is on me now." | Bay to the van. From here it is in the tech's name. |
+| 7 | Deliver | Tech at the client's door with the box, the phone reads Confirm delivery | "Product on site." | Van to the client. Tap to confirm what arrived. |
+| 8 | Close the job | Office; a leftover box going back on the shelf | "Job is done. Leftovers go back." | Closing returns what was not used. |
+| 9 | Keep it honest | Warehouse counting a shelf, phone in hand | "Shelf says 12. I count 12." | Auditing one shelf at a time keeps every number true. |
+
+**The flow chart**, redrawn for print: three lanes (Office, Warehouse,
+Tech) with the steps in order, the two side paths (Order what is short,
+then Receive a shipment; Bring back), Audit as its own loop, and the TV
+board noted on Pull. Under it one strip, "Where the product is": Shelf,
+Bay, Van, Client, with the step that moves it written between each pair.
+That strip is the whole app in one line.
+
+### 29.2 The storyboard itself
+
+- Every sketch is checked against the live demo screen it claims to show
+  and redrawn where it no longer matches (Home with the doors and counts,
+  Pull, Pick up, Confirm a delivery, Receive, Audit, Shelf with filters,
+  the timeline, New job's two choices, the photo sheet, the Job report,
+  Office, the header account block, the TV board grid and its phone
+  layout). Same drawing style throughout.
+- "A day in the warehouse" follows the comic's order, so the comic is its
+  table of contents: each comic panel links to its storyboard panel, and
+  each storyboard panel to its SOP.
+- Overview opens with the flow chart small, then three sentences, then the
+  rest; nothing the comic already says is repeated at length.
+- A one-page "Your job in Loadout" sheet per role (warehouse, tech,
+  office, accounting): the doors that role uses, in order, one line each.
+
+### 29.3 In the app
+
+Office (More for techs), About gains "How Loadout works", opening the
+In pictures tab, so every role can find it from the phone.
+
+## 30. A training deck with real screenshots (user, 2026-11-12; build after 0.12.0)
+
+The user asked for a PowerPoint with actual screenshots of the flow so
+employees understand how Loadout will work.
+
+- **File:** `training/Loadout-how-it-works.pptx`, 16:9, plus the
+  screenshots it uses in `training/shots/`. Built with the pptx skill.
+- **Screenshots are real screens of the app in demo mode** (invented
+  clients and products, never the shop's data), captured by script at phone
+  size so they can be retaken after any release. The TV board and the Job
+  report are captured at desktop size.
+- **One idea per slide:** a phone screenshot on one side, a title that
+  names the step, and at most three short lines: what you do, what Loadout
+  does, what to watch for. The talk track goes in the speaker notes, so the
+  slides stay sparse and whoever presents has the words.
+- **Order (about 18 slides):** title; the whole thing in one line (Shelf,
+  Bay, Van, Client) with the flow chart; the comic; who does what; Home and
+  its doors; a job starts (New job); Pull for a job; when something is
+  short; Receive a shipment; the TV board; Pick up from staging; Out with
+  me; Confirm a delivery; Bring back; Close job; Audit a shelf; Shelf and
+  Scan (find anything); getting it on your phone and where to get help.
+- **Look:** the company's charcoal and blue with the app's door color as
+  the accent on each step's slide, so a slide's color matches the door the
+  person will tap. System fonts only, so it opens the same on any PC.
+- The app's About row "How Loadout works" gains a second link to the deck
+  once it exists.
