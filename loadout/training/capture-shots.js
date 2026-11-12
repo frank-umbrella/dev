@@ -34,6 +34,7 @@ const PHONE = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isM
 const TV = { viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1.5 };
 const DESK = { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1.5 };
 const PRINT = { viewport: { width: 1400, height: 1000 }, deviceScaleFactor: 1.5 };
+const COMIC = { viewport: { width: 1040, height: 1000 }, deviceScaleFactor: 2.7 };
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -178,19 +179,47 @@ async function serve(ctx) {
     } catch (e) { fails.push(name); console.warn("FAIL " + name + ": " + e.message.split("\n")[0]); }
     await ctx.close();
   }
-  /* the comic and the flow chart, from the storyboard's In pictures tab */
-  if (!ONLY || ONLY.includes("25-comic") || ONLY.includes("26-flow")) {
+  /* the comic, one row of three panels per picture, from the storyboard's
+     In pictures tab at a width where the grid is three by three (1024 px and
+     up); scale 2.7 gives about 2490 px across. Each crop is the three panels
+     with the same padding on every side. */
+  const ROWS = [["25a-comic-1-3", 0], ["25b-comic-4-6", 3], ["25c-comic-7-9", 6]];
+  if (!ONLY || ROWS.some(r => ONLY.includes(r[0]))) {
+    const ctx = await browser.newContext(Object.assign({ serviceWorkers: "block" }, COMIC));
+    await serve(ctx);
+    const page = await ctx.newPage();
+    await page.goto("http://loadout.test/storyboard.html?tab=pictures");
+    await page.addStyleTag({ content: HIDE_CSS });
+    await sleep(1200);
+    for (const [name, first] of ROWS) {
+      if (ONLY && !ONLY.includes(name)) continue;
+      try {
+        const box = await page.evaluate(([i, pad]) => {
+          const lis = Array.from(document.querySelectorAll("ol.comic > li")).slice(i, i + 3);
+          if (lis.length !== 3) throw new Error("comic panels not found");
+          const r = lis.map(li => li.getBoundingClientRect());
+          if (Math.abs(r[0].top - r[2].top) > 2) throw new Error("the comic is not three across at this width");
+          const x = Math.min(...r.map(b => b.left)) - pad, y = Math.min(...r.map(b => b.top)) + window.scrollY - pad;
+          const w = Math.max(...r.map(b => b.right)) + pad - (x), h = Math.max(...r.map(b => b.bottom)) + window.scrollY + pad - y;
+          const cap = parseFloat(getComputedStyle(lis[0].querySelector(".ccap")).fontSize);
+          return { x, y, width: w, height: h, cap };
+        }, [first, 12]);
+        await page.screenshot({ path: path.join(OUT, name + ".png"), fullPage: true, clip: { x: box.x, y: box.y, width: box.width, height: box.height } });
+        console.log("ok   " + name + " (" + Math.round(box.width) + " x " + Math.round(box.height) + " css px, caption " + box.cap + " px)");
+      } catch (e) { fails.push(name); console.warn("FAIL " + name + ": " + e.message.split("\n")[0]); }
+    }
+    await ctx.close();
+  }
+  /* the flow chart */
+  if (!ONLY || ONLY.includes("26-flow")) {
     const ctx = await browser.newContext(Object.assign({ serviceWorkers: "block" }, PRINT));
     await serve(ctx);
     const page = await ctx.newPage();
     await page.goto("http://loadout.test/storyboard.html?tab=pictures");
     await page.addStyleTag({ content: HIDE_CSS });
     await sleep(1200);
-    for (const [name, sel] of [["25-comic", "ol.comic"], ["26-flow", "#flow svg"]]) {
-      if (ONLY && !ONLY.includes(name)) continue;
-      try { await page.locator(sel).first().screenshot({ path: path.join(OUT, name + ".png") }); console.log("ok   " + name); }
-      catch (e) { fails.push(name); console.warn("FAIL " + name + ": " + e.message.split("\n")[0]); }
-    }
+    try { await page.locator("#flow svg").first().screenshot({ path: path.join(OUT, "26-flow.png") }); console.log("ok   26-flow"); }
+    catch (e) { fails.push("26-flow"); console.warn("FAIL 26-flow: " + e.message.split("\n")[0]); }
     await ctx.close();
   }
   await browser.close();

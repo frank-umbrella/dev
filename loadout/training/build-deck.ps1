@@ -129,7 +129,7 @@ function Add-Header($slide, $sd) {
 
 # the four places with the three moves between them, as native shapes
 function Add-Places($slide, $places, $moves, [double]$y, [string]$fill, [string]$text, [string]$line) {
-  $n = $places.Count; $gap = 100
+  $n = $places.Count; $gap = 140
   $bw = (($SW - 2 * $M) - ($n - 1) * $gap) / $n; $bh = 58
   $boxes = @()
   for ($i = 0; $i -lt $n; $i++) {
@@ -148,7 +148,7 @@ function Add-Places($slide, $places, $moves, [double]$y, [string]$fill, [string]
     $c.ConnectorFormat.EndConnect($boxes[$i + 1], 2)
     $c.Line.ForeColor.RGB = (Rgb $line); $c.Line.Weight = 2; $c.Line.EndArrowheadStyle = 2
     $c.Name = "Move " + $moves[$i]
-    $null = Add-Text $slide ("Label " + $moves[$i]) ($x1 - 6) ($y - 4) ($gap + 12) 26 $moves[$i] 20 $text $true 2
+    $null = Add-Text $slide ("Label " + $moves[$i]) ($x1 + 10) ($y - 2) ($gap - 20) 26 $moves[$i] 20 $text $true 2
   }
 }
 
@@ -193,6 +193,14 @@ function Build-Deck($app) {
         $sz = ImgSize $files[0]
         $h = $BOTTOM - 200; $w = $h * $sz[0] / $sz[1]
         $null = Add-Pic $slide $files[0] (($SW - $w) / 2) 200 $w $h $sd.alt[0]
+      }
+      "comic" {
+        # one row of the comic across the full content width, one line under it
+        Add-Header $slide $sd
+        $sz = ImgSize $files[0]
+        $w = $SW - 2 * $M; $h = $w * $sz[1] / $sz[0]
+        $null = Add-Pic $slide $files[0] $M 124 $w $h $sd.alt[0]
+        $null = Add-Text $slide "Where the comic lives" $M (124 + $h + 22) $w 34 $sd.footer 22 $CHAR $false 1
       }
       "roles" {
         Add-Header $slide $sd

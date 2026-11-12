@@ -33,17 +33,31 @@
       "notes": "Every piece of product is always in one of four places: on a shelf, in a job's bay, in a tech's van, or at the client. Pull moves it from the shelf to the bay, Pick up from the bay to the van, and Deliver from the van to the client. The chart shows who does each step: the office on top, the warehouse in the middle, the tech at the bottom. The dashed paths are the side trips, ordering what is short and bringing product back. The usual mistake is skipping a place, such as loading straight from the shelf into the van, and then no count matches."
     },
     {
-      "kind": "picture",
-      "title": "The comic: one job in nine panels",
+      "kind": "comic",
+      "title": "The comic: a job starts",
       "band": "blue",
-      "lines": [
-        ["Who", "Office, warehouse and tech, named only by role."],
-        ["Order", "The same order as this deck, start to finish."],
-        ["Find it", "Office (or More), About, How Loadout works."]
-      ],
-      "shots": ["25-comic.png"],
-      "alt": ["Nine-panel comic. 1 A client says yes. 2 The warehouse sees it. 3 Pull. 4 Something is short. 5 The box arrives. 6 Pick up. 7 Deliver. 8 Close the job. 9 Keep it honest, counting a shelf."],
-      "notes": "If you only remember one page, make it this one. The nine panels are the whole life of a job: the client says yes, the warehouse pulls it, something is short and gets ordered, the box arrives, the tech picks it up and delivers it, the office closes the job, and the warehouse keeps the shelves honest. The rest of this deck takes those panels one at a time with the real screens. The comic lives inside the app, so nobody needs this deck to find it again. People tend to skip panel 9; auditing a shelf is what keeps every other number right."
+      "footer": "The full page: Office, About, How Loadout works.",
+      "shots": ["25a-comic-1-3.png"],
+      "alt": ["Comic panels 1 to 3. Panel 1, A client says yes: the office at a desk with the New job screen says, Client said yes, I will make the job. Panel 2, The warehouse sees it: the warehouse with a phone reading Pull for a job, 1 job to pull, says, One to pull. Panel 3, Pull: the warehouse at Shelf B with a box and a Pull 4 button says, Four from Shelf B."],
+      "notes": "The comic tells one job from start to finish in nine panels, three per slide. Panel 1: a client says yes, and the office makes the job, because a job is the list of product one install needs. Panel 2: the warehouse sees it on Home, which shows what is waiting behind each door, and the TV on the wall shows the same job. Panel 3: the warehouse pulls it, shelf to the job's bay, and each tap on Pull drops the shelf count. The thing people miss here is that nothing moves until someone taps; the comic shows the tap every time."
+    },
+    {
+      "kind": "comic",
+      "title": "The comic: product comes together",
+      "band": "blue",
+      "footer": "The full page: Office, About, How Loadout works.",
+      "shots": ["25b-comic-4-6.png"],
+      "alt": ["Comic panels 4 to 6. Panel 4, Something is short: the office at a screen showing U6-Pro, needed 4, Short 2, Order missing, says, Two short, ordering them. Panel 5, The box arrives: the warehouse at the dock door with a box and a Receive button says, It is here, into Bay 2. Panel 6, Pick up: a tech loading the van from Bay 2 says, Loading Bay 2, it is on me now."],
+      "notes": "Panels 4 to 6 are how the product for a job comes together. Panel 4: something is short, and Loadout says what the shelf cannot cover, so the office orders it. Panel 5: the box arrives, and Receive a shipment puts it with the job, straight into its bay. Panel 6: the tech picks it up, bay to the van, and from here it is in the tech's name. The common slip is loading the van without tapping Pick up, which leaves the product looking like it is still in the bay."
+    },
+    {
+      "kind": "comic",
+      "title": "The comic: out the door and back",
+      "band": "blue",
+      "footer": "The full page: Office, About, How Loadout works.",
+      "shots": ["25c-comic-7-9.png"],
+      "alt": ["Comic panels 7 to 9. Panel 7, Deliver: a tech at the client's door with a box and a Delivered to site button says, Product on site. Panel 8, Close the job: the office with a Close job button and a leftover box going back on the shelf says, Job is done, leftovers go back. Panel 9, Keep it honest: the warehouse counting a shelf, expected 12, says, Shelf says 12, I count 12."],
+      "notes": "Panels 7 to 9 finish the job and keep the shop honest. Panel 7: deliver, van to the client, and a tap confirms what arrived. Panel 8: the office closes the job, and closing returns what was not used to the shelf. Panel 9: keep it honest, because auditing one shelf at a time keeps every number true. People tend to skip panel 9; it is the step that makes every other number on these slides worth trusting."
     },
     {
       "kind": "roles",
