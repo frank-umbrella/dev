@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Umbrella LogMeIn Installer</title>
+<meta name="description" content="Install the Umbrella support helper. Download, run as administrator, then email the generated info file to support.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Umbrella LogMeIn Installer">
+<meta property="og:description" content="Install the Umbrella support helper in three short steps. Download, run as administrator, email us the info file.">
+<meta property="og:image" content="og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Umbrella LogMeIn Installer — three steps: download, run as administrator, email the info file">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Umbrella LogMeIn Installer">
+<meta name="twitter:description" content="Install the Umbrella support helper in three short steps.">
+<meta name="twitter:image" content="og-image.png">
+<meta name="version" content="1.2.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --ink: #1a1f2b;
+    --ink-soft: #475063;
+    --ink-faint: #6b7388;
+    --line: #e3e6ec;
+    --line-strong: #c9cfdb;
+    --accent: #1a56db;
+    --accent-hover: #1647b8;
+    --accent-soft: #eaf0fc;
+    --good: #036b3f;
+    --good-soft: #e6f4ec;
+    --warn: #b54708;
+    --warn-soft: #fff4e5;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --shadow: 0 1px 2px rgba(20, 25, 40, 0.04), 0 4px 14px rgba(20, 25, 40, 0.05);
+    --shadow-lift: 0 4px 8px rgba(20, 25, 40, 0.06), 0 14px 28px rgba(20, 25, 40, 0.08);
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, kbd { font-family: var(--mono); font-size: 0.92em; }
+  code {
+    background: #eef1f6;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 1px 6px;
+    color: var(--ink);
+  }
+
+  /* Top nav */
+  header.page {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 18px 24px 16px;
+  }
+  header.page .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  header.page .brand {
+    display: flex;
+    align-items: center;
+  }
+  header.page .brand svg {
+    display: block;
+    height: 44px;
+    width: auto;
+  }
+  header.page .actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .12s ease, border-color .12s ease, color .12s ease;
+  }
+  .toolbar-btn:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .toolbar-btn svg { flex-shrink: 0; }
+  @media (max-width: 540px) {
+    header.page .brand svg { height: 36px; }
+  }
+
+  /* Mobile-only "open on desktop" message — on mobile, this is the WHOLE page */
+  .mobile-notice {
+    display: none;
+    background: var(--warn-soft);
+    border: 1px solid #f3d6a8;
+    border-left: 3px solid var(--warn);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 0 0 20px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .mobile-notice strong { color: var(--warn); }
+  @media (max-width: 720px), (hover: none) and (pointer: coarse) {
+    /* Hide everything else — mobile page is only the message */
+    header.page,
+    main > .hero,
+    main > section,
+    footer.page { display: none !important; }
+
+    body {
+      background: var(--surface);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    main {
+      max-width: 100%;
+      padding: 24px;
+    }
+    .mobile-notice {
+      display: block;
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 26px 24px;
+      font-size: 16px;
+      line-height: 1.55;
+      border-left-width: 4px;
+      border-radius: 12px;
+    }
+    .mobile-notice strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+  }
+  header.page nav { display: flex; gap: 4px; }
+  header.page nav a {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 8px;
+    color: var(--ink-soft);
+    font-size: 14px;
+    font-weight: 500;
+    transition: background .12s ease, color .12s ease;
+  }
+  header.page nav a:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+    text-decoration: none;
+  }
+  header.page nav a.current {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  main {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 36px 24px 60px;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #ffffff 0%, #f3f6fc 100%);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 32px 32px 28px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(26, 86, 219, 0.08) 0%, rgba(26, 86, 219, 0) 70%);
+    pointer-events: none;
+  }
+  .hero h1 {
+    font-size: 30px;
+    margin: 0 0 8px;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+  }
+  .hero .lede {
+    margin: 0 0 22px;
+    color: var(--ink-soft);
+    font-size: 16px;
+    max-width: 620px;
+  }
+  .hero .actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: #fff;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px 20px;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background .12s ease, transform .12s ease, box-shadow .12s ease;
+    box-shadow: 0 1px 2px rgba(26, 86, 219, 0.2), 0 4px 12px rgba(26, 86, 219, 0.18);
+  }
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(26, 86, 219, 0.25), 0 8px 18px rgba(26, 86, 219, 0.22);
+  }
+  .btn-primary svg { flex-shrink: 0; }
+  .file-meta {
+    color: var(--ink-faint);
+    font-size: 13px;
+    font-family: var(--mono);
+  }
+
+  /* Section step cards */
+  section.step {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 26px 22px;
+    margin-bottom: 18px;
+    scroll-margin-top: 24px;
+  }
+  section.step h2 {
+    font-size: 20px;
+    margin: 0 0 14px;
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  section.step p { margin: 0 0 12px; }
+  section.step p:last-child { margin-bottom: 0; }
+
+  /* Browser tabs for "where's my download?" */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--line);
+    margin: 0 0 0;
+    padding: 0;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    color: var(--ink-soft);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 14px 11px;
+    margin-bottom: -1px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color .12s ease, border-color .12s ease;
+  }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn[aria-selected="true"] {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-btn svg { flex-shrink: 0; }
+  .tab-panel { display: none; padding-top: 18px; }
+  .tab-panel[data-active="true"] { display: block; }
+
+  /* Browser mock screenshot */
+  .browser-mock {
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: var(--shadow);
+    margin: 0 0 14px;
+  }
+  .browser-mock svg { display: block; width: 100%; height: auto; }
+  .mock-caption {
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    margin: 6px 2px 0;
+  }
+  .mock-caption strong { color: var(--ink); }
+
+  .alt-find {
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  .alt-find code { background: #fff; }
+
+  /* Contact options (email or ticket) */
+  .contact-options {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 540px) {
+    .contact-options { grid-template-columns: 1fr; }
+  }
+  .contact-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color .12s ease, box-shadow .12s ease, transform .12s ease, background .12s ease;
+  }
+  .contact-card:hover {
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+  }
+  .contact-card .icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .contact-card.email .icon { background: var(--good-soft); color: var(--good); }
+  .contact-card.email:hover { border-color: var(--good); background: #f5fbf7; }
+  .contact-card.ticket .icon { background: var(--accent-soft); color: var(--accent); }
+  .contact-card.ticket:hover { border-color: var(--accent); background: #f7faff; }
+  /* Non-interactive info variant — same shape, no hover lift, normal wrapping detail */
+  .contact-card.info { cursor: default; }
+  .contact-card.info:hover { transform: none; box-shadow: none; border-color: var(--line); background: var(--surface); }
+  .contact-card.info .detail { white-space: normal; font-weight: 500; color: var(--ink-soft); }
+  .contact-card .text { display: flex; flex-direction: column; min-width: 0; }
+  .contact-card .label {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-soft);
+    line-height: 1.2;
+  }
+  .contact-card .detail {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  footer.page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 24px 32px;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    text-align: center;
+  }
+
+  @media (max-width: 640px) {
+    .hero { padding: 26px 22px 24px; }
+    .hero h1 { font-size: 24px; }
+    section.step { padding: 20px 20px 18px; }
+    section.step h2 { font-size: 18px; }
+  }
+
+  /* Print / Save-as-PDF — a clean client handout */
+  @media print {
+    @page { margin: 14mm 12mm; }
+
+    body { background: #fff; color: #000; }
+
+    /* Hide interactive-only / mobile chrome */
+    header.page .actions,
+    .mobile-notice,
+    .hero .actions,
+    .alt-find { display: none !important; }
+
+    /* Keep the header logo at the top of page 1 */
+    header.page { border: 0; padding: 0 0 8px; }
+    header.page .brand svg { height: 36px; }
+
+    main { padding: 10px 0 0; max-width: 100%; }
+
+    .hero {
+      background: none;
+      border: 0;
+      box-shadow: none;
+      padding: 0 0 10px;
+      margin: 0 0 14px;
+    }
+    .hero::before { display: none; }
+    .hero h1 { font-size: 22px; margin-bottom: 4px; }
+    .hero .lede { font-size: 13px; }
+    .hero .file-meta { display: block; margin-top: 6px; }
+
+    section.step {
+      background: none;
+      border: 1px solid #ddd;
+      box-shadow: none;
+      padding: 14px 16px;
+      margin: 0 0 12px;
+      page-break-inside: avoid;
+    }
+    section.step h2 { font-size: 16px; margin-bottom: 8px; }
+    .num { background: #000 !important; color: #fff !important; width: 24px; height: 24px; font-size: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* Browser tabs: hide the row, show all 4 panels stacked with a label */
+    .tabs { display: none; }
+    .tab-panel {
+      display: block !important;
+      border-top: 1px dashed #ccc;
+      padding-top: 10px;
+      margin-top: 12px;
+      page-break-inside: avoid;
+    }
+    .tab-panel:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+    .tab-panel::before {
+      content: attr(data-browser);
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: #000;
+      margin-bottom: 6px;
+    }
+    .browser-mock { break-inside: avoid; }
+    .browser-mock svg { max-height: 180px; }
+
+    /* Contact + footer: email card prints with URL beside it */
+    .contact-options { grid-template-columns: 1fr; gap: 8px; }
+    .contact-card { border: 1px solid #ccc; box-shadow: none; }
+    .contact-card:hover { transform: none; }
+
+    footer.page { padding: 10px 0 0; text-align: left; color: #666; }
+
+    /* Keep colors on gradient logo + icons */
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page">
+  <div class="wrap">
+    <div class="brand" aria-label="Umbrella Automation">
+      <svg viewBox="0 0 1300 280" role="img" aria-label="Umbrella Automation">
+        <defs>
+          <linearGradient id="ua-h-house" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#dde0e3"/>
+            <stop offset="1" stop-color="#7e8489"/>
+          </linearGradient>
+          <linearGradient id="ua-h-blue" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#a4d6ed"/>
+            <stop offset="0.18" stop-color="#26a6e6"/>
+            <stop offset="0.5" stop-color="#0c5e9c"/>
+            <stop offset="0.82" stop-color="#26a6e6"/>
+            <stop offset="1" stop-color="#5fc1ec"/>
+          </linearGradient>
+          <linearGradient id="ua-h-gray" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#c8c8c8"/>
+            <stop offset="1" stop-color="#6e6e6e"/>
+          </linearGradient>
+          <filter id="ua-h-bevel" x="-20%" y="-20%" width="140%" height="140%">
+            <feOffset dx="-0.4" dy="-0.4" in="SourceAlpha" result="hl-shape"/>
+            <feFlood flood-color="white" flood-opacity="0.55" result="hl-color"/>
+            <feComposite in="hl-color" in2="hl-shape" operator="in" result="hl"/>
+            <feGaussianBlur in="SourceAlpha" stdDeviation="0.5" result="sh-blur"/>
+            <feOffset dx="0.7" dy="1" in="sh-blur" result="sh-shape"/>
+            <feFlood flood-color="black" flood-opacity="0.35" result="sh-color"/>
+            <feComposite in="sh-color" in2="sh-shape" operator="in" result="sh"/>
+            <feMerge><feMergeNode in="sh"/><feMergeNode in="SourceGraphic"/><feMergeNode in="hl"/></feMerge>
+          </filter>
+        </defs>
+        <svg x="0" y="20" width="240" height="240" viewBox="70 92 116 102" filter="url(#ua-h-bevel)">
+          <path d="M 126.48 98.88 C 127.20 98.96 127.92 99.04 128.64 99.12 C 145.99 114.08 163.36 129.04 180.72 144.00 C 180.72 146.32 180.72 148.64 180.72 150.96 C 162.88 135.68 145.04 120.40 127.20 105.12 C 127.04 105.12 126.88 105.12 126.72 105.12 C 109.84 119.28 92.96 133.44 76.08 147.60 C 76.08 145.20 76.08 142.80 76.08 140.40 C 93.77 127.76 108.93 111.87 126.48 98.88 Z" fill="url(#ua-h-house)"/>
+          <path d="M 91.68 183.60 C 115.28 183.60 138.88 183.60 162.48 183.60 C 162.48 170.48 162.48 157.36 162.48 144.24 C 164.32 146.08 166.16 147.92 168.00 149.76 C 168.00 159.52 168.00 169.28 168.00 179.04 C 168.00 181.41 168.81 187.66 167.28 188.64 C 165.78 189.94 150.75 189.12 147.36 189.12 C 133.36 189.12 119.36 189.12 105.36 189.12 C 99.28 189.12 91.39 189.95 86.16 188.64 C 86.08 179.04 86.00 169.44 85.92 159.84 C 87.84 157.92 89.76 156.00 91.68 154.08 C 91.68 163.92 91.68 173.76 91.68 183.60 Z" fill="url(#ua-h-house)"/>
+          <g stroke="#1A9BE8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+            <path d="M 130 142 L 137 149 L 161 149"/>
+            <line x1="93" y1="163" x2="120" y2="163"/>
+            <line x1="132" y1="174" x2="161" y2="174"/>
+          </g>
+          <circle cx="128" cy="140" r="4.4" fill="#1A9BE8"/>
+          <circle cx="118" cy="163" r="4.4" fill="#1A9BE8"/>
+          <circle cx="134" cy="174" r="4.4" fill="#1A9BE8"/>
+        </svg>
+        <text x="280" y="130" font-family='"Saira","Eurostile","Eurostile LT W01","Microgramma D","Aldrich","Antonio",system-ui,sans-serif' font-weight="900" font-size="130" letter-spacing="3.5" fill="url(#ua-h-blue)">UMBRELLA</text>
+        <text x="280" y="240" font-family='"Saira","Eurostile","Eurostile LT W01","Microgramma D","Aldrich","Antonio",system-ui,sans-serif' font-weight="900" font-size="130" letter-spacing="3.5" fill="url(#ua-h-gray)">AUTOMATION</text>
+      </svg>
+    </div>
+    <div class="actions">
+      <button type="button" class="toolbar-btn" id="printBtn" title="Print or save this page as a PDF to send to a client" aria-label="Print to PDF">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <text x="12" y="18.5" font-size="5.5" font-weight="800" text-anchor="middle" fill="currentColor" stroke="none" font-family="-apple-system, Segoe UI, sans-serif">PDF</text>
+        </svg>
+        PDF
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="mobile-notice" role="note">
+    <strong>On a phone or tablet?</strong> This page installs a Windows program. Please open this link on the Windows PC where you'd like remote support set up.
+  </div>
+
+  <section class="hero" aria-labelledby="title">
+    <h1 id="title">Umbrella LogMeIn Installer</h1>
+    <p class="lede">Three short steps.<br>The download should start automatically &mdash; if it didn't, use the button below.</p>
+    <div class="actions">
+      <a class="btn-primary" href="http://files.umbrellabs.com/help/Umbrella-Slim.exe" download>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download installer
+      </a>
+      <span class="file-meta">Umbrella-Slim.exe &middot; Windows</span>
+    </div>
+  </section>
+
+  <section class="step" aria-labelledby="s1">
+    <h2 id="s1"><span class="num">1</span>Find the file you just downloaded</h2>
+    <p>Pick your browser to see exactly where it landed:</p>
+
+    <div class="tabs" role="tablist" aria-label="Choose your browser">
+      <button type="button" class="tab-btn" role="tab" aria-selected="true" aria-controls="tab-chrome" id="tabbtn-chrome">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" fill="#fff" stroke="#dadce0"/>
+          <circle cx="12" cy="12" r="3.4" fill="#4285f4"/>
+          <path d="M12 2 a10 10 0 0 1 8.66 5 H12 a5 5 0 0 0 -4.33 2.5 z" fill="#ea4335"/>
+          <path d="M3.34 7 A10 10 0 0 0 12 22 l3.5 -6.06 a5 5 0 0 1 -8.66 0 z" fill="#34a853"/>
+          <path d="M20.66 7 H12 a5 5 0 0 1 4.33 7.5 L12 22 a10 10 0 0 0 8.66 -15 z" fill="#fbbc05"/>
+        </svg>
+        Chrome
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-edge" id="tabbtn-edge">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" fill="#0078d4"/>
+          <path d="M6 13c0-3.5 2.7-6 6.2-6 2.6 0 4.4 1.5 5 3.6-1.4-1-3-1.4-4.5-1-2 .5-3.5 2.2-3.7 4.4z" fill="#fff"/>
+        </svg>
+        Edge
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-firefox" id="tabbtn-firefox">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" fill="#ff9500"/>
+          <path d="M7 9c2-3 6-3 8 0-1-1-3-1-4 0-1.5 1.5-1 4 1 5-3 0-6-2-5-5z" fill="#e74b1f"/>
+        </svg>
+        Firefox
+      </button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-safari" id="tabbtn-safari">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" fill="#0fb5ee"/>
+          <circle cx="12" cy="12" r="7" fill="#fff"/>
+          <path d="M12 6 L13 12 L12 18 L11 12 z" fill="#e74b1f"/>
+        </svg>
+        Safari
+      </button>
+    </div>
+
+    <!-- Chrome -->
+    <div class="tab-panel" data-active="true" data-browser="Chrome" id="tab-chrome" role="tabpanel" aria-labelledby="tabbtn-chrome">
+      <div class="browser-mock">
+        <svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Chrome browser window with the downloads tray button highlighted in the top-right toolbar">
+          <!-- window -->
+          <rect width="800" height="220" fill="#fff"/>
+          <!-- title bar -->
+          <rect width="800" height="34" fill="#dee1e6"/>
+          <!-- tab -->
+          <path d="M14 34 q4 -22 22 -22 h160 q18 0 22 22 z" fill="#fff"/>
+          <circle cx="32" cy="22" r="6" fill="#fff" stroke="#bdc1c6"/>
+          <text x="46" y="26" font-family="Segoe UI, Arial" font-size="11" fill="#3c4043">files.umbrellaautomation.com</text>
+          <!-- new tab + -->
+          <text x="220" y="26" font-family="Segoe UI, Arial" font-size="16" fill="#5f6368">+</text>
+          <!-- window controls -->
+          <text x="730" y="22" font-family="Segoe UI, Arial" font-size="12" fill="#5f6368">&#8211;</text>
+          <text x="755" y="22" font-family="Segoe UI, Arial" font-size="12" fill="#5f6368">&#9633;</text>
+          <text x="780" y="22" font-family="Segoe UI, Arial" font-size="14" fill="#5f6368">&#10005;</text>
+          <!-- toolbar -->
+          <rect y="34" width="800" height="44" fill="#f1f3f4"/>
+          <!-- nav buttons -->
+          <circle cx="22" cy="56" r="10" fill="#fff" stroke="#dadce0"/>
+          <text x="18" y="60" font-family="Arial" font-size="13" fill="#5f6368">&#8592;</text>
+          <circle cx="48" cy="56" r="10" fill="#fff" stroke="#dadce0"/>
+          <text x="44" y="60" font-family="Arial" font-size="13" fill="#bdc1c6">&#8594;</text>
+          <circle cx="74" cy="56" r="10" fill="#fff" stroke="#dadce0"/>
+          <text x="70" y="60" font-family="Arial" font-size="11" fill="#5f6368">&#8634;</text>
+          <!-- omnibox -->
+          <rect x="98" y="44" width="560" height="24" rx="12" fill="#fff" stroke="#dadce0"/>
+          <text x="112" y="60" font-family="Segoe UI, Arial" font-size="11" fill="#5f6368">files.umbrellaautomation.com/logmein</text>
+          <!-- downloads tray button (highlighted) -->
+          <rect x="678" y="42" width="28" height="28" rx="6" fill="#e8f0fe" stroke="#1a73e8" stroke-width="2"/>
+          <g transform="translate(692,56)" stroke="#1a73e8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="0" y1="-5" x2="0" y2="4"/>
+            <polyline points="-4,-1 0,4 4,-1"/>
+            <line x1="-5" y1="7" x2="5" y2="7"/>
+          </g>
+          <!-- profile -->
+          <circle cx="725" cy="56" r="10" fill="#1a73e8"/>
+          <text x="722" y="60" font-family="Arial" font-size="11" fill="#fff" font-weight="700">U</text>
+          <!-- 3-dot menu -->
+          <circle cx="755" cy="51" r="1.5" fill="#5f6368"/>
+          <circle cx="755" cy="56" r="1.5" fill="#5f6368"/>
+          <circle cx="755" cy="61" r="1.5" fill="#5f6368"/>
+
+          <!-- downloads dropdown panel -->
+          <g transform="translate(540,80)">
+            <rect width="240" height="118" rx="10" fill="#fff" stroke="#dadce0"/>
+            <rect width="240" height="32" rx="10" fill="#fff"/>
+            <text x="14" y="22" font-family="Segoe UI, Arial" font-size="12" font-weight="600" fill="#3c4043">Recent downloads</text>
+            <line x1="0" y1="32" x2="240" y2="32" stroke="#e8eaed"/>
+            <!-- file row -->
+            <rect x="8" y="42" width="32" height="32" rx="4" fill="#e8f0fe"/>
+            <text x="14" y="62" font-family="Segoe UI, Arial" font-size="9" font-weight="700" fill="#1a73e8">EXE</text>
+            <text x="48" y="56" font-family="Segoe UI, Arial" font-size="12" font-weight="600" fill="#3c4043">Umbrella-Slim.exe</text>
+            <text x="48" y="70" font-family="Segoe UI, Arial" font-size="10" fill="#5f6368">Done &middot; files.umbrellaautomation.com</text>
+            <line x1="0" y1="86" x2="240" y2="86" stroke="#e8eaed"/>
+            <text x="14" y="104" font-family="Segoe UI, Arial" font-size="11" fill="#1a73e8">Show all downloads</text>
+          </g>
+
+        </svg>
+      </div>
+      <p class="mock-caption">Chrome shows downloads in a small <strong>tray icon (&#8595;) in the top-right toolbar</strong>, just left of your profile picture. Click it to see <code>Umbrella-Slim.exe</code>.</p>
+      <div class="alt-find">
+        Don't see the tray? Press <code>Ctrl + J</code> to open the full Downloads page, or open <strong>File Explorer</strong> &rarr; <code>Downloads</code> folder.
+      </div>
+    </div>
+
+    <!-- Edge -->
+    <div class="tab-panel" data-browser="Microsoft Edge" id="tab-edge" role="tabpanel" aria-labelledby="tabbtn-edge">
+      <div class="browser-mock">
+        <svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Microsoft Edge window with the downloads button highlighted in the top-right toolbar">
+          <rect width="800" height="220" fill="#fff"/>
+          <rect width="800" height="34" fill="#e6e6e6"/>
+          <path d="M14 34 q4 -22 22 -22 h160 q18 0 22 22 z" fill="#fff"/>
+          <circle cx="32" cy="22" r="6" fill="#fff" stroke="#a19f9d"/>
+          <text x="46" y="26" font-family="Segoe UI, Arial" font-size="11" fill="#323130">files.umbrellaautomation.com</text>
+          <text x="220" y="26" font-family="Segoe UI, Arial" font-size="16" fill="#605e5c">+</text>
+          <text x="730" y="22" font-family="Segoe UI, Arial" font-size="12" fill="#605e5c">&#8211;</text>
+          <text x="755" y="22" font-family="Segoe UI, Arial" font-size="12" fill="#605e5c">&#9633;</text>
+          <text x="780" y="22" font-family="Segoe UI, Arial" font-size="14" fill="#605e5c">&#10005;</text>
+          <rect y="34" width="800" height="44" fill="#f3f3f3"/>
+          <circle cx="22" cy="56" r="10" fill="#fff" stroke="#d2d0ce"/>
+          <text x="18" y="60" font-family="Arial" font-size="13" fill="#605e5c">&#8592;</text>
+          <circle cx="48" cy="56" r="10" fill="#fff" stroke="#d2d0ce"/>
+          <text x="44" y="60" font-family="Arial" font-size="13" fill="#bdbcba">&#8594;</text>
+          <circle cx="74" cy="56" r="10" fill="#fff" stroke="#d2d0ce"/>
+          <text x="70" y="60" font-family="Arial" font-size="11" fill="#605e5c">&#8634;</text>
+          <rect x="98" y="44" width="560" height="24" rx="6" fill="#fff" stroke="#d2d0ce"/>
+          <text x="112" y="60" font-family="Segoe UI, Arial" font-size="11" fill="#605e5c">files.umbrellaautomation.com/logmein</text>
+          <!-- downloads -->
+          <rect x="678" y="42" width="28" height="28" rx="6" fill="#deecf9" stroke="#0078d4" stroke-width="2"/>
+          <g transform="translate(692,56)" stroke="#0078d4" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="0" y1="-5" x2="0" y2="4"/>
+            <polyline points="-4,-1 0,4 4,-1"/>
+            <line x1="-5" y1="7" x2="5" y2="7"/>
+          </g>
+          <circle cx="725" cy="56" r="10" fill="#0078d4"/>
+          <text x="722" y="60" font-family="Arial" font-size="11" fill="#fff" font-weight="700">U</text>
+          <circle cx="755" cy="51" r="1.5" fill="#605e5c"/>
+          <circle cx="755" cy="56" r="1.5" fill="#605e5c"/>
+          <circle cx="755" cy="61" r="1.5" fill="#605e5c"/>
+
+          <g transform="translate(540,80)">
+            <rect width="240" height="118" rx="8" fill="#fff" stroke="#d2d0ce"/>
+            <text x="14" y="22" font-family="Segoe UI, Arial" font-size="12" font-weight="600" fill="#323130">Downloads</text>
+            <line x1="0" y1="32" x2="240" y2="32" stroke="#edebe9"/>
+            <rect x="8" y="42" width="32" height="32" rx="4" fill="#deecf9"/>
+            <text x="14" y="62" font-family="Segoe UI, Arial" font-size="9" font-weight="700" fill="#0078d4">EXE</text>
+            <text x="48" y="56" font-family="Segoe UI, Arial" font-size="12" font-weight="600" fill="#323130">Umbrella-Slim.exe</text>
+            <text x="48" y="70" font-family="Segoe UI, Arial" font-size="10" fill="#605e5c">Open file &middot; Show in folder</text>
+          </g>
+
+        </svg>
+      </div>
+      <p class="mock-caption">Edge shows the same <strong>downloads tray (&#8595;) in the top-right</strong>. Click it to find <code>Umbrella-Slim.exe</code>, then choose <strong>Open file</strong>.</p>
+      <div class="alt-find">
+        Or press <code>Ctrl + J</code>, or open <strong>File Explorer</strong> &rarr; <code>Downloads</code>.
+      </div>
+    </div>
+
+    <!-- Firefox -->
+    <div class="tab-panel" data-browser="Firefox" id="tab-firefox" role="tabpanel" aria-labelledby="tabbtn-firefox">
+      <div class="browser-mock">
+        <svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Firefox window with the downloads arrow highlighted in the top-right toolbar">
+          <rect width="800" height="220" fill="#fff"/>
+          <rect width="800" height="34" fill="#f0f0f4"/>
+          <path d="M14 34 q4 -22 22 -22 h160 q18 0 22 22 z" fill="#fff"/>
+          <circle cx="32" cy="22" r="6" fill="#fff" stroke="#cfcfd8"/>
+          <text x="46" y="26" font-family="Segoe UI, Arial" font-size="11" fill="#15141a">files.umbrellaautomation.com</text>
+          <text x="730" y="22" font-family="Segoe UI, Arial" font-size="12" fill="#52525e">&#8211;</text>
+          <text x="755" y="22" font-family="Segoe UI, Arial" font-size="12" fill="#52525e">&#9633;</text>
+          <text x="780" y="22" font-family="Segoe UI, Arial" font-size="14" fill="#52525e">&#10005;</text>
+          <rect y="34" width="800" height="44" fill="#f9f9fb"/>
+          <text x="18" y="60" font-family="Arial" font-size="14" fill="#52525e">&#8592;</text>
+          <text x="44" y="60" font-family="Arial" font-size="14" fill="#cfcfd8">&#8594;</text>
+          <text x="70" y="60" font-family="Arial" font-size="12" fill="#52525e">&#8634;</text>
+          <rect x="98" y="44" width="560" height="24" rx="6" fill="#fff" stroke="#cfcfd8"/>
+          <text x="112" y="60" font-family="Segoe UI, Arial" font-size="11" fill="#52525e">files.umbrellaautomation.com/logmein</text>
+          <!-- downloads arrow (highlighted) -->
+          <rect x="678" y="42" width="28" height="28" rx="6" fill="#e7e2ff" stroke="#7542e5" stroke-width="2"/>
+          <g transform="translate(692,56)" stroke="#7542e5" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="0" y1="-5" x2="0" y2="4"/>
+            <polyline points="-4,-1 0,4 4,-1"/>
+            <line x1="-5" y1="7" x2="5" y2="7"/>
+          </g>
+          <!-- account / hamburger -->
+          <text x="720" y="60" font-family="Arial" font-size="14" fill="#52525e">&#9776;</text>
+
+          <g transform="translate(540,80)">
+            <rect width="240" height="118" rx="8" fill="#fff" stroke="#cfcfd8"/>
+            <text x="14" y="22" font-family="Segoe UI, Arial" font-size="12" font-weight="600" fill="#15141a">Downloads</text>
+            <line x1="0" y1="32" x2="240" y2="32" stroke="#ededf0"/>
+            <rect x="8" y="42" width="32" height="32" rx="4" fill="#e7e2ff"/>
+            <text x="14" y="62" font-family="Segoe UI, Arial" font-size="9" font-weight="700" fill="#7542e5">EXE</text>
+            <text x="48" y="56" font-family="Segoe UI, Arial" font-size="12" font-weight="600" fill="#15141a">Umbrella-Slim.exe</text>
+            <text x="48" y="70" font-family="Segoe UI, Arial" font-size="10" fill="#52525e">Completed &middot; Show in Folder</text>
+          </g>
+
+        </svg>
+      </div>
+      <p class="mock-caption">Firefox puts a <strong>downward arrow icon in the top-right toolbar</strong>. Click it to see the file and pick <strong>Show in Folder</strong>.</p>
+      <div class="alt-find">
+        Or press <code>Ctrl + J</code> for the full Downloads library.
+      </div>
+    </div>
+
+    <!-- Safari -->
+    <div class="tab-panel" data-browser="Safari" id="tab-safari" role="tabpanel" aria-labelledby="tabbtn-safari">
+      <div class="browser-mock">
+        <svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Safari window with the downloads arrow highlighted in the top-right toolbar">
+          <rect width="800" height="220" fill="#fff"/>
+          <rect width="800" height="48" fill="#f6f6f6"/>
+          <!-- traffic lights -->
+          <circle cx="20" cy="24" r="6" fill="#ff5f57"/>
+          <circle cx="38" cy="24" r="6" fill="#febc2e"/>
+          <circle cx="56" cy="24" r="6" fill="#28c840"/>
+          <!-- nav -->
+          <text x="90" y="29" font-family="-apple-system, Helvetica" font-size="14" fill="#1d1d1f">&#10094;</text>
+          <text x="115" y="29" font-family="-apple-system, Helvetica" font-size="14" fill="#bcbcbc">&#10095;</text>
+          <text x="140" y="29" font-family="-apple-system, Helvetica" font-size="13" fill="#1d1d1f">&#9633;</text>
+          <!-- url bar -->
+          <rect x="170" y="14" width="430" height="22" rx="6" fill="#ececec"/>
+          <text x="370" y="29" font-family="-apple-system, Helvetica" font-size="11" fill="#1d1d1f" text-anchor="middle">files.umbrellaautomation.com</text>
+          <!-- share + downloads + tabs -->
+          <text x="618" y="29" font-family="-apple-system, Helvetica" font-size="13" fill="#1d1d1f">&#9650;</text>
+          <!-- downloads (highlighted) -->
+          <rect x="640" y="12" width="26" height="26" rx="6" fill="#cce5ff" stroke="#0fb5ee" stroke-width="2"/>
+          <g transform="translate(653,25)" stroke="#0a84d6" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="0" y1="-5" x2="0" y2="4"/>
+            <polyline points="-4,-1 0,4 4,-1"/>
+            <line x1="-5" y1="7" x2="5" y2="7"/>
+          </g>
+          <text x="690" y="29" font-family="-apple-system, Helvetica" font-size="13" fill="#1d1d1f">&#9783;</text>
+          <text x="720" y="29" font-family="-apple-system, Helvetica" font-size="13" fill="#1d1d1f">&#9783;</text>
+          <text x="755" y="29" font-family="-apple-system, Helvetica" font-size="13" fill="#1d1d1f">+</text>
+
+          <!-- downloads popover -->
+          <g transform="translate(490,52)">
+            <rect width="280" height="120" rx="10" fill="#fff" stroke="#d2d2d7"/>
+            <rect x="8" y="42" width="32" height="32" rx="4" fill="#e8f4ff"/>
+            <text x="14" y="62" font-family="-apple-system, Helvetica" font-size="9" font-weight="700" fill="#0a84d6">EXE</text>
+            <text x="48" y="60" font-family="-apple-system, Helvetica" font-size="12" font-weight="600" fill="#1d1d1f">Umbrella-Slim.exe</text>
+            <text x="48" y="74" font-family="-apple-system, Helvetica" font-size="10" fill="#86868b">Downloaded just now</text>
+            <text x="14" y="100" font-family="-apple-system, Helvetica" font-size="11" fill="#0a84d6">Show in Finder</text>
+          </g>
+
+        </svg>
+      </div>
+      <p class="mock-caption">Safari shows a <strong>downloads arrow in the top-right of the toolbar</strong> (next to the share button). The popover lists the file with <strong>Show in Finder</strong>.</p>
+      <div class="alt-find">
+        On macOS the file lands in <code>~/Downloads</code>. (Note: <code>Umbrella-Slim.exe</code> is a Windows installer &mdash; you'll need to run it on a PC.)
+      </div>
+    </div>
+
+  </section>
+
+  <section class="step" aria-labelledby="s2">
+    <h2 id="s2"><span class="num">2</span>Right-click and Run as administrator</h2>
+    <p>Right-click <code>Umbrella-Slim.exe</code> and choose <strong>Run as administrator</strong>. When Windows asks &ldquo;Do you want to allow this app to make changes?&rdquo;, click <strong>Yes</strong>.</p>
+
+    <div class="browser-mock" aria-label="Right-click context menu showing Run as administrator highlighted">
+      <svg viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+        <!-- explorer-ish background -->
+        <rect width="800" height="240" fill="#f3f3f3"/>
+        <rect x="20" y="20" width="80" height="100" rx="6" fill="#fff" stroke="#d2d0ce"/>
+        <rect x="36" y="36" width="48" height="48" rx="4" fill="#e8f0fe"/>
+        <text x="44" y="68" font-family="Segoe UI, Arial" font-size="11" font-weight="700" fill="#1a73e8">EXE</text>
+        <text x="60" y="106" font-family="Segoe UI, Arial" font-size="10" fill="#323130" text-anchor="middle">Umbrella-Slim.exe</text>
+
+        <!-- context menu -->
+        <g transform="translate(120,55)" filter="url(#shadow)">
+          <rect width="240" height="180" rx="10" fill="#fafafa" stroke="#d2d0ce"/>
+          <text x="14" y="26" font-family="Segoe UI, Arial" font-size="13" fill="#323130">Open</text>
+          <line x1="10" y1="38" x2="230" y2="38" stroke="#edebe9"/>
+          <!-- Run as admin (highlighted) -->
+          <rect x="4" y="44" width="232" height="30" rx="6" fill="#deecf9"/>
+          <g transform="translate(16,62)" stroke="#0078d4" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M0 -6 L4 -3 L4 2 Q4 7 0 9 Q-4 7 -4 2 L-4 -3 Z"/>
+            <polyline points="-2,1 -1,3 2,-1"/>
+          </g>
+          <text x="34" y="64" font-family="Segoe UI, Arial" font-size="13" font-weight="600" fill="#0078d4">Run as administrator</text>
+          <line x1="10" y1="84" x2="230" y2="84" stroke="#edebe9"/>
+          <text x="14" y="104" font-family="Segoe UI, Arial" font-size="13" fill="#323130">Pin to Start</text>
+          <text x="14" y="128" font-family="Segoe UI, Arial" font-size="13" fill="#323130">Properties</text>
+          <text x="14" y="152" font-family="Segoe UI, Arial" font-size="13" fill="#323130">Show more options</text>
+        </g>
+
+        <defs>
+          <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+            <feOffset dx="0" dy="4" result="off"/>
+            <feComponentTransfer><feFuncA type="linear" slope="0.18"/></feComponentTransfer>
+            <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+      </svg>
+    </div>
+  </section>
+
+  <section class="step" aria-labelledby="s3">
+    <h2 id="s3"><span class="num">3</span>Click Install, then email us the info file</h2>
+    <p>The installer window opens &mdash; click <strong>Install</strong>. When it finishes, a file called <code>Computer-Info.txt</code> opens automatically and a copy is saved to your <strong>Desktop</strong>.</p>
+    <p>Send us that file so we can finish setting you up.</p>
+
+    <div class="contact-options">
+      <a class="contact-card email" href="mailto:it@umbrellaautomation.com?subject=LogMeIn%20Installer%20%E2%80%93%20Computer-Info.txt">
+        <span class="icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="5" width="18" height="14" rx="2"/>
+            <polyline points="3 7 12 13 21 7"/>
+          </svg>
+        </span>
+        <span class="text">
+          <span class="label">Email us</span>
+          <span class="detail">it@umbrellaautomation.com</span>
+        </span>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="page">
+  <p>v1.2.0</p>
+</footer>
+
+<script>
+  (() => {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const panels = document.querySelectorAll('.tab-panel');
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabs.forEach(b => b.setAttribute('aria-selected', b === btn ? 'true' : 'false'));
+        panels.forEach(p => {
+          p.setAttribute('data-active', '#' + p.id === '#' + btn.getAttribute('aria-controls') ? 'true' : 'false');
+        });
+      });
+    });
+
+    const printBtn = document.getElementById('printBtn');
+    if (printBtn) printBtn.addEventListener('click', () => window.print());
+  })();
+</script>
+
+</body>
+</html>
