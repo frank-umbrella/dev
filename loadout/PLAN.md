@@ -863,6 +863,7 @@ Build T0 first. T1 and T2 are worker work and need the plan tier known.
 | 0.11.0 | Section 25: Brand and Category as pick lists (comboboxes) on New product and the product panel, Type with suggestions by category, the admin's Add confirm with `tidyName`, the refusal for other roles, `normKey` in the Shelf filters, the Stock report by category, the inventory importer and the proposal file reader, `loadout_settings/lists`, and Office > Settings > Brands and categories (Rename, Merge into, Probably the same, Look alike, batches of 400). Built 2026-11-11, not committed, no rules change. |
 | 0.11.1 | Section 27: the `TIPS` table (one sentence per action, keyed by action and a context word), `tipFor` in the panel builders, the fill pass in the MutationObserver for every button and button-styled link drawn as a string, the confirm sheets' button taking the sheet's own sentence, `Loadout.tipAudit()`, and What do these do? under action rows on a coarse pointer. Section 28: the Home link on the five door screens (28.1); Rename (admin, through the Brands and categories runner), Archive and Unarchive (admin, empty locations only), Show archived, the Kind tooltips, and the Settings line for locations (28.2). Built 2026-11-11, not committed, no rules change. |
 | 0.12.0 | Section 29: a documentation release. `storyboard.html` opens on a new In pictures tab (the nine-panel comic with the words of 29.1, the flow chart in three lanes with Where the product is, and Your job in Loadout, a printable sheet per role); every sketch checked against the demo, ten redrawn and eleven added, 26 panels in the comic's order, each linked to its SOP; the Overview opens with the chart. In the app only Office, About, How Loadout works (29.3) and the version. Built 2026-11-12, not committed, no rules change. |
+| 0.12.1 | Section 31, the pictures only: comic panel 1 redrawn as the office dropping the proposal file (.csv) onto New job ("Client said yes. Uploading the proposal file." / "The file from Portal becomes the job. No file? Make the list yourself."); the flow chart's first box reads New job, Upload the Portal file, or make the list; storyboard panel 1, SOP-3, and the Office sheet say the office uploads the file; deck slides 2, 3 and 8 retaken. The PDF reader is not built. In the app only the version. Built 2026-11-13, not committed, no rules change. |
 | 0.9.1 | Section 21.1 Shelf filters (Category from the product's own category, Type, Brand, Location, Consumables only; chips, the phone Filter sheet, session only) and 21.3 history as one vertical timeline everywhere; the home-screen strip, card, and Office > This phone on phones and tablets only; an odd last door spans both columns on Home; leftover "Stock" words. 21.2 stays an idea. Built 2026-11-11, not committed. |
 
 Each version is a release: bump the version everywhere, README changelog entry
@@ -2374,3 +2375,46 @@ employees understand how Loadout will work.
   person will tap. System fonts only, so it opens the same on any PC.
 - The app's About row "How Loadout works" gains a second link to the deck
   once it exists.
+
+## 31. Start a job from Portal's pick list PDF (user idea, 2026-11-12; NOT scheduled, needs samples)
+
+The user: whoever learns a proposal was approved should be able to upload
+the pick list as a PDF from Portal, as an option, and the comic and the
+workflow should show that.
+
+- **Where it goes.** Not a third choice. The "Use a proposal file" card in
+  New job takes either file: "The proposal or pick list from Portal (.csv
+  or .pdf)". A PDF goes through the same "Here is what the file says"
+  check as a CSV, so a misread line is caught before the job exists.
+- **How a PDF is read.** In the browser, with a PDF text reader loaded only
+  when a PDF is chosen (the same pattern as the barcode fallback). Portal's
+  PDFs are generated, not scanned, so the text is there; the work is
+  turning positioned text back into rows (room, brand, model, description,
+  quantity) and telling product lines from labor, fees and totals. That
+  mapping can only be written against real files.
+- **Needed before any build:** two or three real pick list PDFs from
+  Portal (a small job, a large one, one with wire by the foot and one with
+  a change order if possible), saved in `samples/` (git-ignored; never
+  committed or quoted), and the matching CSV for at least one of them so
+  the two readings can be compared line for line. If a PDF turns out to be
+  a scan with no text in it, this cannot work and the CSV stays the way.
+- **Who uploads.** Today only admin and warehouse can make a job. If the
+  person who hears "approved" is a tech or a salesperson, either they get
+  a narrow right to upload a proposal, which creates a job marked To
+  review for the office to confirm (the Zapier intake already uses that
+  flag), or the upload stays with the office. Open: D21.
+- **What changes in the pictures.** Comic panel 1 becomes the upload: the
+  person at the screen drops the pick list in ("Client said yes. Uploading
+  the pick list." / "The pick list from Portal becomes the job."). The flow
+  chart's first box reads "New job: upload the pick list, or make the
+  list". SOP-3, the role sheets, and deck slides 3 and 8 follow.
+- **Open decisions:** D21 who may upload; D22 whether a PDF upload should
+  also keep the PDF itself on the job (in Storage) so the office can open
+  the original.
+- **D21 decided (user, 2026-11-12): the office.** The office hears first
+  and uploads, so no new upload right for techs or sales; New job stays
+  with admin and warehouse as today. Comic panel 1 keeps the Office figure.
+  D22 (keep the PDF on the job) is still open. Build waits on the sample
+  PDFs in `samples/`.
+- **Built in 0.12.1:** the pictures and wording show the office uploading
+  the proposal file (.csv today); the PDF reader still waits on samples.

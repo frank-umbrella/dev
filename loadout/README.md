@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.10.0**.
+Current version: **0.12.1**.
 
 ## Files
 
@@ -1199,6 +1199,29 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.12.1 (2026-11-13)
+
+The owner wanted the pictures to start where the work starts: the office
+uploading the file from Portal the day a client accepts a proposal. The
+comic began with someone holding paper, and the chart's first box only said
+New job.
+
+- **Comic panel 1** now shows the office dropping the proposal file (.csv)
+  onto New job, with Use a proposal file picked. The words: "Client said
+  yes. Uploading the proposal file." and "The file from Portal becomes the
+  job. No file? Make the list yourself."
+- **The flow chart's first box** reads New job, Upload the Portal file, or
+  make the list, on In pictures and on the Overview, and the list under the
+  chart says the same.
+- **Storyboard panel 1, SOP-3, and the Office sheet** each say that the
+  office uploads the proposal file, checks Here is what the file says, and
+  creates the job, with making the list by hand as the other way.
+- **The training deck** has the new comic and chart pictures, and the notes
+  on the comic slide and the New job slide follow the same words.
+- No change in the app beyond the version. New job still takes the
+  proposal file ending in .csv; the rest of PLAN section 31 waits on
+  sample files.
 
 ### 0.12.0 (2026-11-12)
 

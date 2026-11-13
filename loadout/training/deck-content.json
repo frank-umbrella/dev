@@ -29,7 +29,7 @@
       "places": ["Shelf", "Bay", "Van", "Client"],
       "moves": ["Pull", "Pick up", "Deliver"],
       "shots": ["26-flow.png"],
-      "alt": ["Flow chart in three lanes, Office, Warehouse and Tech: New job leads to Pull for a job, then Pick up from staging, Confirm a delivery and Close job. Dashed side paths go through Order what is short and Receive a shipment, and Bring back from the van to the bay. Audit a shelf is its own loop, and Pull is shown on the TV board."],
+      "alt": ["Flow chart in three lanes, Office, Warehouse and Tech: New job, upload the Portal file or make the list, leads to Pull for a job, then Pick up from staging, Confirm a delivery and Close job. Dashed side paths go through Order what is short and Receive a shipment, and Bring back from the van to the bay. Audit a shelf is its own loop, and Pull is shown on the TV board."],
       "notes": "Every piece of product is always in one of four places: on a shelf, in a job's bay, in a tech's van, or at the client. Pull moves it from the shelf to the bay, Pick up from the bay to the van, and Deliver from the van to the client. The chart shows who does each step: the office on top, the warehouse in the middle, the tech at the bottom. The dashed paths are the side trips, ordering what is short and bringing product back. The usual mistake is skipping a place, such as loading straight from the shelf into the van, and then no count matches."
     },
     {
@@ -38,8 +38,8 @@
       "band": "blue",
       "footer": "The full page: Office, About, How Loadout works.",
       "shots": ["25a-comic-1-3.png"],
-      "alt": ["Comic panels 1 to 3. Panel 1, A client says yes: the office at a desk with the New job screen says, Client said yes, I will make the job. Panel 2, The warehouse sees it: the warehouse with a phone reading Pull for a job, 1 job to pull, says, One to pull. Panel 3, Pull: the warehouse at Shelf B with a box and a Pull 4 button says, Four from Shelf B."],
-      "notes": "The comic tells one job from start to finish in nine panels, three per slide. Panel 1: a client says yes, and the office makes the job, because a job is the list of product one install needs. Panel 2: the warehouse sees it on Home, which shows what is waiting behind each door, and the TV on the wall shows the same job. Panel 3: the warehouse pulls it, shelf to the job's bay, and each tap on Pull drops the shelf count. The thing people miss here is that nothing moves until someone taps; the comic shows the tap every time."
+      "alt": ["Comic panels 1 to 3. Panel 1, A client says yes: the office drops a file labeled .csv onto the New job screen, where Use a proposal file is picked, and says, Client said yes, uploading the proposal file. Panel 2, The warehouse sees it: the warehouse with a phone reading Pull for a job, 1 job to pull, says, One to pull. Panel 3, Pull: the warehouse at Shelf B with a box and a Pull 4 button says, Four from Shelf B."],
+      "notes": "The comic tells one job from start to finish in nine panels, three per slide. Panel 1: a client says yes, and the office uploads the proposal file from Portal, which becomes the job, the list of product one install needs. With no file, someone makes the list by hand. Panel 2: the warehouse sees it on Home, which shows what is waiting behind each door, and the TV on the wall shows the same job. Panel 3: the warehouse pulls it, shelf to the job's bay, and each tap on Pull drops the shelf count. The thing people miss here is that nothing moves until someone taps; the comic shows the tap every time."
     },
     {
       "kind": "comic",
@@ -91,14 +91,14 @@
       "lines": [
         ["You", "Pick the client, then add products and how many."],
         ["Loadout", "Says what the shelf covers and what will be short."],
-        ["Watch for", "Use the proposal file when the office has one."]
+        ["Watch for", "A client said yes? Upload the proposal file."]
       ],
       "shots": ["02-newjob-choice.png", "03-newjob-list.png"],
       "alt": [
-        "New job sheet with two choices: Make the list yourself, for service calls and small jobs, and Use a proposal file (.csv) from Portal.",
+        "New job sheet with two choices: Make the list yourself, for service calls and small jobs, and Use a proposal file (.csv), the file the office downloads from Portal when a client accepts a proposal.",
         "New job, step 2 of 3, The list: HDMI patch cable, 4, with 4 on the shelf; Axis M3065-V camera, 2, with only 1 on the shelf, so 1 will be short."
       ],
-      "notes": "A job is the list of product one client's install needs. When a client accepts a proposal, the office makes the job from the proposal file; for a service call, anyone who can pull can make the list by hand. As you add each product, Loadout tells you how many are on the shelf and how many will be short. The last step creates the job and opens its Pull screen. The mistake to avoid is typing a product as a free note when it is already on the shelf list, because a note line cannot be pulled or counted."
+      "notes": "A job is the list of product one client's install needs. When a client accepts a proposal, the office downloads its file from Portal, uploads it under Use a proposal file, checks Here is what the file says, and presses Create job. For a service call with no file, anyone who can pull can make the list by hand. As you add each product, Loadout tells you how many are on the shelf and how many will be short. The last step creates the job and opens its Pull screen. The mistake to avoid is typing a product as a free note when it is already on the shelf list, because a note line cannot be pulled or counted."
     },
     {
       "kind": "step",
