@@ -864,6 +864,7 @@ Build T0 first. T1 and T2 are worker work and need the plan tier known.
 | 0.11.1 | Section 27: the `TIPS` table (one sentence per action, keyed by action and a context word), `tipFor` in the panel builders, the fill pass in the MutationObserver for every button and button-styled link drawn as a string, the confirm sheets' button taking the sheet's own sentence, `Loadout.tipAudit()`, and What do these do? under action rows on a coarse pointer. Section 28: the Home link on the five door screens (28.1); Rename (admin, through the Brands and categories runner), Archive and Unarchive (admin, empty locations only), Show archived, the Kind tooltips, and the Settings line for locations (28.2). Built 2026-11-11, not committed, no rules change. |
 | 0.12.0 | Section 29: a documentation release. `storyboard.html` opens on a new In pictures tab (the nine-panel comic with the words of 29.1, the flow chart in three lanes with Where the product is, and Your job in Loadout, a printable sheet per role); every sketch checked against the demo, ten redrawn and eleven added, 26 panels in the comic's order, each linked to its SOP; the Overview opens with the chart. In the app only Office, About, How Loadout works (29.3) and the version. Built 2026-11-12, not committed, no rules change. |
 | 0.12.1 | Section 31, the pictures only: comic panel 1 redrawn as the office dropping the proposal file (.csv) onto New job ("Client said yes. Uploading the proposal file." / "The file from Portal becomes the job. No file? Make the list yourself."); the flow chart's first box reads New job, Upload the Portal file, or make the list; storyboard panel 1, SOP-3, and the Office sheet say the office uploads the file; deck slides 2, 3 and 8 retaken. The PDF reader is not built. In the app only the version. Built 2026-11-13, not committed, no rules change. |
+| 0.12.2 | Documentation only, `storyboard.html`: the header is the mark and title, the subtitle, and one line ("Version 0.12.2, updated Nov 13, 2026" and a What changed link); the run-on release paragraph moves to a new last tab, History (`?tab=history`), one entry per version, newest first, with v0.2 to v0.6.2 under Earlier drafts; it prints alone and last in Print everything. Tidied chrome: seven equal tabs with a tinted selected state (a two-column grid of 44 px tabs on the phone), Read this first and Contents as one box style with one heading size, and a footer with the version and date only. In the app only the version. Built 2026-11-13, not committed, no rules change. |
 | 0.9.1 | Section 21.1 Shelf filters (Category from the product's own category, Type, Brand, Location, Consumables only; chips, the phone Filter sheet, session only) and 21.3 history as one vertical timeline everywhere; the home-screen strip, card, and Office > This phone on phones and tablets only; an odd last door spans both columns on Home; leftover "Stock" words. 21.2 stays an idea. Built 2026-11-11, not committed. |
 
 Each version is a release: bump the version everywhere, README changelog entry
@@ -2418,3 +2419,67 @@ workflow should show that.
   PDFs in `samples/`.
 - **Built in 0.12.1:** the pictures and wording show the office uploading
   the proposal file (.csv today); the PDF reader still waits on samples.
+
+## 32. Words and steps that match the shop (user, 2026-11-13; build as 0.13.0 after 0.12.2)
+
+Three corrections from the user after reading the comic.
+
+### 32.1 No "bay"
+
+The shop has shelves, a storage room, a tech area, and the warehouse in
+general. It has no bays, and "Bay 2" was an assumption from the first plan
+(D4). Decisions:
+
+- The generic word for where pulled product waits is **staging area**. The
+  location kind's label reads "Staging area" (the stored kind value stays
+  `bay`; the rules key on it and nothing in the data changes).
+- Every readable string loses "bay": doors ("staging area to your van"),
+  progress lines, the job page ("Staging: Tech area"), sheets, tooltips,
+  reports, the TV board, print, the data dictionary's descriptions.
+- The four places become **Shelf, Staging area, Van, Client**; where a real
+  location is shown, its own name is used (assumed: the **Tech area**).
+- Demo data: Bay 1, 2, 3 become Tech area spots ("Tech area, Job shelf 1"
+  and so on), so the demo, the screenshots and the deck stop teaching the
+  wrong word.
+- Real data: locations named Bay 1 to 4, if the first setup created them,
+  are renamed by an admin with the Rename button from 0.11.1; the release
+  note says so and Office, Settings shows a one-line prompt while any
+  location name still contains "Bay".
+- OPEN (D23): is the tech area where pulled product waits for the tech,
+  and is it one shared area or a marked spot per job?
+
+### 32.2 Closing a job scans the leftovers back
+
+The user: closing must record what was not used and scan it back into
+inventory. Today Close job asks "Back to stock" or "Write off" and a
+location from a list; nothing is scanned.
+
+- Close job's leftover step (and Bring back) gains the scan field the Pull
+  sheet already has: scan the **shelf label** to set where it goes back,
+  and scan each **unit's or wire box's QR** to tick it as returned. A
+  counted product with no QR is confirmed by a number, as now. Scanning is
+  the default path on a phone; picking from the list stays as the fallback.
+- The done box lists what went back and where, and the job's timeline
+  records each as a move, as now.
+- Comic panel 8: "Job is done. Scanning the leftovers back." / "What was
+  not used is scanned back onto its shelf, so the count stays right."
+
+### 32.3 Short means approve, then order
+
+The user: a short line still has to be approved and then ordered. Today a
+short line goes onto a draft PO and the office presses Mark ordered; no one
+approves.
+
+- A draft PO is called an **order request**. It gains **Approve** (admin
+  only; `approvedAt`, `approvedBy`, `approvedByName`) and cannot be marked
+  ordered until approved. Warehouse can raise and edit a request and sees
+  "Waiting for approval". A request can be sent back with a note.
+- Home's Pull door wording and the Pull screen's "Waiting on orders" group
+  show the three states: Not requested yet, Waiting for approval, On order.
+- Comic panel 4: title "Something is short"; "Two short. Asking to order
+  them." / "A short line becomes an order request. The office approves it,
+  then orders."
+- Flow chart: the side path reads Order request, Approve, Order, Receive.
+
+All three change the comic, the flow chart, the storyboard, the role sheets
+and the training deck in the same release.

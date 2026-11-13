@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP and Tech spec v0.12.1</title>
-<meta name="description" content="Storyboard and functional SOP for Loadout, the internal inventory, job, and order tracking tool, updated to match the built app. Draft for owner review.">
+<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP, Tech spec and History v0.12.2</title>
+<meta name="description" content="Storyboard and functional SOP for Loadout, the internal inventory, job, and order tracking tool, matching the built app. The shop's reference document.">
 <meta name="robots" content="noindex, nofollow">
-<meta name="version" content="0.12.1">
+<meta name="version" content="0.12.2">
 <script>
-  // ?print=1 strips the chrome for a PDF. ?tab=pictures|overview|drive|story|sop|tech picks the tab
+  // ?print=1 strips the chrome for a PDF. ?tab=pictures|overview|drive|story|sop|tech|history picks the tab
   // (In pictures when none is given); ?sheet=warehouse|tech|office|accounting|all lays out the role sheets;
   // ?all=1 shows every tab at once (for a single PDF of the whole document).
   (function () {
@@ -82,7 +82,10 @@
   h1.title { display: flex; align-items: center; gap: 12px; font-size: 34px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.01em; }
   h1.title svg { width: 36px; height: 36px; flex: none; color: var(--ink); }
   .subtitle { font-size: 18px; margin: 0 0 6px; max-width: 70ch; }
-  .draft { font-size: 14px; color: var(--muted); margin: 0 0 26px; }
+  /* 0.12.2: one meta line under the subtitle; the history has its own tab */
+  .meta { font-size: 14px; color: var(--muted); margin: 0 0 20px; }
+  .meta a { margin-left: 10px; font-weight: 600; white-space: nowrap; }
+  @media (max-width: 640px) { .meta a { display: inline-flex; align-items: center; min-height: 44px; } }
 
   .doc h2 {
     font-size: 22px; letter-spacing: -0.005em; line-height: 1.25;
@@ -92,19 +95,16 @@
   .doc p { margin: 0 0 12px; max-width: 76ch; }
   .lede { color: var(--muted); font-size: 15px; }
 
-  .readfirst {
-    border: 1px solid var(--line-strong); border-left: 4px solid var(--ink);
-    background: var(--bg); border-radius: 0 8px 8px 0;
-    padding: 14px 18px; margin: 0 0 24px; max-width: 80ch;
+  /* Read this first and Contents: one box style, one heading size */
+  .readfirst, nav.toc {
+    border: 1px solid var(--line-strong); border-radius: 8px;
+    padding: 16px 20px; margin: 0 0 16px;
   }
-  .readfirst h2 { font-size: 16px; margin: 0 0 6px; padding: 0; border: 0; }
+  .readfirst { background: var(--bg); }
+  .readfirst h2, nav.toc h2 { font-size: 16px; color: var(--ink); margin: 0 0 8px; padding: 0; border: 0; }
   .readfirst p { font-size: 15px; margin: 0 0 8px; }
   .readfirst p:last-child { margin-bottom: 0; }
-
-  nav.toc {
-    border: 1px solid var(--line); border-radius: 8px; padding: 14px 18px; margin: 0 0 8px;
-  }
-  nav.toc h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); margin: 0 0 8px; padding: 0; border: 0; }
+  nav.toc { margin-bottom: 28px; }
   nav.toc ul { list-style: none; margin: 0; padding: 0; }
   nav.toc .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 0 24px; }
   nav.toc li { margin: 0; }
@@ -269,20 +269,42 @@
   }
   .btn-print:hover { background: #1647b8; border-color: #1647b8; }
 
-  /* ============ Tabs: Overview / Storyboard / SOP ============ */
+  /* ============ Tabs ============ */
+  /* Seven equal tabs: each grows to fill its row, so a wrapped row never
+     leaves a gap; the selected one gets the tint and the accent rule. */
   .tabs {
-    display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 22px;
+    display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 22px;
     border-bottom: 1px solid var(--line-strong); padding-bottom: 0;
   }
   .tabs button {
-    font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
-    background: transparent; color: var(--muted); border: 0;
-    border-bottom: 3px solid transparent; padding: 10px 14px; min-height: 44px;
+    flex: 1 1 140px; min-width: 0; text-align: left;
+    display: flex; flex-direction: column; justify-content: flex-start;
+    font: inherit; font-size: 15px; font-weight: 600; line-height: 1.3; cursor: pointer;
+    background: transparent; color: var(--muted); border: 0; border-radius: 6px 6px 0 0;
+    border-bottom: 3px solid transparent; padding: 10px 12px; min-height: 44px;
     margin-bottom: -1px;
   }
-  .tabs button:hover { color: var(--ink); }
-  .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
-  .tabs button .hint { display: block; font-size: 12px; font-weight: 400; color: var(--muted); }
+  .tabs button:hover { color: var(--ink); background: var(--bg); }
+  .tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .tabs button[aria-selected="true"] { color: var(--ink); background: var(--accent-soft); border-bottom-color: var(--accent); }
+  .tabs button .hint { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: var(--muted); }
+  @media (max-width: 640px) {
+    /* two columns of 44px targets, no hints; the odd last tab spans the row */
+    .tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; border-bottom: 0; }
+    .tabs button { border: 1px solid var(--line-strong); border-radius: 8px; margin: 0; padding: 8px 12px; flex-direction: row; align-items: center; }
+    .tabs button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .tabs button[aria-selected="true"] { border-color: var(--accent); box-shadow: inset 0 -3px 0 var(--accent); }
+    .tabs button .hint { display: none; }
+  }
+
+  /* ============ History tab (0.12.2) ============ */
+  ol.hist { list-style: none; margin: 0; padding: 0; max-width: 76ch; }
+  ol.hist > li { padding: 14px 0; border-bottom: 1px solid var(--line); }
+  ol.hist > li:last-child { border-bottom: 0; }
+  ol.hist h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 16px; margin: 0 0 6px; }
+  ol.hist h3 .when { font-size: 14px; font-weight: 400; color: var(--muted); }
+  ol.hist ul { margin: 0; padding-left: 20px; }
+  ol.hist ul li { margin: 0 0 4px; }
   .tab { display: none; }
   .tab.on { display: block; }
   html.print-all .tab { display: block; }
@@ -505,6 +527,8 @@
     .td ol.drive .ref a { min-height: 0; }
     .td table.offtbl td { height: 0.5in; }
     .td table.offtbl th, .td table.offtbl td { border-color: #555; }
+    ol.hist > li { break-inside: avoid; page-break-inside: avoid; }
+    .meta a { display: none; }
     .ov table.cmp.spec tbody tr:nth-child(even) td { background: #f3f3f3; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
     /* In pictures: the comic on one portrait page, the chart on one
@@ -515,7 +539,7 @@
     html.on-pictures:not(.print-all) .doc-brand,
     html.on-pictures:not(.print-all) h1.title,
     html.on-pictures:not(.print-all) .subtitle,
-    html.on-pictures:not(.print-all) .draft,
+    html.on-pictures:not(.print-all) .meta,
     html.on-pictures:not(.print-all) .readfirst,
     html.on-pictures:not(.print-all) nav.toc,
     html.on-pictures:not(.print-all) footer.pagefoot { display: none !important; }
@@ -642,7 +666,6 @@
     </svg>
     <div class="doc-kind">
       <div class="kind">Overview, storyboard, functional SOP, and tech spec</div>
-      <div class="num">Draft v0.12</div>
     </div>
   </div>
 
@@ -651,7 +674,7 @@
     Loadout
   </h1>
   <p class="subtitle">How product moves through the shop, from approved proposal to installed, and what gets recorded at each step</p>
-  <p class="draft">Draft for review, 2026-11-13 (v0.12.1: comic panel 1 shows the office uploading the proposal file from Portal, and the flow chart's first box, SOP-3, and the Office sheet say the same; v0.12.0: a new first tab, In pictures, with a nine-panel comic of one job, the flow chart redrawn in three lanes with the strip Where the product is, and a one-page sheet per role, Your job in Loadout; every Storyboard sketch checked against the app and redrawn where it no longer matched, eleven new ones, and the panels put in the comic's order, 26 in all, each ending with a link to its SOP; the Overview opens with the chart small; v0.11.1:the Test drive has 21 steps with one for the Home link on each door's screen and the tooltips, and the Shelf step adds renaming and archiving a location; v0.11.0: Brand and Category are pick lists on New product and the product panel, with a confirm when an admin adds a new one, the Test drive has 20 steps with one for that, and Office, Settings links to Brands and categories; v0.10.0: New job offers two plain choices, Make the list yourself and Use a proposal file (.csv), in panel 1, the Overview, and SOP-3; the Test drive has 19 steps, with one for the photo a UPC brings and one for the Job report; the last tab reads More for techs; the header in every desktop sketch shows the sync pill with the name beside it and the role under them, and Sign out lives in the Account sheet behind that block; v0.9.0: Pull has its own screen shelf by shelf, opened from the Pull list or the QR on the printed pull sheet; Bring back from a van and the Close job van rule; Receive a shipment is a door and asks for serials or MACs; a carrier box has Arrived, not Delivered; the progress line names only what has happened; the wall board reads on a phone; Test drive has 17 steps; v0.8.2: each door on Home says how much waits behind it, and Test drive step 1 says what the counts should read; v0.8.1: Test drive step 1 says where to put Loadout on the home screen after signing in, Office &gt; This phone; v0.8.0: the app 0.8.0 opens on Home with four doors, Pick up from staging, Confirm a delivery, Pull for a job, and Audit a shelf; what was a ticket is a Job and its lines the Pull sheet, Stock and Units are Shelf, More and Office are Office, Pick up is its own step before Deliver, and the wall board is a grid of six jobs; the Test drive follows the doors; v0.7.0: a Test drive tab to walk the app on real data, and SOP-12 covers serials, MAC addresses, and pulled units on the Devices tab; v0.6.2: the nightly backup goes to the same Google project as the database and is listed under Office &gt; Backups, not Google Drive; v0.6.1: words match the app's 0.5.2 vocabulary). Updated to match the built app, releases 0.1.0 to 0.5.2: every screen, button, and status word below is the one in the app today, and two panels are new (14, the Week view, and 15, Tracking). Earlier drafts: v0.5 named the tool Loadout, v0.4 added the Tech spec tab, v0.3 the Overview, v0.2 the wall board.</p>
+  <p class="meta">Version 0.12.2, updated Nov 13, 2026 <a href="#history" id="whatChanged">What changed</a></p>
 
   <div class="tabs" role="tablist" aria-label="Sections of this document">
     <button type="button" role="tab" id="tabbtn-pictures" aria-controls="tab-pictures" aria-selected="true" data-tab="pictures">In pictures<span class="hint">nine panels and one chart</span></button>
@@ -660,12 +683,13 @@
     <button type="button" role="tab" id="tabbtn-story" aria-controls="tab-story" aria-selected="false" data-tab="story">Storyboard<span class="hint">a day in the warehouse, 26 screens</span></button>
     <button type="button" role="tab" id="tabbtn-sop" aria-controls="tab-sop" aria-selected="false" data-tab="sop">SOP<span class="hint">step by step, and what it is not</span></button>
     <button type="button" role="tab" id="tabbtn-tech" aria-controls="tab-tech" aria-selected="false" data-tab="tech">Tech spec<span class="hint">what it runs on, and will the data stay readable</span></button>
+    <button type="button" role="tab" id="tabbtn-history" aria-controls="tab-history" aria-selected="false" data-tab="history">History<span class="hint">what changed in this document</span></button>
   </div>
 
   <section class="readfirst" id="read" aria-labelledby="read-h">
     <h2 id="read-h">Read this first</h2>
     <p>Loadout is a web app for the office and the warehouse, used on a phone in the rack room and on a desktop at the front. It turns an approved Portal proposal into a job and follows every part on it from ordered to installed. It keeps a running count of what is on the shelves, including how many feet are left in each wire box. Every change is written to a log with the name of the person who made it, so any count can be explained later. It is built and in use; this document now describes the app as it is, and the open questions that remain are marked.</p>
-    <p>Every client, name, number, price, and address on this page is invented sample data. The buttons drawn inside the pictures are pictures. What you can press on this page: the six tabs above, the contents links below, each comic panel's title (it opens that step in the Storyboard), the SOP link under each storyboard panel, the role sheet picker, and the print buttons at the bottom.</p>
+    <p>Every client, name, number, price, and address on this page is invented sample data. The buttons drawn inside the pictures are pictures. What you can press on this page: the seven tabs above, the contents links below, each comic panel's title (it opens that step in the Storyboard), the SOP link under each storyboard panel, the role sheet picker, and the print buttons at the bottom.</p>
   </section>
 
   <nav class="toc" aria-label="Contents">
@@ -685,6 +709,7 @@
         <li><a href="#part1">Part 1. A day in the warehouse</a></li>
         <li><a href="#part3">Part 3. What Loadout is not</a></li>
         <li><a href="#tech">Tech spec</a></li>
+        <li><a href="#history">History</a></li>
       </ul>
       <ul>
         <li><a href="#part2">Part 2. Functional SOP</a>
@@ -715,7 +740,7 @@
   <p class="lede">The whole process on two pages: nine panels for one job, and one chart for every step and who does it. Each panel's title opens the same step in the Storyboard tab. Print this tab with the button at the bottom; the comic and the chart come out one page each.</p>
 
   <section class="comicpage" id="comic" aria-labelledby="comic-h">
-  <div class="phead"><b>Loadout in pictures: one job, nine panels</b><span>Loadout v0.12.1, 2026-11-13</span></div>
+  <div class="phead"><b>Loadout in pictures: one job, nine panels</b><span>Loadout v0.12.2, 2026-11-13</span></div>
   <h3 id="comic-h">One job, start to finish</h3>
   <ol class="comic">
 
@@ -927,7 +952,7 @@
   </section>
 
   <section class="chartpage" id="flow" aria-labelledby="flow-h">
-  <div class="phead"><b>Loadout in pictures: who does what, in order</b><span>Loadout v0.12.1, 2026-11-13</span></div>
+  <div class="phead"><b>Loadout in pictures: who does what, in order</b><span>Loadout v0.12.2, 2026-11-13</span></div>
   <h3 id="flow-h">The flow chart</h3>
   <div class="fc">
     <svg id="fcsvg" viewBox="0 0 910 570" data-n="0 0 404 560" role="img" aria-labelledby="fct fcd"><title id="fct">Loadout flow chart</title><desc id="fcd">Three lanes, Office, Warehouse, and Tech. Office makes a New job; Warehouse does Pull for a job, shown on the TV board; Tech does Pick up from staging, then Confirm a delivery; Office does Close job. Side path: from Pull, Office does Order what is short, then Warehouse does Receive a shipment, which puts the product in the bay for Pick up. Way back: after a pick-up, Tech can Bring back from the van to the bay. Audit a shelf is its own loop in the Warehouse lane. The same steps are written out as a list below the chart.</desc>
@@ -1020,7 +1045,7 @@
   </div>
   <div class="sheets">
     <article class="sheet" id="role-warehouse" data-role="warehouse">
-      <div class="phead"><b>Your job in Loadout: Warehouse</b><span>Loadout v0.12.1</span></div>
+      <div class="phead"><b>Your job in Loadout: Warehouse</b><span>Loadout v0.12.2</span></div>
       <h4>Warehouse</h4>
       <p class="who">Shelves, bays, the dock door. Phone in hand most of the day.</p>
       <ol>
@@ -1036,7 +1061,7 @@
       </ol>
     </article>
     <article class="sheet" id="role-tech" data-role="tech">
-      <div class="phead"><b>Your job in Loadout: Tech</b><span>Loadout v0.12.1</span></div>
+      <div class="phead"><b>Your job in Loadout: Tech</b><span>Loadout v0.12.2</span></div>
       <h4>Tech</h4>
       <p class="who">The bay, the van, the client's site. The last tab reads More instead of Office.</p>
       <ol>
@@ -1050,7 +1075,7 @@
       </ol>
     </article>
     <article class="sheet" id="role-office" data-role="office">
-      <div class="phead"><b>Your job in Loadout: Office</b><span>Loadout v0.12.1</span></div>
+      <div class="phead"><b>Your job in Loadout: Office</b><span>Loadout v0.12.2</span></div>
       <h4>Office</h4>
       <p class="who">The desk at the front: proposals, orders, and closing jobs. In the app this is the admin or warehouse role.</p>
       <ol>
@@ -1066,7 +1091,7 @@
       </ol>
     </article>
     <article class="sheet" id="role-accounting" data-role="accounting">
-      <div class="phead"><b>Your job in Loadout: Accounting</b><span>Loadout v0.12.1</span></div>
+      <div class="phead"><b>Your job in Loadout: Accounting</b><span>Loadout v0.12.2</span></div>
       <h4>Accounting</h4>
       <p class="who">Reads everything, changes nothing: there are no edit buttons for this role.</p>
       <ol>
@@ -2490,10 +2515,115 @@ Staged 9/12 lines in Bay 2. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
   </ul>
   </div>
 
+  <!-- ================= HISTORY TAB (0.12.2) ================= -->
+  <div class="tab" id="tab-history" role="tabpanel" aria-labelledby="tabbtn-history">
+  <h2 id="history">History</h2>
+  <p class="lede">What changed in this document, newest first. The app's own releases are in the Overview, under What is built.</p>
+  <ol class="hist">
+    <li>
+      <h3>0.12.2 <span class="when">Nov 13, 2026</span></h3>
+      <ul>
+        <li>The header is a title, one line and a version; the change history has its own tab.</li>
+        <li>The tab bar, Read this first, Contents, and the footer were tidied to match.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>0.12.1 <span class="when">Nov 13, 2026</span></h3>
+      <ul>
+        <li>Comic panel 1 shows the office uploading the proposal file from Portal.</li>
+        <li>The flow chart's first box, SOP-3, and the Office sheet say the same.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>0.12.0</h3>
+      <ul>
+        <li>A new first tab, In pictures: a nine-panel comic of one job, the flow chart redrawn in three lanes with the strip Where the product is, and a one-page sheet per role, Your job in Loadout.</li>
+        <li>Every Storyboard sketch was checked against the app and redrawn where it no longer matched. Eleven are new.</li>
+        <li>The panels follow the comic's order, 26 in all, and each ends with a link to its SOP.</li>
+        <li>The Overview opens with the chart, small.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>0.11.1</h3>
+      <ul>
+        <li>The Test drive has 21 steps, with one for the Home link on each door's screen and the tooltips.</li>
+        <li>The Shelf step adds renaming and archiving a location.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>0.11.0</h3>
+      <ul>
+        <li>Brand and Category are pick lists on New product and the product panel, with a confirm when an admin adds a new one.</li>
+        <li>The Test drive has 20 steps, with one for that.</li>
+        <li>Office, Settings links to Brands and categories.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>0.10.0</h3>
+      <ul>
+        <li>New job offers two plain choices, Make the list yourself and Use a proposal file (.csv), in panel 1, the Overview, and SOP-3.</li>
+        <li>The Test drive has 19 steps, with one for the photo a UPC brings and one for the Job report.</li>
+        <li>In every desktop sketch the header shows the sync pill with the name beside it and the role under them. Sign out lives in the Account sheet behind that block.</li>
+        <li>The last tab reads More for techs.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>0.9.0</h3>
+      <ul>
+        <li>Pull has its own screen, shelf by shelf, opened from the Pull list or the QR on the printed pull sheet.</li>
+        <li>Bring back from a van, and the Close job van rule. Receive a shipment is a door and asks for serials or MACs.</li>
+        <li>A carrier box has Arrived, not Delivered, and the progress line names only what has happened.</li>
+        <li>The wall board reads on a phone. The Test drive has 17 steps.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>0.8.2</h3>
+      <ul>
+        <li>Each door on Home says how much waits behind it.</li>
+        <li>Test drive step 1 says what the counts should read.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>0.8.1</h3>
+      <ul>
+        <li>Test drive step 1 says where to put Loadout on the home screen after signing in: Office &gt; This phone.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>0.8.0</h3>
+      <ul>
+        <li>The app 0.8.0 opens on Home with four doors: Pick up from staging, Confirm a delivery, Pull for a job, and Audit a shelf.</li>
+        <li>What was a ticket is a Job, and its lines are the Pull sheet. Stock and Units are Shelf, and More and Office are Office.</li>
+        <li>Pick up is its own step before Deliver, and the wall board is a grid of six jobs.</li>
+        <li>The Test drive follows the doors.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>0.7.0</h3>
+      <ul>
+        <li>A Test drive tab, to walk the app on real data.</li>
+        <li>SOP-12 covers serials, MAC addresses, and pulled units on the Devices tab.</li>
+      </ul>
+    </li>
+    <li>
+      <h3>Earlier drafts</h3>
+      <ul>
+        <li>0.6.2: the nightly backup goes to the same Google project as the database and is listed under Office &gt; Backups, not Google Drive.</li>
+        <li>0.6.1: the words match the app's 0.5.2 vocabulary.</li>
+        <li>The drafts were brought up to the built app, releases 0.1.0 to 0.5.2: every screen, button, and status word is the one in the app, and two panels were added, 14 (the Week view) and 15 (Tracking).</li>
+        <li>0.5: named the tool Loadout.</li>
+        <li>0.4: added the Tech spec tab.</li>
+        <li>0.3: added the Overview.</li>
+        <li>0.2: added the wall board.</li>
+      </ul>
+    </li>
+  </ol>
+  </div>
+
 </article>
 
 <footer class="pagefoot">
-  <p>Loadout storyboard v0.12.1, 2026-11-13. Matches the app at 0.12.1 (How Loadout works under Office, About, a tooltip on every button and What do these do? on the phone, a Home link on each door's screen, renaming and archiving a location, Brand and Category as pick lists, Brands and categories under Settings, Home with five doors and their counts, New job with its two choices, the photo a UPC brings, the Job report, the account block in the header, the Pull screen, Bring back, Receive a shipment, Jobs, Shelf with its filters, history as a timeline, Office, Pick up, Audit, the board grid and its phone layout). Internal, Umbrella Automation.</p>
+  <p>Version 0.12.2, updated Nov 13, 2026</p>
   <button type="button" class="btn-print" id="printTab">Print this tab as PDF</button>
   <button type="button" class="btn-print" id="printAll">Print everything as PDF</button>
 </footer>
@@ -2502,7 +2632,7 @@ Staged 9/12 lines in Bay 2. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
 
 <script>
 (function () {
-  var names = ['pictures', 'overview', 'drive', 'story', 'sop', 'tech'];
+  var names = ['pictures', 'overview', 'drive', 'story', 'sop', 'tech', 'history'];
   var tabs = document.querySelectorAll('.tabs button[data-tab]');
   var panels = {};
   names.forEach(function (n) { panels[n] = document.getElementById('tab-' + n); });
@@ -2572,6 +2702,15 @@ Staged 9/12 lines in Bay 2. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
     });
   });
   window.addEventListener('hashchange', fromHash);
+
+  // The header's What changed link opens History with the tab bar in view.
+  var wc = document.getElementById('whatChanged');
+  if (wc) wc.addEventListener('click', function (e) {
+    e.preventDefault();
+    show('history');
+    history.replaceState(null, '', '#history');
+    document.querySelector('.tabs').scrollIntoView();
+  });
 
   // Print: this tab only, or every tab (one PDF, each tab on a new page).
   var pt = document.getElementById('printTab'), pa = document.getElementById('printAll');

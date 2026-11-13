@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.12.1**.
+Current version: **0.12.2**.
 
 ## Files
 
@@ -1199,6 +1199,24 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.12.2 (2026-11-13)
+
+The owner found the top of the storyboard messy: under the title sat a
+thirty-line paragraph of every release note since v0.2, and it pushed the tabs
+below the fold. The document is the shop's reference now, so the top should
+read like one.
+
+- **The header** is the mark and the title, the subtitle, and one line:
+  "Version 0.12.2, updated Nov 13, 2026" with a What changed link. The tabs
+  show on the first screen on a laptop and on a phone.
+- **History** is a new last tab (`?tab=history`): one entry per version,
+  newest first, in short sentences, with v0.2 to v0.6.2 under Earlier drafts.
+  It prints on its own and comes last in Print everything.
+- **The page chrome** is tidied: seven equal tabs with a clear selected
+  state (two columns of 44 px tabs on a phone), Read this first and Contents
+  in one box style with one heading size, and a footer with the version and
+  date only. No tab's content changed. In the app only the version.
 
 ### 0.12.1 (2026-11-13)
 
