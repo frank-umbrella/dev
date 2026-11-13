@@ -131,12 +131,17 @@ function Add-Header($slide, $sd) {
 function Add-Places($slide, $places, $moves, [double]$y, [string]$fill, [string]$text, [string]$line) {
   $n = $places.Count; $gap = 140
   $bw = (($SW - 2 * $M) - ($n - 1) * $gap) / $n; $bh = 58
+  # 0.13.0: a long place name (Staging area) gets a smaller size and wraps to two lines inside its box
+  $longest = 0; foreach ($p in $places) { if ($p.Length -gt $longest) { $longest = $p.Length } }
+  $fs = $(if ($longest -gt 7) { 20 } else { 26 })
   $boxes = @()
   for ($i = 0; $i -lt $n; $i++) {
     $bx = $M + $i * ($bw + $gap)
     $b = Add-Box $slide ("Place " + $places[$i]) $bx $y $bw $bh $fill $line 0.15
+    $b.TextFrame.MarginLeft = 4; $b.TextFrame.MarginRight = 4; $b.TextFrame.MarginTop = 2; $b.TextFrame.MarginBottom = 2; $b.TextFrame.WordWrap = -1
     $tr = $b.TextFrame.TextRange
-    $tr.Text = $places[$i]; $tr.Font.Name = $FONT; $tr.Font.Size = 26; $tr.Font.Bold = -1; $tr.Font.Color.RGB = (Rgb $text)
+    $tr.Text = $places[$i]; $tr.Font.Name = $FONT; $tr.Font.Size = $fs; $tr.Font.Bold = -1; $tr.Font.Color.RGB = (Rgb $text)
+    $tr.ParagraphFormat.SpaceWithin = 0.9
     $tr.ParagraphFormat.Alignment = 2
     $b.TextFrame.VerticalAnchor = 3
     $boxes += $b

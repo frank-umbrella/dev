@@ -26,11 +26,11 @@
       "kind": "line",
       "title": "The whole thing in one line",
       "band": "blue",
-      "places": ["Shelf", "Bay", "Van", "Client"],
+      "places": ["Shelf", "Staging area", "Van", "Client"],
       "moves": ["Pull", "Pick up", "Deliver"],
       "shots": ["26-flow.png"],
-      "alt": ["Flow chart in three lanes, Office, Warehouse and Tech: New job, upload the Portal file or make the list, leads to Pull for a job, then Pick up from staging, Confirm a delivery and Close job. Dashed side paths go through Order what is short and Receive a shipment, and Bring back from the van to the bay. Audit a shelf is its own loop, and Pull is shown on the TV board."],
-      "notes": "Every piece of product is always in one of four places: on a shelf, in a job's bay, in a tech's van, or at the client. Pull moves it from the shelf to the bay, Pick up from the bay to the van, and Deliver from the van to the client. The chart shows who does each step: the office on top, the warehouse in the middle, the tech at the bottom. The dashed paths are the side trips, ordering what is short and bringing product back. The usual mistake is skipping a place, such as loading straight from the shelf into the van, and then no count matches."
+      "alt": ["Flow chart in three lanes, Office, Warehouse and Tech: New job, upload the Portal file or make the list, leads to Pull for a job, then Pick up from staging, Confirm a delivery and Close job. A dashed side path goes Order request, Approve, Order, then Receive a shipment, and Bring back runs from the van to the staging area. Audit a shelf is its own loop, and Pull is shown on the TV board."],
+      "notes": "Every piece of product is always in one of four places: on a shelf, in the staging area (the shop's Tech area), in a tech's van, or at the client. Pull moves it from the shelf to the staging area, Pick up from there to the van, and Deliver from the van to the client. The chart shows who does each step: the office on top, the warehouse in the middle, the tech at the bottom. The dashed paths are the side trips: a short line becomes an order request that the office approves and then orders, and product that comes back is scanned back. The usual mistake is skipping a place, such as loading straight from the shelf into the van, and then no count matches."
     },
     {
       "kind": "comic",
@@ -39,7 +39,7 @@
       "footer": "The full page: Office, About, How Loadout works.",
       "shots": ["25a-comic-1-3.png"],
       "alt": ["Comic panels 1 to 3. Panel 1, A client says yes: the office drops a file labeled .csv onto the New job screen, where Use a proposal file is picked, and says, Client said yes, uploading the proposal file. Panel 2, The warehouse sees it: the warehouse with a phone reading Pull for a job, 1 job to pull, says, One to pull. Panel 3, Pull: the warehouse at Shelf B with a box and a Pull 4 button says, Four from Shelf B."],
-      "notes": "The comic tells one job from start to finish in nine panels, three per slide. Panel 1: a client says yes, and the office uploads the proposal file from Portal, which becomes the job, the list of product one install needs. With no file, someone makes the list by hand. Panel 2: the warehouse sees it on Home, which shows what is waiting behind each door, and the TV on the wall shows the same job. Panel 3: the warehouse pulls it, shelf to the job's bay, and each tap on Pull drops the shelf count. The thing people miss here is that nothing moves until someone taps; the comic shows the tap every time."
+      "notes": "The comic tells one job from start to finish in nine panels, three per slide. Panel 1: a client says yes, and the office uploads the proposal file from Portal, which becomes the job, the list of product one install needs. With no file, someone makes the list by hand. Panel 2: the warehouse sees it on Home, which shows what is waiting behind each door, and the TV on the wall shows the same job. Panel 3: the warehouse pulls it, shelf to the staging area, and each tap on Pull drops the shelf count. The thing people miss here is that nothing moves until someone taps; the comic shows the tap every time."
     },
     {
       "kind": "comic",
@@ -47,8 +47,8 @@
       "band": "blue",
       "footer": "The full page: Office, About, How Loadout works.",
       "shots": ["25b-comic-4-6.png"],
-      "alt": ["Comic panels 4 to 6. Panel 4, Something is short: the office at a screen showing U6-Pro, needed 4, Short 2, Order missing, says, Two short, ordering them. Panel 5, The box arrives: the warehouse at the dock door with a box and a Receive button says, It is here, into Bay 2. Panel 6, Pick up: a tech loading the van from Bay 2 says, Loading Bay 2, it is on me now."],
-      "notes": "Panels 4 to 6 are how the product for a job comes together. Panel 4: something is short, and Loadout says what the shelf cannot cover, so the office orders it. Panel 5: the box arrives, and Receive a shipment puts it with the job, straight into its bay. Panel 6: the tech picks it up, bay to the van, and from here it is in the tech's name. The common slip is loading the van without tapping Pick up, which leaves the product looking like it is still in the bay."
+      "alt": ["Comic panels 4 to 6. Panel 4, Something is short: the warehouse's phone sends an order request for U6-Pro x2 to the office screen, which shows Waiting for approval and an Approve button, and says, Two short, asking to order them. Panel 5, The box arrives: the warehouse at the dock door with a box and a Receive button says, It is here, into the Tech area. Panel 6, Pick up: a tech carrying a box from the Tech area to the van says, Loading the van, it is on me now."],
+      "notes": "Panels 4 to 6 are how the product for a job comes together. Panel 4: something is short. The short line becomes an order request, an admin in the office approves it, and only then is it ordered. Panel 5: the box arrives, and Receive a shipment puts it with the job, straight into the staging area. Panel 6: the tech picks it up, staging area to the van, and from here it is in the tech's name. The common slip is loading the van without tapping Pick up, which leaves the product looking like it is still in the staging area."
     },
     {
       "kind": "comic",
@@ -56,20 +56,20 @@
       "band": "blue",
       "footer": "The full page: Office, About, How Loadout works.",
       "shots": ["25c-comic-7-9.png"],
-      "alt": ["Comic panels 7 to 9. Panel 7, Deliver: a tech at the client's door with a box and a Delivered to site button says, Product on site. Panel 8, Close the job: the office with a Close job button and a leftover box going back on the shelf says, Job is done, leftovers go back. Panel 9, Keep it honest: the warehouse counting a shelf, expected 12, says, Shelf says 12, I count 12."],
-      "notes": "Panels 7 to 9 finish the job and keep the shop honest. Panel 7: deliver, van to the client, and a tap confirms what arrived. Panel 8: the office closes the job, and closing returns what was not used to the shelf. Panel 9: keep it honest, because auditing one shelf at a time keeps every number true. People tend to skip panel 9; it is the step that makes every other number on these slides worth trusting."
+      "alt": ["Comic panels 7 to 9. Panel 7, Deliver: a tech at the client's door with a box and a Delivered to site button says, Product on site. Panel 8, Close the job: the warehouse holds a phone up to the Shelf B label, and the phone shows Close job, Back to Shelf B, U6-Pro 1 back; the speech says, Job is done, scanning the leftovers back. Panel 9, Keep it honest: the warehouse counting a shelf, expected 12, says, Shelf says 12, I count 12."],
+      "notes": "Panels 7 to 9 finish the job and keep the shop honest. Panel 7: deliver, van to the client, and a tap confirms what arrived. Panel 8: the job closes, and what was not used is scanned back onto its shelf: the shelf label first, then each leftover, so the count stays right. Panel 9: keep it honest, because auditing one shelf at a time keeps every number true. People tend to skip panel 9; it is the step that makes every other number on these slides worth trusting."
     },
     {
       "kind": "roles",
       "title": "Who does what",
       "band": "blue",
       "roles": [
-        ["Office", "New job, order what is short, close the job."],
-        ["Warehouse", "Pull, receive shipments, audit shelves, watch the TV board."],
-        ["Tech", "Pick up from staging, confirm deliveries, bring back."],
+        ["Office", "New job, approve order requests, close the job."],
+        ["Warehouse", "Pull, request what is short, receive, scan leftovers back."],
+        ["Tech", "Pick up from staging, confirm deliveries, scan back."],
         ["Accounting", "Reports, including the Job report."]
       ],
-      "notes": "Loadout has four roles, and each one sees only the doors it uses. The office starts jobs, orders what the shelves cannot cover, and closes jobs when they are done. The warehouse pulls product, receives boxes, audits shelves, and keeps an eye on the TV board. Techs pick up from the bay, confirm deliveries at the client, and bring back anything not used. If a door is missing on your phone, it is not broken: your role does not use it, and the last tab reads More for techs instead of Office."
+      "notes": "Loadout has four roles, and each one sees only the doors it uses. The office starts jobs, approves order requests (an admin does that), and closes jobs when they are done. The warehouse pulls product, asks for what the shelves cannot cover, receives boxes, audits shelves, and scans leftovers back onto their shelves. Techs pick up from the staging area, confirm deliveries at the client, and scan back anything not used. If a door is missing on your phone, it is not broken: your role does not use it, and the last tab reads More for techs instead of Office."
     },
     {
       "kind": "step",
@@ -81,8 +81,8 @@
         ["Watch for", "A grey count means nothing is waiting there."]
       ],
       "shots": ["01-home.png"],
-      "alt": ["Home for the warehouse: Pick up from staging, 5 jobs waiting; Confirm a delivery, 1 in a van and 4 in the bay; Pull for a job, 4 jobs to pull and 1 waiting on orders; Receive a shipment, 2 arrived and 2 on the way; Audit a shelf, 7 shelves due. The jobs list starts below."],
-      "notes": "Home is where every shift starts. Each colored door is one kind of work, and the line under it says how much is waiting, such as 4 jobs to pull. The colors carry through: the Pull screens wear the same amber as the Pull door. Tapping the Loadout name at the top always brings you back here. People often hunt through the Jobs tab instead; the doors already show only what needs doing."
+      "alt": ["Home for the warehouse: Pick up from staging, 5 jobs waiting; Confirm a delivery, 1 in a van and 4 in the staging area; Pull for a job, 4 jobs to pull, 2 not requested yet, 1 waiting for approval and 3 on order; Receive a shipment, 2 arrived and 2 on the way; Audit a shelf, 7 shelves due. The jobs list starts below."],
+      "notes": "Home is where every shift starts. Each colored door is one kind of work, and the line under it says how much is waiting, such as 4 jobs to pull. The Pull door also counts the short lines three ways: not requested yet, waiting for approval, and on order. The colors carry through: the Pull screens wear the same amber as the Pull door. Tapping the Loadout name at the top always brings you back here. People often hunt through the Jobs tab instead; the doors already show only what needs doing."
     },
     {
       "kind": "step",
@@ -94,10 +94,7 @@
         ["Watch for", "A client said yes? Upload the proposal file."]
       ],
       "shots": ["02-newjob-choice.png", "03-newjob-list.png"],
-      "alt": [
-        "New job sheet with two choices: Make the list yourself, for service calls and small jobs, and Use a proposal file (.csv), the file the office downloads from Portal when a client accepts a proposal.",
-        "New job, step 2 of 3, The list: HDMI patch cable, 4, with 4 on the shelf; Axis M3065-V camera, 2, with only 1 on the shelf, so 1 will be short."
-      ],
+      "alt": ["New job sheet with two choices: Make the list yourself, for service calls and small jobs, and Use a proposal file (.csv), the file the office downloads from Portal when a client accepts a proposal.", "New job, step 2 of 3, The list: HDMI patch cable, 4, with 4 on the shelf; Axis M3065-V camera, 2, with only 1 on the shelf, so 1 will be short."],
       "notes": "A job is the list of product one client's install needs. When a client accepts a proposal, the office downloads its file from Portal, uploads it under Use a proposal file, checks Here is what the file says, and presses Create job. For a service call with no file, anyone who can pull can make the list by hand. As you add each product, Loadout tells you how many are on the shelf and how many will be short. The last step creates the job and opens its Pull screen. The mistake to avoid is typing a product as a free note when it is already on the shelf list, because a note line cannot be pulled or counted."
     },
     {
@@ -110,28 +107,34 @@
         ["Watch for", "Tap Pull as it leaves the shelf, not later."]
       ],
       "shots": ["04-pull-list.png", "05-pull-job.png", "06-pull-sheet.png"],
-      "alt": [
-        "Pull for a job list: Lakeview Dental job 1042, pulled 2 of 9, Keep pulling; Lakeview Dental job 1050; Harbor Clinic job 1061, Start pulling.",
-        "Pull screen for job 1042, Lakeview Dental, Bay 2: lines grouped by shelf, each with a blue Pull button such as Pull 6 and Pull 4.",
-        "Pull from stock sheet for a CAT6 patch cable: from Storage room, Patch cables, quantity 6, a field to scan or type a code, and the Pull button."
-      ],
-      "notes": "Pulling moves product from the shelves to the job's bay. Open the job from the Pull door and you get its lines grouped by shelf, in the order you walk the room. Tap Pull on a line, check the shelf and the quantity, and confirm; the shelf count drops and the line moves to In the bay. The TV board shows the same list for the whole warehouse. The common mistake is pulling everything first and tapping later from memory, which is how counts drift."
+      "alt": ["Pull for a job list: Lakeview Dental job 1042, pulled 2 of 9, Keep pulling; Lakeview Dental job 1050; Harbor Clinic job 1061, Start pulling.", "Pull screen for job 1042, Lakeview Dental, Tech area, Job shelf 2: lines grouped by shelf, each with a blue Pull button such as Pull 6 and Pull 4.", "Pull from stock sheet for a CAT6 patch cable: from Storage room, Patch cables, quantity 6, a field to scan or type a code with Use the camera, and the Pull button."],
+      "notes": "Pulling moves product from the shelves to the staging area, the shop's Tech area. Open the job from the Pull door and you get its lines grouped by shelf, in the order you walk the room. Tap Pull on a line, check the shelf and the quantity, and confirm; the shelf count drops and the line moves to In the staging area. The TV board shows the same list for the whole warehouse. The common mistake is pulling everything first and tapping later from memory, which is how counts drift."
     },
     {
       "kind": "step",
       "title": "When something is short",
       "band": "blue",
       "lines": [
-        ["You", "Leave the line; the office orders it."],
-        ["Loadout", "Marks it Short and lists it under Waiting on orders."],
-        ["Watch for", "Never borrow from another job's bay."]
+        ["You", "Tap Request what is short; it waits for approval."],
+        ["Loadout", "Shows Not requested yet, Waiting for approval, On order."],
+        ["Watch for", "Never borrow from another job's spot."]
       ],
       "shots": ["07-pull-waiting.png", "08-job-short.png"],
-      "alt": [
-        "Pull screen, Waiting on orders: Chief RPMAU arrived but not received on PO 7731; HDMI patch cable, 2 still needed, not ordered yet; Ubiquiti U6-Pro backordered with an ETA. An Order what is short button sits beside the heading.",
-        "Job 1042 page for the office: the HDMI patch cable line, needed 6, to order 2, with a red Short 2 chip."
+      "alt": ["Pull screen, Waiting on orders, 1 not requested yet and 2 on order: Chief RPMAU arrived but not received on PO 7731; HDMI patch cable, 2 still needed, Not requested yet; Ubiquiti U6-Pro on order. A Request what is short button sits beside the heading.", "Job 1042 page for the office: the HDMI patch cable line, needed 6, to order 2, with a red Short 2 chip and its Short: request 2 button."],
+      "notes": "Sometimes the shelves cannot cover a line. The warehouse taps Request what is short, and the line goes on an order request. On the Pull screen each short line shows where it stands: not requested yet, waiting for approval, or on order. When the box arrives and is received, the line comes back up to pull. Do not cover a short line by taking product meant for another job in the staging area: that job then comes up short and nobody knows why."
+    },
+    {
+      "kind": "step",
+      "title": "Approve, then order",
+      "band": "blue",
+      "lines": [
+        ["You", "Open the request: Approve, or Send back with a note."],
+        ["Loadout", "Unlocks Mark ordered once it is approved."],
+        ["Watch for", "A change to its lines takes the approval off."]
       ],
-      "notes": "Sometimes the shelves cannot cover a line. Loadout keeps that line under Waiting on orders on the Pull screen, with the status of any purchase order that carries it. On the job page the office sees a red Short chip and can put everything short on one draft order. When the box arrives and is received, the line comes back up to pull. Do not cover a short line by taking product from another job's bay: that job then comes up short and nobody knows why."
+      "shots": ["27-order-request.png"],
+      "alt": ["Order request 7739 to Northline Supply for an admin: an amber Waiting for approval chip, the Approve and Send back buttons, Mark ordered greyed out, and the line Waiting for approval, Approve it, or send it back with a note."],
+      "notes": "Nothing is ordered until an admin says yes. Office, Orders and tracking shows how many requests wait for your approval, and the list puts them at the top. Open one, check the lines and the vendor, and tap Approve; or tap Send back and say what to change, and the warehouse sees your note and asks again. Once it is approved, the warehouse or an admin can mark it ordered with the vendor's order number. If someone changes an approved request's lines, the approval comes off and it waits for you again, so an order never goes out on an old yes."
     },
     {
       "kind": "step",
@@ -139,15 +142,12 @@
       "band": "receive",
       "lines": [
         ["You", "Find the box, press Receive, confirm where it goes."],
-        ["Loadout", "Sends job lines to that job's bay, the rest to a shelf."],
+        ["Loadout", "Sends job lines to the staging area, the rest to a shelf."],
         ["Watch for", "Enter the serial or MAC for each unit."]
       ],
       "shots": ["09-receive-list.png", "10-receive-sheet.png"],
-      "alt": [
-        "Receive a shipment: two boxes arrived but not received, a UPS box for PO 7731 going to Bay 2 for job 1042, and a UPS box for PO 7740 with two Ubiquiti UDM-SE and 50 keystone jacks.",
-        "Receive shipment sheet for PO 7740: Ubiquiti UDM-SE, 2 on this shipment, onto Warehouse, with fields for serial numbers and MAC addresses."
-      ],
-      "notes": "Receiving is the only way new stock gets into Loadout. The Receive door lists boxes that have arrived at the shop first, then the ones still on the way. Press Receive on the box in front of you, check the quantity, and confirm where it goes: a line for a job goes straight to that job's bay, and everything else goes to a shelf. For serialized products such as access points, type or scan each serial or MAC so every unit gets its own label. The mistake here is leaving a box on the floor unreceived, because the job it belongs to keeps showing as short."
+      "alt": ["Receive a shipment: two boxes arrived but not received, a UPS box for PO 7731 going to Tech area, Job shelf 2 for job 1042, and a UPS box for PO 7740 with two Ubiquiti UDM-SE and 50 keystone jacks.", "Receive shipment sheet for PO 7740: Ubiquiti UDM-SE, 2 on this shipment, onto Warehouse, with fields for serial numbers and MAC addresses."],
+      "notes": "Receiving is the only way new stock gets into Loadout. The Receive door lists boxes that have arrived at the shop first, then the ones still on the way. Press Receive on the box in front of you, check the quantity, and confirm where it goes: a line for a job goes straight to the staging area, and everything else goes to a shelf. For serialized products such as access points, type or scan each serial or MAC so every unit gets its own label. The mistake here is leaving a box on the floor unreceived, because the job it belongs to keeps showing as short."
     },
     {
       "kind": "step",
@@ -159,8 +159,8 @@
         ["Watch for", "The board only shows; pull on your phone."]
       ],
       "shots": ["11-board.png"],
-      "alt": ["The warehouse TV board: a grid of six job cards on a dark background, each with the client, job number, bay, a progress bar and the lines still to pull grouped by shelf, with on-order lines in amber."],
-      "notes": "The TV on the warehouse wall shows every open job as a card. Each card has the client, the bay, a progress bar, and the lines still to pull grouped by shelf. When there are more than six jobs, it turns the page on its own. It updates as soon as someone taps Pull on a phone. Nobody can pull from the TV itself, so if a card looks wrong, fix it on the phone and the board follows."
+      "alt": ["The warehouse TV board: a grid of six job cards on a dark background, each with the client, job number, staging area, a progress bar and the lines still to pull grouped by shelf, with on-order lines in amber."],
+      "notes": "The TV on the warehouse wall shows every open job as a card. Each card has the client, the staging area, a progress bar, and the lines still to pull grouped by shelf. When there are more than six jobs, it turns the page on its own. It updates as soon as someone taps Pull on a phone. Nobody can pull from the TV itself, so if a card looks wrong, fix it on the phone and the board follows."
     },
     {
       "kind": "step",
@@ -169,11 +169,11 @@
       "lines": [
         ["You", "Tick what you are loading, then tap Pick up."],
         ["Loadout", "Puts each line, and its units, in your name."],
-        ["Watch for", "Untick anything you leave in the bay."]
+        ["Watch for", "Untick anything you leave behind."]
       ],
       "shots": ["12-pickup-job.png"],
-      "alt": ["Pick up screen for job 1048, Harbor Clinic, Bay 1: three staged lines, all ticked, and a Pick up button with the note that serialized units check out to you."],
-      "notes": "Pick up is the step between the bay and the van. Open the job from the Pick up door, and every staged line starts ticked. Untick anything you are not taking today, then tap Pick up. From that moment the product is in your name, so the shop always knows where it is. The mistake is loading the van without tapping Pick up: the product looks like it is still in the bay, and the next person goes looking for it."
+      "alt": ["Pick up screen for job 1048, Harbor Clinic, Tech area, Job shelf 1: three staged lines, all ticked, and a Pick up button with the note that serialized units check out to you."],
+      "notes": "Pick up is the step between the staging area and the van. Open the job from the Pick up door, and every staged line starts ticked. Untick anything you are not taking today, then tap Pick up. From that moment the product is in your name, so the shop always knows where it is. The mistake is loading the van without tapping Pick up: the product looks like it is still in the staging area, and the next person goes looking for it."
     },
     {
       "kind": "step",
@@ -198,7 +198,7 @@
         ["Watch for", "Confirm on site, not at the end of the week."]
       ],
       "shots": ["14-deliver-job.png"],
-      "alt": ["Confirm a delivery for job 1058, Ridge Family Practice: two lines in the van with Tech and one still in Bay 3, all ticked, a Delivered to site button and a Bring back button."],
+      "alt": ["Confirm a delivery for job 1058, Ridge Family Practice: two lines in the van with Tech and one still in Tech area, Job shelf 3, all ticked, a Delivered to site button and a Bring back button."],
       "notes": "Deliver means the product is at the client's site, and only that. Open the job from the green door or from Out with me, tick what actually arrived, and tap Delivered to site. Those lines leave your name and the job's progress bar fills in. If something did not make it, untick it and add a note so the office knows. The common mistake is confirming a whole week of deliveries on Friday from memory, which is how product goes missing on paper."
     },
     {
@@ -206,26 +206,26 @@
       "title": "Bring back",
       "band": "deliver",
       "lines": [
-        ["You", "Tick what is coming back and where it goes."],
-        ["Loadout", "Moves it from your van back to the job's bay."],
+        ["You", "Scan what comes off the van, or tick it."],
+        ["Loadout", "Puts it back in the job's staging area."],
         ["Watch for", "Postponed job? Bring it back, do not keep it."]
       ],
       "shots": ["15-bring-back.png"],
-      "alt": ["Bring back to the shop sheet for job 1058: two lines in the van, unticked, Back to Bay 3 (this job's bay), an optional note, and a Bring back button."],
-      "notes": "Not every picked-up line gets installed. Jobs get postponed and plans change on site. Bring back takes product off your name and puts it in the job's bay, ready for the next pick-up; the warehouse can return it to a shelf if the job is off. Nothing is ticked until you choose, so you only bring back what you mean to. The mistake is leaving unused product riding around in the van, still in your name, for weeks."
+      "alt": ["Bring back to the shop sheet for job 1058: a Scan or type a code field with Use the camera, Back to Tech area, Job shelf 3, and the HDMI patch cable counted 1 of 2 after a scan, with a Bring back button."],
+      "notes": "Not every picked-up line gets installed. Jobs get postponed and plans change on site. Bring back takes product off your name and puts it in the job's staging area, ready for the next pick-up; the warehouse can return it to a shelf if the job is off. Scan each unit's QR as it comes off the van, or the product's code to count one; on a computer, tick it or type how many. Only what you scan or tick comes back, and the rest stays in the van. The mistake is leaving unused product riding around in the van, still in your name, for weeks."
     },
     {
       "kind": "step",
       "title": "Close the job",
       "band": "blue",
       "lines": [
-        ["You", "Close it once everything is delivered."],
-        ["Loadout", "Returns leftovers and marks units installed."],
-        ["Watch for", "It will not close with product in a van."]
+        ["You", "Scan the shelf, then each leftover."],
+        ["Loadout", "Puts each one back on its shelf, marks units installed."],
+        ["Watch for", "Not scanned back? It asks for a reason."]
       ],
       "shots": ["16-close-job.png"],
-      "alt": ["Close job 1039 sheet: nothing is left in Bay 3, no serialized units are out on this job, an optional note, and a Close job button."],
-      "notes": "Closing ends the job and takes it off the TV board. Before it closes, Loadout asks what to do with anything still in the bay, and marks the job's serialized units as installed at the client. If any line is still in a van, the job will not close until it is delivered or brought back. The lines stay on record, so the Job report still works afterwards. The mistake is closing early to tidy the list, which hides product that is still out."
+      "alt": ["Close job 1039 sheet: Back to Storage room, RCA A/V Video after scanning the shelf label; the Axis camera unit ticked to that shelf and the HDMI patch cable counted 1 of 2; a line saying 2 scanned back, 1 not yet, and a reason field for what is not scanned back."],
+      "notes": "Closing ends the job and takes it off the TV board. First Loadout lists what is still in the staging area. Scan the shelf label to say where things go, then each unit's QR and each product's code; scan another shelf to send the rest there. Anything not scanned back asks for a reason and is written off, so every leftover is accounted for. The job's serialized units out at the client are marked installed, and a box on the job page lists what went back and where. If any line is still in a van, the job will not close until it is delivered or brought back."
     },
     {
       "kind": "step",
@@ -237,7 +237,7 @@
         ["Watch for", "Export CSV or XLSX for billing."]
       ],
       "shots": ["22-job-report.png"],
-      "alt": ["The Job report on a desktop for job 1042, Lakeview Dental: a header with client, proposal, bay, install date and status, then one row per line with needed, pulled, staged, picked up, delivered, brought back, still to order and PO status."],
+      "alt": ["The Job report on a desktop for job 1042, Lakeview Dental: a header with client, proposal, staging area, install date and status, then one row per line with needed, pulled, staged, picked up, delivered, brought back, still to order and PO status."],
       "notes": "Accounting and the office can see a whole job on one page under Reports, Job report. Every line shows how many were needed, pulled, picked up, delivered and brought back, and what is still to order. Serialized units sit under their line with the serial or MAC and where each one is now. It exports to CSV or XLSX and prints, so it can go straight into billing. People sometimes bill from the proposal instead; this report shows what really went to the client."
     },
     {
@@ -250,11 +250,8 @@
         ["Watch for", "Count first, then look at the faint number."]
       ],
       "shots": ["17-audit-list.png", "18-audit-shelf.png"],
-      "alt": [
-        "Audit a shelf list: bays, the shop truck, storage room shelves, a van and the warehouse, each with how many products it holds and when it was last audited.",
-        "Audit of Storage room, RCA A/V Video: each product with its expected number, a count field with minus and plus, and a Matches button."
-      ],
-      "notes": "Auditing keeps every other number honest. The Audit door lists every shelf, bay and vehicle, with the ones not checked longest at the top; anything over 60 days shows in amber. Pick one, count each product, and press Matches or type the real number. Saving writes the corrections and the date, so the next person knows it is fresh. The trap is copying the faint expected number without counting, which makes the audit worthless."
+      "alt": ["Audit a shelf list: the Tech area job shelves, the shop truck, storage room shelves, a van and the warehouse, each with how many products it holds and when it was last audited.", "Audit of Storage room, RCA A/V Video: each product with its expected number, a count field with minus and plus, and a Matches button."],
+      "notes": "Auditing keeps every other number honest. The Audit door lists every shelf, staging area and vehicle, with the ones not checked longest at the top; anything over 60 days shows in amber. Pick one, count each product, and press Matches or type the real number. Saving writes the corrections and the date, so the next person knows it is fresh. The trap is copying the faint expected number without counting, which makes the audit worthless."
     },
     {
       "kind": "step",
@@ -266,11 +263,7 @@
         ["Watch for", "No camera? Type the code under the label."]
       ],
       "shots": ["19-shelf-filter.png", "20-unit-history.png", "21-scan-typed.png"],
-      "alt": [
-        "Shelf filtered to Category: Network, with the Ubiquiti U6-Pro opened to its two serialized units, one staged in Bay 2 and one checked out to Tech.",
-        "A unit's history timeline: Now with Tech on job 1042, checked out on Nov 8, received into the Warehouse on Oct 18.",
-        "Scan screen after typing U6-Pro: the product card shows 1 on hand in Bay 2, with Receive and Pull for job buttons."
-      ],
+      "alt": ["Shelf filtered to Category: Network, with the Ubiquiti U6-Pro opened to its two serialized units, one staged in Tech area, Job shelf 2 and one checked out to Tech.", "A unit's history timeline: Now with Tech on job 1042, checked out on Nov 8, received into the Warehouse on Oct 18.", "Scan screen after typing U6-Pro: the product card shows 1 on hand in Tech area, Job shelf 2, with Receive and Pull for job buttons."],
       "notes": "Shelf is the list of everything the shop owns. Filter by category, brand or location, and open a product to see each serialized unit and who has it. Every unit has a history, newest first, from the day it was received to where it is now. Scan reads UPCs and Loadout labels with the phone camera, and the QR on a printed pull sheet opens that job. When a label is torn or the camera will not focus, type the code printed under it instead of guessing."
     },
     {
@@ -283,21 +276,18 @@
         ["Watch for", "Help: About, How Loadout works."]
       ],
       "shots": ["23-office-phone.png", "24-office-about.png"],
-      "alt": [
-        "This phone, under More for a tech: it opens on Home, full screen, and keeps working with no signal, with the two Safari steps to add it to the home screen.",
-        "About under Office: the version line and a How Loadout works button that opens the nine-panel comic and the flow chart."
-      ],
+      "alt": ["This phone, under More for a tech: it opens on Home, full screen, and keeps working with no signal, with the two Safari steps to add it to the home screen.", "About under Office: the version line and a How Loadout works button that opens the nine-panel comic and the flow chart."],
       "notes": "Loadout works best as an icon on your home screen. Open the last tab, More for techs or Office for everyone else, then This phone, and follow the two steps it shows for your phone. Once it is on the home screen, it opens full screen and keeps working in the warehouse with no signal, catching up when you are back online. The comic and the flow chart are always one tap away under About, How Loadout works. If something looks wrong, ask the office before working around it."
     },
     {
       "kind": "closing",
-      "title": "Shelf, Bay, Van, Client",
-      "places": ["Shelf", "Bay", "Van", "Client"],
+      "title": "Shelf, Staging area, Van, Client",
+      "places": ["Shelf", "Staging area", "Van", "Client"],
       "lines": [
         ["Open Loadout", "devriz.umbrellaautomation.com/loadout/"],
         ["The comic again", "Office (or More), About, How Loadout works"]
       ],
-      "notes": "That is the whole app: product moves from the shelf, to a bay, to a van, to the client, and each move is one tap by the person doing it. Open Loadout at the address on the slide and add it to your home screen today. The comic and the flow chart are under Office, or More for techs, then About, How Loadout works. Questions go to the office. The one habit that matters most is tapping at the moment the product moves."
+      "notes": "That is the whole app: product moves from the shelf, to the staging area, to a van, to the client, and each move is one tap or scan by the person doing it. Open Loadout at the address on the slide and add it to your home screen today. The comic and the flow chart are under Office, or More for techs, then About, How Loadout works. Questions go to the office. The one habit that matters most is tapping at the moment the product moves."
     }
   ]
 }

@@ -2,8 +2,8 @@
 
 Loadout is the shop's inventory tool: what is on each shelf, how many feet are
 left in each wire box, who has each expensive unit, and the jobs whose pull
-sheets turn an accepted Portal proposal into a staged bay, a van load, and a
-confirmed delivery. Since 0.8.0 it opens on the jobs the shop does (pick up
+sheets turn an accepted Portal proposal into product laid out in the staging
+area, a van load, and a confirmed delivery. Since 0.8.0 it opens on the jobs the shop does (pick up
 from staging, confirm a delivery, pull for a job, receive a shipment, audit a
 shelf) rather than on data types. Phone first for the
 warehouse, desktop for the office. Internal: no hub tile, no links from other
@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.12.2**.
+Current version: **0.13.0**.
 
 ## Files
 
@@ -31,8 +31,12 @@ Current version: **0.12.2**.
 
 Words (0.8.0, PLAN 18): a **Job** is what was called a ticket (same number,
 same record); its lines are the **Pull sheet**. A job goes **Pull** (shelf to
-bay), **Stage** (in the bay), **Pick up** (out of the bay into a person's
-van), **Deliver** (confirmed at the client's site). **Shelf** is what were Stock and
+the staging area), **Stage** (laid out in the staging area), **Pick up** (out
+of the staging area into a person's van), **Deliver** (confirmed at the
+client's site). The **staging area** (0.13.0, PLAN 32.1) is where pulled
+product waits; in the shop it is the Tech area, one area shared by every job.
+It is a location of kind Staging area (stored as `bay`). The four places
+product can be are Shelf, Staging area, Van, and Client. **Shelf** is what were Stock and
 Units; **Office** is what were More and the Console; **Audit** is counting a
 shelf. A carrier's box at the shop has **Arrived** (since 0.9.0); Deliver and
 Delivered only ever mean the client's site. The tab bar on the phone and the nav on the desktop are the same five:
@@ -57,8 +61,9 @@ its address, and on Home already it scrolls back to the top.
 - **Home**: five colored doors for warehouse and admin, most used on top,
   each with the verb and one line that leads with how much waits behind it:
   **Pick up from staging** (dark slate, "3 jobs waiting"), **Confirm a
-  delivery** (green, "2 in vans, 1 in the bay"), **Pull for a job** (amber,
-  "3 jobs to pull, 2 waiting on orders"), **Receive a shipment** (slate grey,
+  delivery** (green, "2 in vans, 1 in the staging area"), **Pull for a job**
+  (amber, "1 job to pull, 2 not requested yet, 1 waiting for approval, 1 on
+  order", the last three counting short lines), **Receive a shipment** (slate grey,
   "2 arrived, 3 on the way"), and **Audit a shelf** (blue, "5 shelves due", never
   audited or over 60 days) last. The count is the length of the list the
   door opens; a door with nothing behind it reads in grey (Nothing staged,
@@ -81,49 +86,60 @@ its address, and on Home already it scrolls back to the top.
 - **Pull for a job** (0.9.0): the jobs a shelf can feed now, soonest install
   first, then a quiet **Waiting on orders** group for jobs whose lines only
   an order can cover. A card opens the job's **Pull screen** (`#pull/<jobId>`),
-  the same shape as Pick up and Confirm a delivery: client, job, bay, install
+  the same shape as Pick up and Confirm a delivery: client, job, staging area, install
   date, Open the job, and the progress line; then the lines grouped by the
   shelf to pull from, in the board's pick order. Each line is the product
   (with the wire box label for a box), how much is needed from that shelf,
   and one button, "Pull 4", which opens the pull sheet with that shelf and
   quantity filled in. A line split across two shelves shows under each with
-  its share. **Waiting on orders** lists what the shelves cannot cover with
-  its PO status or "Not ordered yet", and warehouse and admin get **Order
-  what is short** there. **In the bay** lists the pulled lines, ticked. With
+  its share. **Waiting on orders** lists what the shelves cannot cover, each
+  line marked **Not requested yet**, **Waiting for approval** (on an order
+  request not approved yet), or **On order** (approved or ordered; an
+  approved request not marked ordered yet reads "Approved, not ordered
+  yet"), the same three states and counts as the door; warehouse and admin
+  get **Request what is short** there. **In the staging area** lists the
+  pulled lines, ticked. With
   nothing left on a shelf the screen says "Everything on the shelf is
   pulled." with a Pick up button. The full job page stays as it was for the
   office.
 - **Receive a shipment** (0.9.0, warehouse and admin): boxes coming to the
   shop, arrived first ("Arrived, not received", the box is in the building),
   then on the way with the expected date. Each card has the vendor, the PO,
-  the carrier and tracking link, each line with where it goes (the job's bay
-  when the line serves a job, else the product's own shelf), and **Receive**.
+  the carrier and tracking link, each line with where it goes (the job's
+  staging area when the line serves a job, else the product's own shelf), and **Receive**.
   A product worth its own QR (cost at or above the QR threshold) asks for
   each unit's serial number or MAC address on the receive sheet, the same
   two fields and MAC check as Receive and Serialize on Shelf. Office, Orders
   and tracking keeps its Tracking tab with every package.
-- **Pick up from staging**: the jobs with product in a bay. On a job, every
+- **Pick up from staging**: the jobs with product in the staging area. On a job, every
   staged line is ticked; untick what stays and press **Pick up**. One
   `pickup` movement per line, serialized units check out to you (the check-out
-  Deliver used to write), counted stock leaves the bay, and the job and lines
+  Deliver used to write), counted stock leaves the staging area, and the job and lines
   carry who picked up and when.
-- **Confirm a delivery**: picked-up jobs first, then jobs still in a bay (the
-  warehouse delivering straight from it), newest install date first. On a
-  job every line in a van or the bay is ticked; **Delivered to site** writes
+- **Confirm a delivery**: picked-up jobs first, then jobs still in the
+  staging area (the warehouse delivering straight from it), newest install
+  date first. On a job every line in a van or the staging area is ticked; **Delivered to site** writes
   the deliver movements for the ticked lines in one batch and stamps who and
   when on the job. An unticked line stays where it is, with an optional note
   ("Left in the van") on the line. The done box says who confirmed it and when.
 - **Bring back** (0.9.0): on Out with me and on the Confirm a delivery
   screen when a line is in a van. For a postponed job or a line that is not
-  needed: tick the lines coming back (none are ticked to start), pick where
-  they go (the job's bay, preselected; warehouse and admin can also pick a
-  shelf), add a note if you like. Per line it lowers what is picked up, puts
-  the count back on that location, writes one `move` movement ("Brought back
-  from the van, job #1058"), checks the line's serialized units in there
-  (staged in the bay, or in stock with the job cleared on a shelf, where the
-  line then needs pulling again), and stamps who and when on the line. A tech
-  brings back to the job's bay; the warehouse puts it on a shelf from there.
-- **Audit a shelf**: every location (shelves, bays, vans, vehicles) with
+  needed. Since 0.13.0 (PLAN 32.2) the sheet has the same **Scan or type a
+  code** field as Pull from stock, with **Use the camera** (the camera
+  scanner New job uses): scan a unit's QR to tick that unit, type the count
+  for a product with no QR (scanning its UPC adds one), and warehouse and
+  admin can scan a shelf label to send it there. Nothing is ticked to start;
+  a code that is not in the van on this job says so and changes nothing, and
+  scanning twice is harmless. Picking from the list stays as the fallback
+  with no camera. Where it goes: the job's staging area, preselected (a tech
+  brings back there only); warehouse and admin can also pick a shelf. Per
+  line it lowers what is picked up by what came back, puts the count back on
+  that location, writes one `move` movement ("Brought back from the van, job
+  #1058") naming the units, checks those units in there (staged in the
+  staging area, or in stock with the job cleared on a shelf, where the line
+  then needs pulling again), and stamps who and when on the line. What is
+  not ticked stays in the van. A done box lists what came back and where.
+- **Audit a shelf**: every location (shelves, staging areas, vans, vehicles) with
   "Last audited Nov 2" or "Never audited", the longest since an audit first;
   over 60 days reads amber. On a location: each product with stock there, the
   expected number faint, a number field with - and + and **Matches**; each
@@ -135,7 +151,7 @@ its address, and on Home already it scrolls back to the top.
   `lastAuditedAt` on the location, then toasts "2 corrected, 9 matched".
   Warehouse and admin audit; offline it saves on the device like any change.
 - **Jobs** (was Tickets): jobs grouped by status, with a
-  search (job number, client, job name, proposal, or bay; `/` jumps to it),
+  search (job number, client, job name, proposal, or staging area; `/` jumps to it),
   filters for status, client, install date, items to order, and backorders,
   and an Install column that sorts, a Progress strip, and one next-step
   button per job. **New job** (rebuilt in 0.10.0, PLAN 22.1) says what a job
@@ -143,7 +159,7 @@ its address, and on Home already it scrolls back to the top.
   yourself** (first and picked for the warehouse) is three short steps with
   "Step 2 of 3" above each: *Who it is for* (the client, picked or typed as
   New client, the job name, "Service call, lobby TV" for example, and an
-  optional bay and install date), *The list* (one search over the shelf list
+  optional staging area and install date), *The list* (one search over the shelf list
   with a **Scan** button beside it; tap a result to add it, a minus and plus
   stepper of 44 px sets how many, in feet for wire; each line says what the
   shelf holds: "12 on the shelf", "Only 2 on the shelf, 4 will be short", or
@@ -161,7 +177,8 @@ its address, and on Home already it scrolls back to the top.
   model, or description; otherwise it sits closed under **Something look
   wrong? Fix the columns**, and the skipped rows sit closed under their
   count. **Paste the text instead** stays, closed. The client, job, proposal
-  number, bay, and install date follow under Who it is for. The word CSV
+  number, staging area (picked already when there is only one), and install
+  date follow under Who it is for. The word CSV
   shows only as "(.csv)", and every button and empty state says New job.
   Back keeps what was added, and Cancel, the X, or Escape ask before
   throwing typed lines away. Nothing about what is written changed: the
@@ -172,26 +189,51 @@ its address, and on Home already it scrolls back to the top.
   Zapier made from Portal carries an "Imported from Portal, review" chip
   until someone checks it.
 - **Job** (was Ticket): the pull sheet grouped by area. Each line shows one
-  button, its next step (Pull 2 from Warehouse, Short: order 2, Stage, Pick
+  button, its next step (Pull 2 from Warehouse, Short: request 2, Stage, Pick
   up, Deliver), and the rest (Stage, Note, and so on) under the **...** sheet;
   Pull everything in stock; Copy for Portal (it now lists what is on order,
   with PO, carrier, and dates); Print pull sheet; Show on board; Pick up and
-  Confirm delivery when they apply; and Close job,
-  which returns or writes off what is left in the bay and marks units out on
-  the job installed. Since 0.9.0 Close job also lists what is **Still in a
+  Confirm delivery when they apply; and Close job, which scans the leftovers
+  in the staging area back onto their shelves (or writes them off) and marks
+  units out on the job installed. Since 0.13.0 (PLAN 32.2) its Back to stock
+  choice has the **Scan or type a code** field and **Use the camera**: scan a
+  shelf label to set where leftovers go, then each unit's QR to tick it (a
+  wire box never sits in the staging area, so its QR says it is not part of
+  the job); a counted product with no QR takes a number (its UPC adds one).
+  Each leftover goes to the shelf in force when it was confirmed, so
+  leftovers can go to different shelves. **All of it back** ticks every unit
+  and fills every count for the shelf picked. Anything not scanned back asks
+  for a reason and is written off, and the sheet says so before Close job.
+  A code that is not a leftover on this job says so and changes nothing.
+  Write off, for every leftover with one reason, is as before. A done box on
+  the job lists what went back and where; the timeline has a `move` per
+  leftover. Since 0.9.0 Close job also lists what is **Still in a
   van** and with whom, and will not close until each of those lines is
   delivered or brought back; only an admin may write it off there instead,
   with a reason. The header carries the install date and the strip.
   Each line leads with its state: Pull, Staged (or "Staged 2 of 4"), Picked
   up, Delivered, On order (with the ETA, or "Arrived, not received"), or Short
-  (red: the shelves and open POs do not cover it). **Order missing** and a
-  line's **Order** put the Short quantity on a draft purchase order, and each
+  (red: the shelves and open POs do not cover it). **Request what is short**
+  and a line's **Short: request** put the Short quantity on an **order
+  request** (0.13.0, PLAN 32.3; it was a draft PO), and each
   line shows a chip per PO, for example "PO 7731, UPS 1Z999AA1: Shipped,
   Oct 23". The Jobs list, its "Has items to order" filter, the job's
   strip, the board, and Week all count Short the same way. A job flagged for review has a
   **Mark reviewed** button (warehouse and admin) that clears the flag and logs who
   did it.
-- **Orders**: purchase orders with filters for status and vendor. A draft's
+- **Orders**: purchase orders and order requests with filters for status and
+  vendor. An **order request** (stored as status `draft`) reads **Waiting for
+  approval**, **Sent back** (with the admin's note), or **Approved**. An
+  admin has **Approve** and **Send back** (a note is required) on it;
+  warehouse and admin raise and edit requests (New request, Request what is
+  short, Reorder) and press **Ask again** on one that was sent back. Changing
+  an approved request's lines (Quantity, Remove, Add a product, or adding
+  lines to it) takes the approval off, and the sheet says so first.
+  **Mark ordered** stays unavailable, with the reason shown, until the
+  request is approved. For an admin, Office's Orders and tracking card says
+  how many requests wait for approval and the list puts them first (sent
+  back first for warehouse). Requests already ordered before 0.13.0 are
+  untouched, and older drafts read as Waiting for approval. A request's
   empty Vendor select glows until one is picked; a vendor typed there joins the
   list in Settings. An order shows its lines (ordered, backordered with the
   vendor's ETA, shipped, arrived, received, and the job line each serves)
@@ -205,7 +247,7 @@ its address, and on Home already it scrolls back to the top.
   changed), carries some or all of the lines, takes the expected date, and
   can send that one box somewhere other than the PO says. **Receive** walks a shipment
   line by line: tap to take the quantity, or scan each unit's UPC to count it;
-  lines for a job go into its staging bay and count as staged, the rest go
+  lines for a job go into its staging area and count as staged, the rest go
   on a shelf; units at or above the QR threshold become serialized units
   ("Product name #n"), with a serial and a MAC field on the sheet (0.9.0)
   and a prompt to print their labels.
@@ -234,7 +276,7 @@ its address, and on Home already it scrolls back to the top.
   two down (PLAN 18.6). With more than six it turns page by page at the saved
   rotation interval, with a dot per page along the bottom and the 6 px bar
   along the top; with fewer the cards grow to fill the screen, and one job
-  fills it. Each card: client, job name and number, bay, the strip with the
+  fills it. Each card: client, job name and number, staging area, the strip with the
   Pull amber as a band, then the lines still to pull grouped by shelf in rack
   order, pulled lines greyed, picked-up lines greyed as "In the van",
   on-order amber, short red, and "+3 more lines" when the card runs out of
@@ -280,22 +322,22 @@ its address, and on Home already it scrolls back to the top.
   Receive or Receive a box, Pull for job, Move, Count, Adjust, Serialize,
   Reorder, Print label, Show history); the Scan card shows the first of the
   same buttons, in the same order. **Locations** (0.11.1, PLAN 28.2): New
-  location (admin and warehouse) adds a shelf, bay, van, or vehicle; the
-  Kind select says what each kind changes (a bay holds one job's staged
-  product and is never pulled from, a van is never pulled from, a shelf,
+  location (admin and warehouse) adds a shelf, staging area, van, or vehicle;
+  the Kind select says what each kind changes (a staging area holds pulled
+  product waiting for pick-up and is never pulled from; jobs share it, a van is never pulled from, a shelf,
   vehicle, or other is). An admin has **Rename** on a location's panel: area
   and shelf, with the name they make shown as it will print. The id (the
   label code) never changes, so a printed label still scans; the readable
   name is rewritten on stock rows, units, wire boxes, products that use it as
-  their default, and the staging bay named on open jobs and open job names,
+  their default, and the staging area named on open jobs and open job names,
   in batches of at most 400 with one `edit` movement ("Location renamed:
   Storage room, Shelf B to Storage room, B3, 14 records"), using the same
   runner as Brands and categories (progress, Run it again, needs a
   connection). Past movements keep the old name. A name another location
   has (case and spacing ignored) is refused with "Another location already
   has that name." When it is done the panel offers **Print a new label**.
-  **Archive** (admin) works only on an empty location that is no job's
-  staging bay; it leaves the pick lists (pull sources, Receive targets, a
+  **Archive** (admin) works only on an empty location that is no open job's
+  staging area; it leaves the pick lists (pull sources, Receive targets, a
   product's default location, every location select), the Audit list, and
   the Shelf Location filter, and still names itself wherever history shows
   it. **Show archived** on Shelf, Locations lists them again, with
@@ -333,8 +375,8 @@ its address, and on Home already it scrolls back to the top.
   Shelf labels set the active location; box labels open the box sheet (mark
   now, cut this time, quick -50 / -100 / -250, Empty, recount); unit labels
   show who has it with Check out and Check in. Product and unit cards have
-  Pull for job, the box sheet a For job chip, and a bay's label shows
-  the job staged there. The QR on a printed pull sheet (0.9.0,
+  Pull for job, the box sheet a For job chip, and a staging area's label
+  shows the jobs staged there. The QR on a printed pull sheet (0.9.0,
   `loadout:job:<id>`) opens that job's Pull screen, or the job page for a
   role that does not pull. On a phone or tablet, a label that explains itself
   has a ? beside it that opens the explanation (a mouse shows it on hover).
@@ -368,7 +410,7 @@ its address, and on Home already it scrolls back to the top.
   Delivered and has no date range, since a job is whole: one search finds the
   job by client, job name, job number, or proposal number, with the latest
   twenty listed under it (the last job opened stays for the session). Then a
-  header block (client, job, proposal, bay, install date, status, who pulled,
+  header block (client, job, proposal, staging area, install date, status, who pulled,
   picked up, and delivered, with dates) and one row per pull sheet line:
   room, product, brand and model (in Columns), needed, pulled, staged,
   picked up, delivered, brought back, still to order, the PO and its status,
@@ -387,8 +429,12 @@ its address, and on Home already it scrolls back to the top.
   vendors, the Portal tier, and the wall board (mode, rotation, grouping,
   theme, picked lines, pinned jobs), all saved by one button. Settings also
   links to **Brands and categories** (0.11.0, admin, `#office/lists`; no card
-  of its own on Office), and (0.11.1) has a **Locations** line, "Shelves,
-  bays and vehicles are managed on Shelf, Locations", with a link there.
+  of its own on Office), and (0.11.1) has a **Locations** line saying
+  locations are managed on Shelf, Locations, with a link there. Since 0.13.0
+  Settings opens with a one-line prompt while any location still has the
+  whole word Bay in its name ("2 locations still have Bay in their name.
+  Rename them on Shelf, Locations.", with **Open Locations**); it goes away
+  by itself when none are left.
   Brands and categories has the two lists with name and product count, sortable
   with the Columns manager, one search over both, cards under 720 px, and
   Add a brand or Add a category. At the top, **Probably the same** lists a
@@ -421,7 +467,8 @@ its address, and on Home already it scrolls back to the top.
   `#office/backups` opens it. Accounting sees Reports, About, Export, and
   Backups with no edit controls at all. **Movements**: the log with filters,
   Previous / This / Next week buttons, and CSV. **Clients**: clients and job
-  names (add, edit, archive; a job name can reserve a staging bay).
+  names (add, edit, archive; a job name names its staging area, which jobs
+  share).
   **Labels**: label sheets (Avery 5160 or 2 x 4). Settings, at the end of
   the wall board part, also has **Open the demo board** (`?demo=1&board=1`),
   to show the TV screen without signing a TV in. Office also carries the Add
@@ -528,20 +575,25 @@ photo on it shows Keep versus Replace; the Leviton keystone's
 (078477581138) finds two under another brand's name, so the mismatch
 warning shows with Use this photo and None of these; the CAT6 riser's
 (612825120034) and any other code find nothing. `&upc=busy` and
-`&upc=offline` show those two states. Choosing a photo hands the refused
+`&upc=offline` show those two states. 0.13.0: the demo's staging locations
+are Tech area, Job shelf 1 to 3 (kind Staging area), and `&baynames=1` adds
+two more named Bay 1 and Bay 4 so Office, Settings shows its prompt to
+rename them. Close job and Bring back take typed codes in the scan field
+(`loadout:loc:<id>`, `loadout:item:<id>`, or a UPC), so scanning the
+leftovers back can be walked with no camera. Choosing a photo hands the refused
 write (the photo fields and `photoSource: "upc"`) to the demo hook. The
 Import done box shows in the demo too, so Review photos can be walked.
 Job #1042's wire line carries the box cut from A1026, so the Job report
-shows a box under a line. The fixture has four purchase orders (a draft with no
+shows a box under a line. The fixture has four purchase orders (an order request with no
 vendor, a partial one with two shipments, one ordered with a late shipment,
 one received), install dates across this week, and imported rows that show the
 0.3.0 name fixes. 0.5.1 adds two POs drop-shipped to job sites (three boxes on
 the client side for two clients, one late, one out for delivery, and one
-already arrived at the site), a draft PO 7739 with its vendor picked for
-trying Mark ordered, unit costs on the ordered lines, status logs with clock
+already arrived at the site), order request 7739 with its vendor picked for
+trying Approve and Mark ordered, unit costs on the ordered lines, status logs with clock
 times on the newer shipments (the older ones read through the migration), and
 job #1056, made by Zapier from Portal and still flagged for review. 0.8.0 adds job #1058, picked up by Tech (two lines in the van, one still in
-Bay 3), job #1061 with lines to pull, seven open jobs pinned to the board so
+Tech area, Job shelf 3), job #1061 with lines to pull, seven open jobs pinned to the board so
 it turns to a second page, and two locations with an audit date (Warehouse
 over 60 days ago, so it reads amber) while the rest were never audited.
 0.9.0 pulls job #1056's keystones, so it sits under Waiting on orders on
@@ -573,10 +625,10 @@ back whole. A brand or category added through the confirm stays on this
 tab's lists until reload. 0.5.2 adds a Short
 line with stock elsewhere (job #1053 needs 80 keystones; 64 are on the
 shelves and 24 ride in Van 1, which a job never pulls from, so 16 are
-Short), a draft started with no connection (no PO number until Mark ordered
+Short), an order request started with no connection (no PO number until Mark ordered
 numbers it), and PO 7738 with an office box out for delivery, so every
 shipment state shows. `sync({online: false})` also makes the demo act offline
-for numbering: a new PO becomes a draft with no number, and Mark ordered on it
+for numbering: a new request has no number, and Mark ordered on it
 says "Connect to assign the PO number". No Firebase code loads in demo mode. The
 service worker does register in demo mode, since the demo is how the offline
 shell is checked.
@@ -659,13 +711,13 @@ the **Pull sheet**. Nothing was renamed in the database. 0.8.0 adds:
 - `loadout_tickets`: `pickedUpAt`, `pickedUpBy`, `pickedUpByName` (the
   latest pick-up) and `deliveredAt`, `deliveredBy`, `deliveredByName` (the
   latest Confirm a delivery); `status` may now be `picked_up` (every line out
-  of the bay, shown as Picked up), and `summary` gains `pulled`, `inBay`, and
+  of the staging area, shown as Picked up), and `summary` gains `pulled`, `inBay`, and
   `pickedUp` for the progress strip.
 - Ticket lines: `qtyPickedUp`, `pickedUpAt`, `pickedUpBy`, `pickedUpByName`,
   and `deliveryNote` (why an unticked line was not delivered, cleared when it
-  is). In the van = `qtyPickedUp` minus `qtyDelivered`; in the bay =
+  is). In the van = `qtyPickedUp` minus `qtyDelivered`; in the staging area =
   `qtyStaged` minus the larger of the two.
-- Movement types: `pickup` (bay to a person's van, one per line) and `note`
+- Movement types: `pickup` (staging area to a person's van, one per line) and `note`
   (a line not delivered, or a unit not found at an audit). An `adjust` with
   note "Audit" is an audit correction; `deliver` is unchanged and now means
   confirmed on site.
@@ -712,7 +764,7 @@ order re-import finds the line it changes. Settings hold `board` (the wall
 board) and `importMap` (the saved CSV column mapping). Line quantities, all in
 the product's unit: `qtyNeeded` from the proposal, `qtyFromStock` pulled off
 our shelves, `qtyToOrder` what stock cannot cover, `qtyStaged` laid out in the
-bay, `qtyPickedUp` (0.8.0) taken out of the bay into a van, `qtyDelivered`
+staging area, `qtyPickedUp` (0.8.0) taken out of the staging area into a van, `qtyDelivered`
 confirmed on site. A ticket's `installAt` is the day it
 installs (the Week view), and a ticket line's `orderLineRefs` names the order
 lines that serve it. Order ids are the PO number (from 7701 up); order line
@@ -761,10 +813,10 @@ gained `reviewedAt`, `reviewedBy`, and `reviewedByName` beside the worker's
   cost only when the line has none), and the QR threshold reads the same cost.
 - A ticket line's `qtyToOrder` is now a cache, rewritten with every
   warehouse save: needed minus staged minus what the shelves hold for that
-  product (bays and vans left out) minus what open PO lines for that line
+  product (staging areas and vans left out) minus what open PO lines for that line
   still bring. The screens work the same sum out live and never read the
   cache alone.
-- Movement types: `receive`, `pull` (shelf to a bay for a ticket), `move`
+- Movement types: `receive`, `pull` (shelf to the staging area for a ticket), `move`
   (shelf to shelf, no ticket), `stage`, `deliver`, `cut`, `reading`,
   `adjust`, `checkout`, `checkin`, `return` (a unit back from a client's
   site), `writeoff`, and `edit`. Rows written before 0.5.2 keep what they say
@@ -824,6 +876,21 @@ gained `reviewedAt`, `reviewedBy`, and `reviewedByName` beside the worker's
   makes to `brands`. The proposal file reader writes a line's `brand` in the
   list's spelling. Ids and the re-import keys are unchanged.
 
+0.13.0 (PLAN 32):
+
+- `loadout_orders`: `approvedAt`, `approvedBy` (email), `approvedByName`,
+  written by Approve (admin only) and set back to null when an approved
+  request's lines change; `sentBackAt`, `sentBackBy` (email),
+  `sentBackByName`, `sentBackNote`, written by Send back (admin only) and
+  set back to null by Ask again or Approve. The stored status of a request
+  stays `draft`; nothing migrates, and a draft with no `approvedAt` reads as
+  Waiting for approval.
+- `loadout_locations`: the kind `bay` reads Staging area. A job no longer
+  stamps `jobId` and `jobName` on its staging location, since jobs share it;
+  values written before 0.13.0 stay and are not read for anything new.
+- Close job and Bring back write the same records as before (a `move` per
+  leftover or line, with the units named), so no field changed there.
+
 Office, About lists every field of every collection.
 
 ## Rules
@@ -880,6 +947,27 @@ may not change its `createdAt`, so a box write never replaces another box;
 and a tech's unit update may also write `ticketNumber` and `clientName`
 (Deliver to site and check-in), and a tech's box update `pickTicketNumber`.
 **Not deployed.**
+0.13.0 (PLAN 32.3) takes `loadout_orders` and its lines out of the wildcard
+and gives them their own rules. A request (status `draft`) is created by
+warehouse or admin with no approval or send-back fields. Only an admin sets
+or changes `approvedAt`, `approvedBy`, `approvedByName`, `sentBackAt`,
+`sentBackBy`, `sentBackByName`, and `sentBackNote`; a warehouse write may
+leave them as they are or set them to null (Ask again, or a change that takes
+the approval off), never set them. A draft becomes `ordered`, `partial`, or
+`received` only when the result has `approvedAt`. A warehouse write to an
+order line checks the order after the batch (`getAfter`): if it is still a
+draft, its approval must be cleared, so an approved request cannot be edited
+and then ordered on the old approval. Orders that are already ordered keep
+shipments, receiving, notes, backorders, and cancel as before. Bring back and
+Close job write the same shapes as 0.12.2, so the tech carve-outs did not
+change. On 2026-11-13 this block ran in the local Firestore emulator with a
+script that replayed the app's writes as admin, warehouse, tech, and
+accounting: 52 of 52 cases passed (approve, send back, ask again, forged or
+warehouse approvals refused, Mark ordered refused while waiting or sent back,
+line edits with and without clearing the approval, pre-0.13.0 receiving and
+cancel, a tech's Pick up, Confirm a delivery, and Bring back of one scanned
+unit plus a count to the staging area, and a tech refused raising a shelf
+count). **Not deployed.**
 The owner of the Firebase project deploys it from `work/watchtower` with:
 
 `firebase deploy --only firestore:rules --account frank@umbrellaautomation.com --project watchtower-6fbe1`
@@ -1056,24 +1144,78 @@ match /loadout_settings/general {
   allow update: if loadoutWriter()
     && loadoutOnly(['vendors', 'updatedAt', 'updatedBy', 'updatedByName']);
 }
+// 0.13.0 (PLAN 32.3): a draft PO is an order request. An admin approves
+// it (approvedAt, approvedBy, approvedByName) or sends it back with a
+// note (sentBackAt, sentBackBy, sentBackByName, sentBackNote). Warehouse
+// and admin still raise and edit requests; only an admin sets or changes
+// those seven fields, and anyone else may only clear them (null), which
+// is what Ask again and an edit of an approved request write. A request
+// leaves draft for ordered, partial, or received only when the result
+// carries an approval. Orders already past draft are not checked here,
+// so POs ordered before 0.13.0 keep their shipments, receiving, notes,
+// backorders, and cancel. Techs and accounting write no orders.
+function loadoutSameOrNull(k) {
+  return request.resource.data.get(k, null) == null
+    || request.resource.data.get(k, null) == resource.data.get(k, null);
+}
+function loadoutApprovalKept() {
+  return loadoutSameOrNull('approvedAt') && loadoutSameOrNull('approvedBy')
+    && loadoutSameOrNull('approvedByName') && loadoutSameOrNull('sentBackAt')
+    && loadoutSameOrNull('sentBackBy') && loadoutSameOrNull('sentBackByName')
+    && loadoutSameOrNull('sentBackNote');
+}
+function loadoutNoApproval() {
+  let d = request.resource.data;
+  return d.get('approvedAt', null) == null && d.get('approvedBy', null) == null
+    && d.get('approvedByName', null) == null && d.get('sentBackAt', null) == null
+    && d.get('sentBackBy', null) == null && d.get('sentBackByName', null) == null
+    && d.get('sentBackNote', null) == null;
+}
+function loadoutLeavesDraftApproved() {
+  return resource.data.get('status', '') != 'draft'
+    || request.resource.data.get('status', '') in ['draft', 'cancelled']
+    || request.resource.data.get('approvedAt', null) != null;
+}
+match /loadout_orders/{oid} {
+  allow read: if isMSPAdmin();
+  allow create: if loadoutWriter()
+    && request.resource.data.get('status', '') == 'draft'
+    && (loadoutRole() == 'admin' || loadoutNoApproval());
+  allow update: if loadoutWriter()
+    && (loadoutRole() == 'admin' || loadoutApprovalKept())
+    && loadoutLeavesDraftApproved();
+  allow delete: if loadoutWriter();
+  // order lines: a non-admin's write may not leave an approved request
+  // behind, so changing a request's lines takes its approval off in the
+  // same batch.
+  match /lines/{lid} {
+    allow read: if isMSPAdmin();
+    allow write: if loadoutWriter()
+      && (loadoutRole() == 'admin'
+          || getAfter(/databases/$(database)/documents/loadout_orders/$(oid)).data.get('status', '') != 'draft'
+          || getAfter(/databases/$(database)/documents/loadout_orders/$(oid)).data.get('approvedAt', null) == null);
+  }
+}
 // Everything else under loadout_* (stock, locations, clients, jobs,
-// proposals, tickets, orders with their lines, and shipments): everyone
-// on the domain reads, warehouse and admin write. Techs write none of
-// the order collections; receiving is warehouse and admin. The prefix
-// check keeps this from touching any other
+// proposals, tickets, and shipments): everyone on the domain reads,
+// warehouse and admin write. Orders have their own rules above (0.13.0).
+// Techs write none of the order collections; receiving is warehouse and
+// admin. The prefix check keeps this from touching any other
 // tool's collections.
 match /{coll}/{docId} {
   allow read: if isMSPAdmin() && coll.matches('loadout_.*');
   allow write: if coll.matches('loadout_.*')
     && !(coll in ['loadout_users', 'loadout_settings', 'loadout_movements',
-                  'loadout_items', 'loadout_containers', 'loadout_products'])
+                  'loadout_items', 'loadout_containers', 'loadout_products',
+                  'loadout_orders'])
     && loadoutWriter();
-  // subcollections (ticket lines, order lines). {rest=**} sits under a
-  // named segment because a bare {sub=**} also matches zero segments,
-  // which would re-match the parent documents and undo the exclusion above.
+  // subcollections (ticket lines; order lines have their own rule
+  // above). {rest=**} sits under a named segment because a bare
+  // {sub=**} also matches zero segments, which would re-match the
+  // parent documents and undo the exclusion above.
   match /{subcoll}/{rest=**} {
     allow read: if isMSPAdmin() && coll.matches('loadout_.*');
-    allow write: if coll.matches('loadout_.*') && loadoutWriter();
+    allow write: if coll.matches('loadout_.*') && coll != 'loadout_orders' && loadoutWriter();
   }
 }
 ```
@@ -1199,6 +1341,61 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.13.0 (2026-11-13)
+
+The owner read the comic and found three places where Loadout described a
+shop that is not theirs (PLAN 32). The shop has shelves, a storage room, a
+Tech area and the warehouse; it has no bays, and "Bay 2" was a guess from the
+first plan. Leftovers at the end of a job were put back by picking a shelf
+from a list, never scanned, so the counts drifted from what was really on
+the shelves. And a short line went straight onto a draft PO that the office
+marked ordered, with nobody approving the spend.
+
+- **Staging area, not bay.** Every screen, sheet, tooltip, report column,
+  export, print, the TV board and the data dictionary now say staging area,
+  or the location's own name. The location kind reads Staging area (it is
+  still stored as `bay`, so no data changes). The four places product can be
+  are Shelf, Staging area, Van, Client. Jobs share one staging area, the
+  shop's Tech area: a job no longer reserves a spot, and with only one
+  staging location Pull picks it for you. New setups start with one Tech
+  area instead of Bay 1 to 4, and the demo's spots are Tech area, Job shelf
+  1 to 3.
+- **Renaming real Bay locations.** If the first setup made locations named
+  Bay 1 to 4, an admin renames them with Rename on Shelf, Locations (0.11.1);
+  the printed labels keep scanning. Until none are left, Office, Settings
+  opens with a one-line prompt saying how many still have Bay in their name,
+  with a link to Locations.
+- **Scan the leftovers back.** Close job's Back to stock and the Bring back
+  sheet have the same scan field as Pull from stock, now with Use the
+  camera. Scan a shelf label to say where things go, then each unit's QR; a
+  product with no QR takes a number. Anything from another job says so and
+  changes nothing. At close, what is not scanned back is written off with a
+  reason, so every leftover is accounted for. A done box lists what went
+  back and where.
+- **Order request, approve, then order.** A draft PO is now an order
+  request. An admin approves it, or sends it back with a note; Mark ordered
+  waits for the approval, and changing an approved request's lines takes the
+  approval off. The Pull door and the Pull screen split what is short into
+  Not requested yet, Waiting for approval, and On order, and an admin sees
+  how many requests wait on Office's Orders and tracking card. Requests
+  ordered before this release are untouched.
+- **The pictures** follow: comic panels 4 and 8, the flow chart's side path
+  (Order request, Approve, Order, Receive), storyboard panels 7, 15 and 16,
+  the SOPs, the role sheets, and the training deck.
+- **Demo:** `?demo=1&baynames=1` adds two locations named Bay 1 and Bay 4 to
+  show the Settings prompt.
+- **Rules:** order requests get their own rules in the Loadout block (the
+  copy is under Rules). Only an admin sets or changes the approval and the
+  send-back fields; anyone else may only clear them. A request becomes
+  ordered only once approved, and a warehouse change to an approved
+  request's lines has to take the approval off in the same write. Techs and
+  accounting still write no orders. Close job and Bring back write the same
+  kinds of records as before, so their rules did not change. Checked in the
+  local Firestore emulator, 52 of 52 cases. **Not deployed**: until it is,
+  every role can still do its work, but only the app's buttons hold the
+  approval; the server would let a warehouse account approve a request or
+  mark one ordered without approval.
 
 ### 0.12.2 (2026-11-13)
 

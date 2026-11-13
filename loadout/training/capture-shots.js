@@ -73,6 +73,12 @@ async function sheetTo(page, sel, gap) {
   await sleep(300);
 }
 async function click(page, sel) { await page.locator(sel).first().click(); await sleep(500); }
+/* type a label code into a sheet's scan field (pl, cl, bb) and press Use, as a scanner that types would */
+async function scanTyped(page, id, code) {
+  await page.fill("#" + id + "Scan", code);
+  await page.press("#" + id + "Scan", "Enter");
+  await sleep(400);
+}
 
 /* name, address (after http://loadout.test/), device, what to do before the shot */
 const SHOTS = [
@@ -116,8 +122,20 @@ const SHOTS = [
   ["12-pickup-job", "?demo=1&role=tech#pickup/1048", PHONE],
   ["13-tech-home", "?demo=1&role=tech#home", PHONE],
   ["14-deliver-job", "?demo=1&role=tech#deliver/1058", PHONE],
-  ["15-bring-back", "?demo=1&role=tech#home", PHONE, async p => { await click(p, '[data-act="bringBack"]'); }],
-  ["16-close-job", "?demo=1#home", PHONE, async p => { await click(p, '[data-act="jobClose"][data-id="1039"]'); }],
+  /* 0.13.0 (PLAN 32.2): Bring back after one typed scan of the HDMI cable's code, scrolled to the list */
+  ["15-bring-back", "?demo=1&role=tech#home", PHONE, async p => {
+    await click(p, '[data-act="bringBack"]');
+    await scanTyped(p, "bb", "loadout:prod:patch-cable-hdmi-patch-hdmim-hdmim-black-6ft");
+    await sheetTo(p, "#bbScanForm", 40);
+  }],
+  /* Close job 1039 with its leftovers: the shelf label, the camera's unit, and one HDMI cable scanned back */
+  ["16-close-job", "?demo=1#home", PHONE, async p => {
+    await click(p, '[data-act="jobClose"][data-id="1039"]');
+    await scanTyped(p, "cl", "loadout:loc:storage-room--rca-av-video");
+    await scanTyped(p, "cl", "loadout:item:lft1039axis");
+    await scanTyped(p, "cl", "loadout:prod:patch-cable-hdmi-patch-hdmim-hdmim-black-6ft");
+    await sheetTo(p, "#clLoc", 36);
+  }],
   ["17-audit-list", "?demo=1&role=warehouse#audit", PHONE],
   ["18-audit-shelf", "?demo=1&role=warehouse#audit/storage-room--rca-av-video", PHONE],
   ["19-shelf-filter", "?demo=1&role=warehouse#shelf", PHONE, async p => {
@@ -142,7 +160,9 @@ const SHOTS = [
   ["22-job-report", "?demo=1&role=accounting#office/reports/job/1042", DESK],
   ["23-office-phone", "?demo=1&role=tech&install=ios#office/phone", PHONE],
   /* the top of About shows the How Loadout works button under the version line */
-  ["24-office-about", "?demo=1&role=warehouse#office/about", PHONE]
+  ["24-office-about", "?demo=1&role=warehouse#office/about", PHONE],
+  /* 0.13.0 (PLAN 32.3): an order request waiting for an admin's approval */
+  ["27-order-request", "?demo=1#order/7739", PHONE, async p => { await scrollTo(p, "#v-order .podet", 64); }]
 ];
 
 async function serve(ctx) {

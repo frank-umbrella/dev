@@ -865,6 +865,7 @@ Build T0 first. T1 and T2 are worker work and need the plan tier known.
 | 0.12.0 | Section 29: a documentation release. `storyboard.html` opens on a new In pictures tab (the nine-panel comic with the words of 29.1, the flow chart in three lanes with Where the product is, and Your job in Loadout, a printable sheet per role); every sketch checked against the demo, ten redrawn and eleven added, 26 panels in the comic's order, each linked to its SOP; the Overview opens with the chart. In the app only Office, About, How Loadout works (29.3) and the version. Built 2026-11-12, not committed, no rules change. |
 | 0.12.1 | Section 31, the pictures only: comic panel 1 redrawn as the office dropping the proposal file (.csv) onto New job ("Client said yes. Uploading the proposal file." / "The file from Portal becomes the job. No file? Make the list yourself."); the flow chart's first box reads New job, Upload the Portal file, or make the list; storyboard panel 1, SOP-3, and the Office sheet say the office uploads the file; deck slides 2, 3 and 8 retaken. The PDF reader is not built. In the app only the version. Built 2026-11-13, not committed, no rules change. |
 | 0.12.2 | Documentation only, `storyboard.html`: the header is the mark and title, the subtitle, and one line ("Version 0.12.2, updated Nov 13, 2026" and a What changed link); the run-on release paragraph moves to a new last tab, History (`?tab=history`), one entry per version, newest first, with v0.2 to v0.6.2 under Earlier drafts; it prints alone and last in Print everything. Tidied chrome: seven equal tabs with a tinted selected state (a two-column grid of 44 px tabs on the phone), Read this first and Contents as one box style with one heading size, and a footer with the version and date only. In the app only the version. Built 2026-11-13, not committed, no rules change. |
+| 0.13.0 | Section 32: no "bay" in anything a person reads (the kind reads Staging area, stored `bay`; the demo's spots are Tech area, Job shelf 1 to 3; new setups seed one Tech area; jobs share one staging area and Pull picks the only one; Office, Settings prompts while a location name holds the word Bay, demo `&baynames=1`); Close job and Bring back scan the leftovers back with the Pull sheet's scan field and Use the camera, what is not scanned back at close is written off with a reason, and a done box lists what went back and where; a draft PO is an order request with Approve and Send back (admin only, `approvedAt/By/ByName`, `sentBackAt/By/ByName/Note`), Ask again, and Mark ordered only once approved, and the Pull door and screen split short lines into Not requested yet, Waiting for approval, and On order. Comic panels 4 and 8, the flow chart, storyboard panels 7, 15 and 16, the SOPs, the role sheets, and the deck follow. Built 2026-11-13, not committed, rules changed (orders: approval admin-only, ordered only once approved; 52 of 52 in the emulator), not deployed. |
 | 0.9.1 | Section 21.1 Shelf filters (Category from the product's own category, Type, Brand, Location, Consumables only; chips, the phone Filter sheet, session only) and 21.3 history as one vertical timeline everywhere; the home-screen strip, card, and Office > This phone on phones and tablets only; an odd last door spans both columns on Home; leftover "Stock" words. 21.2 stays an idea. Built 2026-11-11, not committed. |
 
 Each version is a release: bump the version everywhere, README changelog entry
@@ -2422,6 +2423,8 @@ workflow should show that.
 
 ## 32. Words and steps that match the shop (user, 2026-11-13; build as 0.13.0 after 0.12.2)
 
+Built in 0.13.0.
+
 Three corrections from the user after reading the comic.
 
 ### 32.1 No "bay"
@@ -2447,6 +2450,8 @@ general. It has no bays, and "Bay 2" was an assumption from the first plan
   location name still contains "Bay".
 - OPEN (D23): is the tech area where pulled product waits for the tech,
   and is it one shared area or a marked spot per job?
+  Assumed and built in 0.13.0: yes, the Tech area, one shared staging area
+  (no spot per job).
 
 ### 32.2 Closing a job scans the leftovers back
 
