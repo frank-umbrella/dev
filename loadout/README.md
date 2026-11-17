@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.13.0**.
+Current version: **0.13.1**.
 
 ## Files
 
@@ -377,7 +377,7 @@ its address, and on Home already it scrolls back to the top.
   show who has it with Check out and Check in. Product and unit cards have
   Pull for job, the box sheet a For job chip, and a staging area's label
   shows the jobs staged there. The QR on a printed pull sheet (0.9.0,
-  `loadout:job:<id>`) opens that job's Pull screen, or the job page for a
+  `loadout:job:<id>`; a link to the app since 0.13.1) opens that job's Pull screen, or the job page for a
   role that does not pull. On a phone or tablet, a label that explains itself
   has a ? beside it that opens the explanation (a mouse shows it on hover).
 - **Units** (Shelf, All units; called Items before 0.6.0): every serialized unit, with Out as
@@ -1341,6 +1341,25 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.13.1 (2026-11-17)
+
+The owner pointed the iPhone's own camera at a Loadout label and nothing
+happened. The QR held plain text (`loadout:loc:<id>`), which only Loadout's
+Scan screen understands; a phone camera only opens web addresses (PLAN 33).
+
+- Every QR Loadout prints is now a link: shelf, box, unit and product labels
+  from Office, Labels (Avery 5160 and 2 x 4), and the job QR on a printed
+  pull sheet. The link is `https://devriz.umbrellaautomation.com/loadout/?c=<kind>:<id>`,
+  always the real site, even when printed from the demo.
+- Opening that link signs in if needed, then shows the same result the Scan
+  screen would. The code then leaves the address, so a reload does not repeat it.
+- Old labels keep working inside the app. Every scan field reads the old
+  text, the new link, and a typed `loc:<id>` alike; anything else is looked
+  up as a UPC, model, serial or MAC exactly as before.
+- Office, Labels says so in one line, so nobody reprints everything at once.
+- The line printed under each QR, and the `qr` field saved on a record, stay
+  the short `loadout:<kind>:<id>` code, so it can still be typed by hand.
 
 ### 0.13.0 (2026-11-13)
 

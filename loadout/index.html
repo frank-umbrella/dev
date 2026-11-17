@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.13.0</title>
+<title>Loadout v0.13.1</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.13.0">
+<meta name="loadout-version" content="0.13.1">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -1487,7 +1487,7 @@ a.textbtn{display:inline-flex;align-items:center}
     <!-- 0.10.0: the mark and name are one link to the person's Home; a relative hash keeps the demo's query string -->
     <a class="brand" href="#home" id="brandHome" aria-label="Loadout, go to Home">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.13.0</span>
+      Loadout <span class="v" id="verBadge">v0.13.1</span>
     </a>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
@@ -1526,7 +1526,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.13.0</span>
+    <span id="footVer">Loadout v0.13.1</span>
   </footer>
 
   <nav class="tabbar" aria-label="Views">
@@ -1552,7 +1552,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.13.0";
+const VERSION = "0.13.1";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -2609,6 +2609,21 @@ function qrSvg(text) {
 }
 /* 0.9.0: job is the QR on a printed pull sheet; Scan opens that job's Pull screen */
 const PAYLOAD = { loc: id => "loadout:loc:" + id, ctr: id => "loadout:ctr:" + id, item: id => "loadout:item:" + id, prod: id => "loadout:prod:" + id, job: id => "loadout:job:" + id };
+/* 0.13.1 (PLAN 33): what a printed QR holds is a link, so the phone's own camera
+   opens Loadout on that record. A constant, not location.origin, so a label printed
+   from demo or localhost still points at the real site. PAYLOAD stays the stored
+   label code and the line printed under the QR. */
+const APP_URL = "https://devriz.umbrellaautomation.com/loadout/";
+function labelLink(kind, id) { return APP_URL + "?c=" + kind + ":" + encodeURIComponent(id); }
+/* every scan path reads a label through this: loadout:<kind>:<id>, a link with
+   ?c=<kind>:<id> (any host, so the old address and localhost parse too), or a bare
+   <kind>:<id>. Anything else is null and goes on to the UPC / serial / MAC lookup. */
+function parseLabel(code) {
+  let s = String(code || "").trim(); if (!s) return null;
+  if (/^https?:\/\//i.test(s)) { let c = null; try { c = new URL(s).searchParams.get("c"); } catch (e) {} if (!c) return null; s = c.trim(); }
+  const m = /^(?:loadout:)?(loc|ctr|item|prod|job):(.+)$/i.exec(s);
+  return m ? { kind: m[1].toLowerCase(), id: m[2] } : null;
+}
 
 /* ==============================================================
    DATA LAYER
@@ -4917,7 +4932,7 @@ function wireScanField(w, id, onCode, camTitle) {
   w.querySelector('[data-camfor="' + id + '"]').addEventListener("click", () => openCamScan({ title: camTitle || "Scan labels", aim: "Point at a shelf label, a unit's QR, or a UPC", onCode: run }));
 }
 /* what a scanned code is: {kind: loc|ctr|item|prod|code, id} */
-function scanParse(code) { const m = /^loadout:(loc|ctr|item|prod):(.+)$/i.exec(String(code || "").trim()); return m ? { kind: m[1].toLowerCase(), id: m[2] } : { kind: "code", id: String(code || "").trim() }; }
+function scanParse(code) { const m = parseLabel(code); return m && m.kind !== "job" ? m : { kind: "code", id: String(code || "").trim() }; }
 /* a product's own code: its QR, UPC, or model */
 const codeIsProduct = (s, p) => !!p && ((s.kind === "prod" && s.id === p.id) || (s.kind === "code" && ((p.upc && p.upc === s.id) || (p.model && p.model.toLowerCase() === s.id.toLowerCase()))));
 
@@ -5214,7 +5229,7 @@ function printTicket(t) {
     /* 0.9.0 (PLAN 20.2): the QR top right opens this job's Pull screen from the clipboard */
     '<div class="picksheet"><div class="phead"><div><h1>Pull sheet, job #' + esc(t.number) + "</h1>" +
     '<div class="pmeta"><span><b>Client:</b> ' + esc(t.clientName || "") + "</span><span><b>Job:</b> " + esc(t.jobName || "") + "</span><span><b>Staging:</b> " + esc(tkBay(t) || "not set yet") + "</span><span><b>Status:</b> " + esc(TK_LABEL[tkStatus(t)]) + "</span><span><b>Printed:</b> " + esc(fmtWhen(new Date())) + " by " + esc(S.user.name) + "</span></div></div>" +
-    '<div class="pqr" data-qr="' + esc(PAYLOAD.job(t.id)) + '">' + qrSvg(PAYLOAD.job(t.id)) + "<div>Scan to open this job</div></div></div>" +
+    '<div class="pqr" data-qr="' + esc(PAYLOAD.job(t.id)) + '">' + qrSvg(labelLink("job", t.id)) + "<div>Scan to open this job</div></div></div>" +
     (lines.length ? '<table><thead><tr><th style="width:22px"></th><th>Product</th><th class="r">Needed</th><th class="r">Staged</th><th class="r">To pull</th><th>Pull from</th></tr></thead><tbody>' + rows + "</tbody></table>" : "<p>This job has no lines.</p>") +
     '<div class="sign"><span>Pulled by ______________________</span><span>Date __________</span><span>Checked by ______________________</span></div></div>';
   $("#printSheet").setAttribute("aria-hidden", "false");
@@ -5342,7 +5357,7 @@ function ntFind(q) {
 /* a code read off a box: a Loadout product label, a UPC, or a model number */
 function productByCode(code) {
   const c = String(code || "").trim(); if (!c) return null;
-  const m = /^loadout:prod:(.+)$/i.exec(c); if (m) return S.products.get(m[1]) || null;
+  const m = parseLabel(c); if (m && m.kind === "prod") return S.products.get(m.id) || null;
   const all = Array.from(S.products.values()), lc = c.toLowerCase();
   return all.find(p => p.upc && p.upc === c) || all.find(p => p.model && p.model.toLowerCase() === lc) || null;
 }
@@ -9118,13 +9133,14 @@ function onCode(raw) {
 /* routing on the payload prefix; a plain code is a UPC, model, or box label */
 function route(code) {
   /* 0.9.0: a pull sheet's QR opens that job: the Pull screen for whoever pulls, the job page for everyone else */
-  const jm = /^loadout:job:(.+)$/i.exec(code.trim());
-  if (jm) { const id = jm[1]; if (S.tickets.has(id) || !S.loaded.tickets) { go(isWriter() ? "pull" : "ticket", id); return; } S.scan = { kind: "unknown", code }; paintScanResult(); return; }
-  const m = /^loadout:(loc|ctr|item|prod):(.+)$/i.exec(code.trim());
+  /* 0.13.1: the label forms (old text, the new link, bare kind:id) all come through parseLabel */
+  const lab = parseLabel(code), jm = lab && lab.kind === "job" ? lab : null;
+  if (jm) { const id = jm.id; if (S.tickets.has(id) || !S.loaded.tickets) { go(isWriter() ? "pull" : "ticket", id); return; } S.scan = { kind: "unknown", code }; paintScanResult(); return; }
+  const m = lab;
   if (S.pendingUpcFor && !m) { confirmUpc(S.pendingUpcFor, code); return; }
   if (!S.loaded.products || S.errors.products) { S.scan = { kind: "retry", code }; paintScanResult(); return; }
   if (m) {
-    const kind = m[1].toLowerCase(), id = m[2];
+    const kind = m.kind, id = m.id;
     if (kind === "loc") {
       if (S.locations.get(id)) { setActiveLoc(id); S.scan = { kind: "loc", id }; }
       else S.scan = { kind: "unknown", code };
@@ -9184,7 +9200,7 @@ function paintScanResult() {
     return;
   }
   /* unknown */
-  if (/^loadout:/i.test(sc.code)) {
+  if (/^loadout:/i.test(sc.code) || parseLabel(sc.code)) {
     el.innerHTML = '<div class="rk"><span>Label not found</span></div><div class="rt mono">' + esc(sc.code) + '</div><p class="rm">This label points at a record that is not in Loadout any more, or has not reached this device yet. Check the sticker, or reprint it from ' + officeWord() + ", Labels.</p>";
     return;
   }
@@ -9499,7 +9515,8 @@ function labelGroups() {
 function labelsHTML() {
   const size = S.labelSize || S.general.labelSize || "5160";
   const groups = labelGroups(), n = S.labelSel.size;
-  let h = '<div class="grid2"><div><label class="lab" for="lblSize" title="Avery 5160 is 30 small labels for shelves and boxes; 2 x 4 is 10 large ones for racks and staging areas.">' + '<abbr>Sheet</abbr></label><select class="fld" id="lblSize" data-act-change="lblSize"><option value="5160"' + (size === "5160" ? " selected" : "") + '>Avery 5160, 1 x 2-5/8 in, 30 per sheet</option><option value="5163"' + (size === "5163" ? " selected" : "") + ">2 x 4 in, 10 per sheet</option></select></div>" +
+  let h = '<p class="hint">Labels printed before version 0.13.1 scan only inside Loadout. Reprint a label and the phone\'s own camera can open it too.</p>' +
+    '<div class="grid2"><div><label class="lab" for="lblSize" title="Avery 5160 is 30 small labels for shelves and boxes; 2 x 4 is 10 large ones for racks and staging areas.">' + '<abbr>Sheet</abbr></label><select class="fld" id="lblSize" data-act-change="lblSize"><option value="5160"' + (size === "5160" ? " selected" : "") + '>Avery 5160, 1 x 2-5/8 in, 30 per sheet</option><option value="5163"' + (size === "5163" ? " selected" : "") + ">2 x 4 in, 10 per sheet</option></select></div>" +
     '<div><label class="lab" for="lblQ">Filter</label><span class="srch"><input class="fld" id="lblQ" type="search" value="' + esc(S.labelQ) + '" placeholder="Name, box label, or serial"><button type="button" class="clr" data-act="clearSearch" data-for="lblQ" aria-label="Clear the filter">&times;</button></span></div></div>' +
     '<label class="chk"><input type="checkbox" id="lblEmpty"' + (S.labelEmpty ? " checked" : "") + "> Include empty boxes</label>";
   groups.forEach(([title, list]) => {
@@ -9514,15 +9531,15 @@ function printLabels(list, size) {
   size = size || S.labelSize || S.general.labelSize || "5160";
   const per = size === "5163" ? 10 : 30;
   const labels = list.map(({ kind, id }) => {
-    if (kind === "loc") { const l = S.locations.get(id); return l && { pay: PAYLOAD.loc(id), b: l.name, s: l.kind === "bay" ? "Staging area" : l.kind === "van" ? "Van" : l.kind === "vehicle" ? "Vehicle" : "" }; }
-    if (kind === "ctr") { const c = S.containers.get(id); return c && { pay: PAYLOAD.ctr(id), b: c.label, s: (c.productName || "") + ", " + fmtN(c.startLength) + " ft box", mono: true }; }
-    if (kind === "item") { const i = S.items.get(id); return i && { pay: PAYLOAD.item(id), b: i.label || i.productName, s: i.serial ? "S/N " + i.serial : i.mac ? "MAC " + i.mac : "ID " + shortId(i.id) }; }
-    if (kind === "prod") { const p = S.products.get(id); return p && { pay: PAYLOAD.prod(id), b: productName(p), s: p.upc ? "UPC " + p.upc : "" }; }
+    if (kind === "loc") { const l = S.locations.get(id); return l && { pay: PAYLOAD.loc(id), link: labelLink("loc", id), b: l.name, s: l.kind === "bay" ? "Staging area" : l.kind === "van" ? "Van" : l.kind === "vehicle" ? "Vehicle" : "" }; }
+    if (kind === "ctr") { const c = S.containers.get(id); return c && { pay: PAYLOAD.ctr(id), link: labelLink("ctr", id), b: c.label, s: (c.productName || "") + ", " + fmtN(c.startLength) + " ft box", mono: true }; }
+    if (kind === "item") { const i = S.items.get(id); return i && { pay: PAYLOAD.item(id), link: labelLink("item", id), b: i.label || i.productName, s: i.serial ? "S/N " + i.serial : i.mac ? "MAC " + i.mac : "ID " + shortId(i.id) }; }
+    if (kind === "prod") { const p = S.products.get(id); return p && { pay: PAYLOAD.prod(id), link: labelLink("prod", id), b: productName(p), s: p.upc ? "UPC " + p.upc : "" }; }
   }).filter(Boolean);
   if (!labels.length) { toast("Nothing to print.", true); return; }
   let sheets = "";
   for (let i = 0; i < labels.length; i += per) {
-    sheets += '<div class="sheet s' + size + '">' + labels.slice(i, i + per).map(l => '<div class="label">' + qrSvg(l.pay) + '<div class="lt"><b' + (l.mono ? ' style="font-family:Consolas,Courier New,monospace"' : "") + ">" + esc(l.b) + "</b>" + (l.s ? "<small>" + esc(l.s) + "</small>" : "") + "<span>" + esc(l.pay) + "</span></div></div>").join("") + "</div>";
+    sheets += '<div class="sheet s' + size + '">' + labels.slice(i, i + per).map(l => '<div class="label">' + qrSvg(l.link) + '<div class="lt"><b' + (l.mono ? ' style="font-family:Consolas,Courier New,monospace"' : "") + ">" + esc(l.b) + "</b>" + (l.s ? "<small>" + esc(l.s) + "</small>" : "") + "<span>" + esc(l.pay) + "</span></div></div>").join("") + "</div>";
   }
   const pages = Math.ceil(labels.length / per);
   $("#printSheet").innerHTML = '<div class="pvbar"><button type="button" class="btn acc" id="pvPrint">Print</button><button type="button" class="btn" id="pvClose">Close preview</button><span>' + labels.length + " label" + (labels.length > 1 ? "s" : "") + " on " + pages + " sheet" + (pages > 1 ? "s" : "") + " of " + (size === "5163" ? "2 x 4 in" : "Avery 5160") + ". Print at 100% scale, margins none.</span></div>" + sheets;
@@ -11176,6 +11193,8 @@ function impDoneHTML() {
 if (DEMO) window.Loadout = { tipAudit, importBuffer:(buf, name) => importLoad(buf, name || "workbook.xlsx"), state: S, render: () => render(true), setLive, sampleCsv: () => SAMPLE_CSV, board: BD,
   /* 0.11.0 (PLAN 25): the matcher, the formatter, and the lists, for the self-test and the checks by script */
   lists: { normKey, tidyName, brandList, categoryList, listSpell, importOps: () => S.imp && S.imp.plan ? importOps(S.imp.plan) : null },
+  /* 0.13.1 (PLAN 33): the label link and the one parser every scan path uses, for the checks by script */
+  labels: { labelLink, parseLabel, scanParse, productByCode },
   /* 0.5.0 checks by script: sync({online:false, pending:3}) drives the pill (sync(null) goes back to Demo);
      pending("products", id, true) puts the pending chip on a row; install("prompt"|"ios"|"menu"|"none"|null) picks the home screen card */
   sync: st => { S.demoSync = st ? { online: st.online !== false, pending: Math.max(0, num(st.pending)) } : null; paintSync(); return syncState(); },
@@ -11696,6 +11715,22 @@ if (DEMO) {
     startApp(me);
     if (pushLocal && S.prefs && Object.keys(S.prefs).length) savePrefs(false);
   });
+}
+
+/* 0.13.1 (PLAN 33): a label opened with the phone's own camera arrives as ?c=<kind>:<id>.
+   Once someone is signed in and the lists have loaded, it resolves through route(),
+   the same as a scan on the Scan screen, and c leaves the address so a reload does not
+   fire it again. Not signed in: the code waits in the address until sign-in. The board ignores it. */
+let OPEN_CODE = BOARD ? null : (QUERY.get("c") || "").trim() || null;
+if (OPEN_CODE) {
+  const openT = setInterval(() => {
+    if (!OPEN_CODE || !S.user || !DB) return;
+    if (!["products", "locations", "containers", "items", "tickets"].every(k => S.loaded[k] || S.errors[k])) return;
+    const code = "loadout:" + OPEN_CODE.replace(/^loadout:/i, ""); OPEN_CODE = null; clearInterval(openT);
+    const q = new URLSearchParams(location.search); q.delete("c"); const qs = q.toString();
+    history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + location.hash);
+    go("scan"); route(code); refreshScan();
+  }, 300);
 }
 
 /* admins seed the staging area and vans (D4, D5) once the locations have loaded.

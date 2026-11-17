@@ -2488,3 +2488,54 @@ approves.
 
 All three change the comic, the flow chart, the storyboard, the role sheets
 and the training deck in the same release.
+
+## 33. Every label is a link (user, 2026-11-16; built as 0.13.1)
+
+Cause: the owner pointed the iPhone's own Camera app at a Loadout label and
+nothing happened. The QR held plain text, `loadout:<kind>:<id>`, which only
+Loadout's Scan screen reads; a phone camera only opens web addresses.
+Scanning inside Loadout on a real iPhone is still untested.
+
+- Payload: every printed QR (Office, Labels on Avery 5160 and 2 x 4, and the
+  job QR on a printed pull sheet) holds
+  `https://devriz.umbrellaautomation.com/loadout/?c=<kind>:<id>`, kinds loc,
+  ctr, item, prod, job. The address is a constant, so a label printed from the
+  demo or localhost still points at the real site. The id is URL-encoded only
+  when it needs it. The line printed under the QR and the stored `qr` field
+  stay `loadout:<kind>:<id>`, short enough to type.
+- One parser for every scan path (Scan screen, camera sheet, typed code, Pull
+  sheet, Bring back, Close job, New job's product scanner) accepts:
+  `loadout:<kind>:<id>`; a link on any host, http or https, whose `c` holds
+  `<kind>:<id>` or `loadout:<kind>:<id>` (so the old github.io address and
+  localhost parse); and a bare `<kind>:<id>` (the five kind words cannot be a
+  UPC, a model, a box label or a MAC). Anything else goes on to the UPC,
+  model, serial and MAC lookup as before.
+- Opening `?c=`: once someone is signed in and the lists have loaded, the
+  code resolves the way a scan on the Scan screen does (an unknown id shows
+  the same "Label not found"), then `c` leaves the address with
+  `history.replaceState`; `demo`, `role` and the hash stay. Not signed in:
+  the code waits until sign-in. `?board=1` ignores it. The service worker
+  already answers any query string with the cached shell (ignoreSearch).
+- Old labels keep working inside the app. Office, Labels says reprinting
+  lets the phone's own camera open a label too.
+- Density at error correction M: the longest demo product id goes from a
+  37 to a 45 module QR, about 0.43 mm a module on Avery 5160 and 0.83 mm on
+  2 x 4.
+
+### 33.1 Still on the list for 0.14.0
+
+1. A door "Return from a client": the product goes back on the shelf.
+2. A from-to line on every Home door.
+3. Job report shows wire cut from a box logged on Shelf, and the box sheet asks for the job.
+4. "Proposal #" wording; a hand-made job says "No proposal".
+5. Scan: UPC library lookup, and a type-to-search list instead of the dropdown.
+6. A required reason on every return (client return, Bring back, Close job leftovers).
+7. Scan page history of the codes this person scanned.
+8. A button to lock the reading on the first good scan.
+9. Optional Amazon ASIN on a product.
+10. The scan result shows the jobs the product or unit is on.
+11. The company house mark in the middle of every QR (needs the highest error correction; test on Avery 5160).
+12. Tracking numbers show the proposal or job they are for.
+
+Still open: which role the owner was signed in as when "Receive a shipment"
+looked missing, and whether techs may call the UPC lookup.
