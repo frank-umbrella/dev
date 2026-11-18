@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.14.0</title>
+<title>Loadout v0.15.0</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.14.0">
+<meta name="loadout-version" content="0.15.0">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -1437,6 +1437,25 @@ a.textbtn{display:inline-flex;align-items:center}
    it is 7.01:1, the quiet grey #e3e7ec 5.65:1. */
 :root{--job-receive:var(--m-pilltext)}
 .band.receive,.door.receive{background:var(--job-receive)}
+/* ---------- 0.15.0 (PLAN 33.1 items 1, 2, 6): Return from a client, the from-to line, return reasons ----------
+   Return takes plum, a hue no other door, status, or carrier chip uses
+   (slate, green, amber, blue, grey; FedEx is a deep violet). White on it is
+   8.33:1, the quiet grey #e3e7ec 6.71:1, and the door stands 7.70:1 off the
+   page and 8.33:1 off a card. The app has one (light) theme. Every door and
+   every door screen's band carries a from-to line in white. */
+:root{--job-return:#7a2e7e}
+.band.return,.door.return{background:var(--job-return)}
+.door svg{grid-row:1/4}
+.door > .dft{color:#fff}
+.band{height:auto;min-height:6px;padding:3px var(--s3);color:#fff;font-size:13px;font-weight:600;line-height:1.4;overflow-wrap:anywhere}
+.rsn{margin-top:var(--s2)}
+.rsn .seg,.rsline .seg{margin-top:4px}
+.seg button[aria-pressed="true"]{background:var(--m-accent);color:var(--m-onaccent);font-weight:600}
+.rsnote{margin-top:6px}
+.rsline{display:grid;gap:4px;min-width:0}
+.rtrow{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
+.rthint{margin:0}
+@media (max-width:640px){.seg button{min-height:44px}}
 .pgrp{margin-top:var(--s3)}
 .pgrp > .ph{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s1) var(--s2);margin:0 0 var(--s1)}
 .pgrp > .ph h3{margin:0;font-size:16px;font-weight:700;overflow-wrap:anywhere;min-width:0}
@@ -1503,7 +1522,7 @@ a.textbtn{display:inline-flex;align-items:center}
     <!-- 0.10.0: the mark and name are one link to the person's Home; a relative hash keeps the demo's query string -->
     <a class="brand" href="#home" id="brandHome" aria-label="Loadout, go to Home">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.14.0</span>
+      Loadout <span class="v" id="verBadge">v0.15.0</span>
     </a>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
@@ -1529,6 +1548,7 @@ a.textbtn{display:inline-flex;align-items:center}
     <section id="v-deliver" class="view" hidden></section>
     <section id="v-receive" class="view" hidden></section>
     <section id="v-audit" class="view" hidden></section>
+    <section id="v-return" class="view" hidden></section>
     <section id="v-office" class="view" hidden></section>
     <section id="v-tickets" class="view" hidden></section>
     <section id="v-ticket" class="view" hidden></section>
@@ -1542,7 +1562,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.14.0</span>
+    <span id="footVer">Loadout v0.15.0</span>
   </footer>
 
   <nav class="tabbar" aria-label="Views">
@@ -1568,7 +1588,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.14.0";
+const VERSION = "0.15.0";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -2471,6 +2491,8 @@ const TIPS = {
   "ntAdd": "Adds this product to the list, or one more if it is already on it.",
   "submit:plScanForm": "Uses the scanned or typed code: a shelf picks the location, a unit ticks that unit, and the UPC confirms the product.",
   "submit:clScanForm": "Uses the scanned or typed code: a shelf label sets where leftovers go, a unit ticks that unit, and a UPC adds one to that product's count.",
+  "submit:rtScanForm": "Uses the scanned or typed code: a unit ticks that unit, a UPC or product QR adds one to that product's count, and a shelf label sends it all to that shelf.",
+  "submit:rjScanForm": "Opens the return for the job with this QR, job number, or proposal number.",
   "submit:bbScanForm": "Uses the scanned or typed code: a unit ticks that unit, a UPC adds one to that product's count, and for the warehouse a shelf label sets where it goes.",
   "submit:rsScanForm": "Counts one for the line with this UPC; the first scan of a line starts it at 1.",
   "submit:manualForm": "Looks up the typed code as if it were scanned.",
@@ -2483,7 +2505,7 @@ const btnText = b => (b.textContent || "").replace(/\s+/g, " ").trim();
 const tipPlain = b => TIP_PLAIN.test(btnText(b)) || (b.hasAttribute("data-close") && /^got it$/i.test(btnText(b)));
 function tipFor(act, ctx) { return (ctx != null && ctx !== "" && TIPS[act + ":" + ctx]) || TIPS[act] || ""; }
 const TIP_MARK = [["q", "boxq"], ["empty", "boxEmpty"], ["save", "boxSave"], ["fclear", "fclear"], ["fdone", "fdone"], ["clear", "boClear"], ["up", "colUp"], ["down", "colDown"], ["bdup", "bdUp"], ["bddown", "bdDown"], ["bdrm", "bdRm"], ["ntrm", "ntRemove"], ["ntadd", "ntAdd"]];
-const TIP_IDROUTE = /^(job|ticket|pull|pickup|deliver|audit|order)$/;
+const TIP_IDROUTE = /^(job|ticket|pull|pickup|deliver|audit|order|return)$/;
 function tipOf(b) {
   const d = b.dataset;
   if (d.tk) return TIPS[d.tk] || "";
@@ -2744,6 +2766,8 @@ function firestoreStore(user) {
     if (S.ticketId) want.add(S.ticketId);
     /* 0.10.0: the job open in the Job report, which may be closed */
     if (S.repJob && S.view === "office" && S.repTab === "job") want.add(S.repJob);
+    /* 0.15.0: the job open on Return from a client, which may be closed */
+    if (S.retJob && S.view === "return") want.add(S.retJob);
     lineUnsubs.forEach((u, id) => { if (!want.has(id)) { try { u(); } catch (e) {} lineUnsubs.delete(id); S.lines.delete(id); S.linesLoaded.delete(id); } });
     want.forEach(id => {
       if (lineUnsubs.has(id)) return;
@@ -2936,7 +2960,7 @@ function mv(type, f) {
       containerId: f.containerId || null, containerLabel: f.containerLabel || null,
       itemId: f.itemId || null, itemLabel: f.itemLabel || null,
       qty: f.qty == null ? null : f.qty, unit: p ? (p.unit || "each") : (f.unit || null),
-      fromLocationId: f.fromLocationId || null, fromLocationName: f.fromLocationId ? (f.fromLocationName || locName(f.fromLocationId)) : null,
+      fromLocationId: f.fromLocationId || null, fromLocationName: f.fromLocationId ? (f.fromLocationName || locName(f.fromLocationId)) : (f.fromName || null),
       toLocationId: f.toLocationId || null, toLocationName: f.toLocationId ? (f.toLocationName || locName(f.toLocationId)) : null,
       cut: f.cut || null,
       holderUid: f.holderUid || null, holderName: f.holderName || null, condition: f.condition || null,
@@ -2951,6 +2975,8 @@ function mv(type, f) {
   /* inventory sheet rows (PLAN 12b item 3): the movement is dated from the
      sheet's count date; importedAt keeps when the import ran, and the tab,
      row, and key let a later import skip what is already written */
+  /* 0.15.0 (PLAN 33.1 item 6): why it came back, on every return */
+  if (f.reason) Object.assign(out.data, { reason: f.reason, reasonNote: f.reasonNote || "" });
   if (f.importKey) Object.assign(out.data, { importTab: f.importTab || null, importRow: f.importRow || null, importKey: f.importKey, importedAt: NOW });
   return out;
 }
@@ -3390,27 +3416,28 @@ function closeLeftovers(t) {
   }).filter(Boolean);
 }
 const installsFor = t => Array.from(S.items.values()).filter(i => i.ticketId === t.id && i.status === "checked_out");
-/* o: {mode: return|writeoff, units: Map(itemId -> shelf), counts: Map(lineId -> {n, dest}), reason, vanReason, note}.
+/* o: {mode: return|writeoff, units: Map(itemId -> shelf), counts: Map(lineId -> {n, dest}), rs: Map(lineId -> {reason, reasonNote}) for what is scanned back (0.15.0), reason (the write-off's), vanReason, note}.
    0.13.0 (PLAN 32.2): with return, each scanned leftover goes to its own
    shelf as a move; anything not scanned back is written off with o.reason. */
 async function doClose(t, o) {
   const bay = t.stagingLocationId, ops = [], lo = closeLeftovers(t), drop = new Map();
   const tf = l => tkBaseFields(t, l), ret = o.mode === "return", units = o.units || new Map(), counts = o.counts || new Map();
   const less = (pid, n) => drop.set(pid, (drop.get(pid) || 0) + n);
+  const rsOf = l => { const r = o.rs && o.rs.get(l.id); return r ? { reason: r.reason, reasonNote: r.reasonNote } : {}; };
   const went = [], lost = [];
   lo.forEach(x => {
     if (x.counted > 0) {
       const c = ret ? counts.get(x.line.id) : null, back = c ? Math.min(x.counted, num(c.n)) : 0, off = x.counted - back;
       ops.push(stockInc(x.p, bay, -x.counted));
       /* leftovers back to a shelf are a move; return means a unit back from a site (finding 13) */
-      if (back > 0) { ops.push(stockInc(x.p, c.dest, back)); ops.push(mv("move", Object.assign({ productId: x.p.id, qty: back, fromLocationId: bay, toLocationId: c.dest, note: "Leftover from job #" + t.number + ", scanned back to stock" }, tf(x.line)))); went.push(fmtN(back) + " " + productName(x.p) + " to " + locName(c.dest)); }
+      if (back > 0) { ops.push(stockInc(x.p, c.dest, back)); ops.push(mv("move", Object.assign({ productId: x.p.id, qty: back, fromLocationId: bay, toLocationId: c.dest, note: "Leftover from job #" + t.number + ", scanned back to stock" }, rsOf(x.line), tf(x.line)))); went.push(fmtN(back) + " " + productName(x.p) + " to " + locName(c.dest)); }
       if (off > 0) { less(x.p.id, off); ops.push(mv("writeoff", Object.assign({ productId: x.p.id, qty: -off, fromLocationId: bay, note: "Written off at close of job #" + t.number + ": " + o.reason }, tf(x.line)))); lost.push(fmtN(off) + " " + productName(x.p)); }
     }
     x.items.forEach(it => {
       const dest = ret ? units.get(it.id) : null;
       if (dest) {
         ops.push({ op: "update", coll: "loadout_items", id: it.id, data: { status: "in_stock", locationId: dest, locationName: locName(dest), ticketId: null, ticketNumber: null, ticketLineId: null, jobId: null, jobName: null, clientName: null, updatedAt: NOW } });
-        ops.push(mv("move", Object.assign({ productId: it.productId, itemId: it.id, itemLabel: itemLabel(it), qty: 1, fromLocationId: it.locationId, toLocationId: dest, note: "Leftover from job #" + t.number + ", scanned back to stock" }, tf(x.line))));
+        ops.push(mv("move", Object.assign({ productId: it.productId, itemId: it.id, itemLabel: itemLabel(it), qty: 1, fromLocationId: it.locationId, toLocationId: dest, note: "Leftover from job #" + t.number + ", scanned back to stock" }, rsOf(x.line), tf(x.line))));
         went.push(productName(x.p) + " unit " + itemLabel(it) + " to " + locName(dest));
       } else {
         lost.push(productName(x.p) + " unit " + itemLabel(it));
@@ -4122,7 +4149,7 @@ function loadDemoTickets(t, ST) {
       unit: p ? p.unit : "each", matchState: pid ? "matched" : "unmatched", qtyNeeded: need, qtyFromStock: 0, qtyToOrder: 0, qtyStaged: 0, qtyDelivered: 0, portalItemId: null, orderLineRefs: [], notes: null, createdAt: t(5), updatedAt: t(2) }, o || {}));
     return id;
   };
-  T("1042", "lakeview-dental--lakeview-office-refresh", "picking", "bay-2", 5, { updatedAt: t(1), installAt: at(0) });
+  T("1042", "lakeview-dental--lakeview-office-refresh", "picking", "bay-2", 5, { updatedAt: t(1), installAt: at(0), deliveredAt: t(3), deliveredBy: "tech@example.com", deliveredByName: "Tech" });
   Ln("1042", "Reception", "sonos-amp", 1, { qtyToOrder: 1, notes: "The only Amp on hand came back damaged. Order a new one." });
   Ln("1042", "Reception", null, 1, { brand: "Chief", model: "RPMAU", description: "Universal projector mount, white", qtyToOrder: 1 });
   Ln("1042", "Reception", "patch-cable-hdmi-patch-hdmim-hdmim-black-6ft", 6, {});
@@ -4138,11 +4165,12 @@ function loadDemoTickets(t, ST) {
   const pw = Ln("1048", "Equipment rack", "patch-cable-power-cable-edison-m-c13-f-black-6ft", 4, { qtyFromStock: 4, qtyStaged: 4, pickedFromName: "Storage room, Patch cables", pickedByName: "Warehouse", pickedAt: t(2) });
   const sp = Ln("1048", "Waiting room", "splitter-2-way-coaxial-splitter-coaxial-m-1-coaxial-m-2", 2, { qtyFromStock: 2, qtyStaged: 2, pickedFromName: "Storage room, RCA A/V Video", pickedByName: "Warehouse", pickedAt: t(2) });
   const xl = Ln("1048", "Waiting room", "connector-xlr-female-3", 2, { qtyFromStock: 2, qtyStaged: 2, pickedFromName: "Storage room, RCA A/V Video", pickedByName: "Warehouse", pickedAt: t(2) });
-  T("1031", "harbor-clinic--harbor-clinic-network", "closed", "bay-1", 26, { closedAt: t(18), closedBy: "warehouse@example.com", closedByName: "Warehouse", updatedAt: t(18), installAt: at(-19) });
+  /* 0.15.0: 1031 and 1039 carry their delivery stamp, so Return from a client lists them newest first; 1031 is closed with a switch installed and 12 jacks delivered */
+  T("1031", "harbor-clinic--harbor-clinic-network", "closed", "bay-1", 26, { closedAt: t(18), closedBy: "warehouse@example.com", closedByName: "Warehouse", updatedAt: t(18), installAt: at(-19), deliveredAt: t(19), deliveredBy: "tech@example.com", deliveredByName: "Tech" });
   const sw = Ln("1031", "Equipment rack", "ubiquiti-usw-24-poe", 1, { qtyFromStock: 1, qtyStaged: 1, qtyDelivered: 1, pickedFromName: "Warehouse", pickedByName: "Warehouse" });
   Ln("1031", "Equipment rack", "leviton-61110-be6", 12, { qtyFromStock: 12, qtyStaged: 12, qtyDelivered: 12, pickedFromName: "Warehouse", pickedByName: "Warehouse" });
   Object.assign(S.items.get("m1x5y7u3e6"), { ticketId: "1031", ticketLineId: sw, jobId: "harbor-clinic--harbor-clinic-network" });
-  T("1039", "ridge-family-practice--waiting-room-tvs", "delivered", "bay-3", 9, { updatedAt: t(2), installAt: at(-2) });
+  T("1039", "ridge-family-practice--waiting-room-tvs", "delivered", "bay-3", 9, { updatedAt: t(2), installAt: at(-2), deliveredAt: t(2), deliveredBy: "tech@example.com", deliveredByName: "Tech" });
   /* 0.13.0 (PLAN 32.2): 1039 was pulled with spares, so Close job has leftovers to scan back:
      2 HDMI patch cables (counted) and one Axis camera with its own QR, all in Tech area, Job shelf 3 */
   Ln("1039", "Waiting room", "patch-cable-hdmi-patch-hdmim-hdmim-black-6ft", 2, { qtyFromStock: 4, qtyStaged: 4, qtyDelivered: 2, pickedFromName: "Storage room, RCA A/V Video", pickedByName: "Warehouse" });
@@ -4600,7 +4628,7 @@ function render(force) {
   let s0 = null, s1 = null; try { if (fid) { s0 = ae.selectionStart; s1 = ae.selectionEnd; } } catch (e) {}
   /* 0.8.0: five places in the nav and the tab bar (Home, Jobs, Scan, Shelf,
      Office); every other screen lights the one it belongs to */
-  const navView = { ticket: "tickets", pull: "home", pickup: "home", deliver: "home", receive: "home", audit: "home", items: "stock", orders: "office", order: "office", tracking: "office", week: "office" }[S.view] || S.view;
+  const navView = { ticket: "tickets", pull: "home", pickup: "home", deliver: "home", receive: "home", return: "home", audit: "home", items: "stock", orders: "office", order: "office", tracking: "office", week: "office" }[S.view] || S.view;
   const mark = (b, on) => { b.classList.toggle("on", on); if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); };
   $$(".nav [data-go], .tabbar [data-go]").forEach(b => mark(b, b.dataset.go === navView));
   $$(".view").forEach(v => v.hidden = v.id !== "v-" + S.view);
@@ -4610,6 +4638,7 @@ function render(force) {
   else if (S.view === "pull") renderPull();
   else if (S.view === "pickup" || S.view === "deliver") renderFlow(S.view);
   else if (S.view === "receive") renderReceive();
+  else if (S.view === "return") renderReturn();
   else if (S.view === "audit") renderAudit();
   else if (S.view === "office") renderOffice(force);
   else if (S.view === "tickets") renderTickets();
@@ -4813,6 +4842,8 @@ function lineChips(t, l) {
   olinksFor(t, l).forEach(x => c.push('<button type="button" class="chip ' + olChipClass(x.o, x.ol) + '" data-act="order" data-id="' + esc(x.o.id) + '" title="Opens ' + esc(poLabel(x.o)) + (x.ol ? ", " + esc(olQty(x.ol, x.ol.qtyOrdered)) + " on it" : "") + '"><i></i>' + esc(olChipText(x.o, x.ol)) + "</button>"));
   const out = Array.from(S.items.values()).filter(i => i.ticketLineId === l.id && i.ticketId === t.id && (i.status === "checked_out" || i.status === "installed"));
   if (out.length) { const who = Array.from(new Set(out.map(i => i.holderName).filter(Boolean))).join(", "); c.push('<span class="chip info"><i></i>' + out.length + " of " + fmtN(l.qtyNeeded) + (out[0].status === "installed" ? " installed" : " checked out" + (who ? " by " + esc(who) : "")) + "</span>"); }
+  /* 0.15.0 (PLAN 33.1 item 1): what came back from the client */
+  if (num(l.qtyReturned) > 0) c.push('<span class="chip" title="Came back from the client and went back on the shelf' + (l.returnedByName ? ", last by " + esc(l.returnedByName) : "") + '">Returned ' + esc(lqty(l, l.qtyReturned)) + (l.returnedAt ? ", " + esc(fmtShort(l.returnedAt)) : "") + "</span>");
   /* 0.5.0: the pending chip now comes from tableHTML on every table's first column */
   return '<div class="chips">' + c.join("") + "</div>";
 }
@@ -5131,7 +5162,8 @@ function openClose(t) {
   const backTo = l => l.kind !== "bay" && !l.archived;
   const leftRow = x => '<li class="lrow"><div class="lrn"><b>' + esc(productName(x.p)) + "</b>" + (x.counted ? '<small id="clTo-' + esc(x.line.id) + '"></small>' : "") + "</div>" +
     (x.counted ? '<div class="lrq"><label class="sr" for="clN-' + esc(x.line.id) + '">How many ' + esc(productName(x.p)) + ' came back</label><input class="fld n" type="number" min="0" max="' + x.counted + '" step="1" inputmode="numeric" id="clN-' + esc(x.line.id) + '" data-cln="' + esc(x.line.id) + '" placeholder="0"><span class="z">of ' + fmtN(x.counted) + "</span></div>" : "") +
-    (x.items.length ? '<div class="pickunits">' + x.items.map(i => '<label class="chk"><input type="checkbox" data-clu="' + esc(i.id) + '"> <span class="mono">' + esc(itemLabel(i)) + '</span><small class="z" id="clTo-' + esc(i.id) + '"></small></label>').join("") + "</div>" : "") + "</li>";
+    (x.items.length ? '<div class="pickunits">' + x.items.map(i => '<label class="chk"><input type="checkbox" data-clu="' + esc(i.id) + '"> <span class="mono">' + esc(itemLabel(i)) + '</span><small class="z" id="clTo-' + esc(i.id) + '"></small></label>').join("") + "</div>" : "") +
+    (lo.length > 1 ? lineReasonHTML("cl", x.line.id, productName(x.p)) : "") + "</li>";
   const body = '<p class="hint" style="margin-top:0">Closing ends the job. It drops off the board, and its lines stay as they are for the record.</p>' + vanHTML +
     '<div class="sect"><h4 class="h4">Leftovers in ' + esc(tkBay(t) || "the staging area") + "</h4>" + (lo.length ?
       '<div role="radiogroup" aria-label="What happens to the leftovers"><label class="radio"><input type="radio" name="clMode" value="return" checked><span><b>Back to stock</b><br><span class="z">Scan each leftover back onto its shelf. What is not scanned back is written off with a reason.</span></span></label>' +
@@ -5140,14 +5172,25 @@ function openClose(t) {
         '<label class="lab" for="clLoc" title="Where a leftover goes when you tick it or type its count. Scanning a shelf label changes it.">Back to</label><select class="fld" id="clLoc" data-decide>' + locOptions("", { filter: backTo }) + "</select>" +
         '<div class="btnrow"><button type="button" class="btn" id="clAll" data-tk="clAll">All of it back</button></div>' +
         '<ul class="leftlist">' + lo.map(leftRow).join("") + "</ul>" +
+        '<div id="clRs" hidden>' + reasonHTML("cl", lo.length > 1) + "</div>" +
         '<p class="hint" id="clSum" role="status"></p><div id="clMiss" hidden><label class="lab" for="clMissWhy">Reason for what is not scanned back <span class="req">required</span></label><input class="fld" id="clMissWhy" placeholder="Used on site, damaged, lost"></div></div>' +
       '<div id="clWo" hidden><label class="lab" for="clWhy">Reason <span class="req">required</span></label><input class="fld" id="clWhy" placeholder="Damaged, lost on site, used up"></div>'
       : '<p class="hint" style="margin-top:0">Nothing is left in the staging area.</p>') + "</div>" +
     '<div class="sect"><h4 class="h4">Marked installed at ' + esc(t.jobName || "the job") + "</h4>" + (inst.length ? '<ul class="onhand">' + inst.map(i => "<li><span>" + esc(i.productName || "") + ' <span class="z mono">' + esc(itemLabel(i)) + "</span></span><span>" + esc(i.holderName || "") + "</span></li>").join("") + "</ul>" : '<p class="hint" style="margin-top:0">No serialized units are out on this job.</p>') + "</div>" +
     '<label class="lab" for="clNote">Note</label><input class="fld" id="clNote" placeholder="Optional"><p class="err" id="clErr" hidden></p>';
   const blocked = van.length && !A;
-  const w = openModal("Close job #" + t.number, body, '<button type="button" class="btn" data-close>Cancel</button>' + (blocked ? '<span title="Product is still in a van"><button type="button" class="btn acc" disabled aria-describedby="clBlk" title="Product is still in a van. Deliver it or bring it back first, then close the job.">Close job</button><span class="sr" id="clBlk">Product is still in a van. Deliver it or bring it back first.</span></span>' : '<button type="button" class="btn acc" data-ok data-tk="closeOk">Close job</button>'), { wide: true });
+  const w = openModal("Close job #" + t.number, body, '<button type="button" class="btn" data-close>Cancel</button>' + (blocked ? '<span title="Product is still in a van"><button type="button" class="btn acc" disabled aria-describedby="clBlk" title="Product is still in a van. Deliver it or bring it back first, then close the job.">Close job</button><span class="sr" id="clBlk">Product is still in a van. Deliver it or bring it back first.</span></span>' : '<span class="hint rthint" id="clRsHint" role="status"></span><button type="button" class="btn acc" data-ok data-tk="closeOk">Close job</button>'), { wide: true });
   wireGlow(w);
+  /* 0.15.0 (PLAN 33.1 item 6): what is scanned back says why; the write-off keeps its own reason below */
+  const clBack = () => lo.filter(x => (C.counts.get(x.line.id) || {}).n > 0 || x.items.some(i => C.units.has(i.id))).map(x => x.line.id);
+  const clRet = () => !lo.length || (w.querySelector("input[name=clMode]:checked") || {}).value !== "writeoff";
+  const clGate = () => {
+    const okb = w.querySelector("[data-ok]"), back = clRet() ? clBack() : [], rs = $("#clRs", w);
+    if (rs) rs.hidden = !back.length;
+    if (!okb) return;
+    const msg = back.length ? RS.missing(back) : ""; okb.disabled = !!msg; $("#clRsHint", w).textContent = msg;
+  };
+  const RS = wireReason(w, () => clGate());
   /* what is scanned back so far, and what is still missing (written off at Close) */
   const tally = () => {
     let back = 0, miss = 0;
@@ -5165,6 +5208,7 @@ function openClose(t) {
     const m = tally(), sum = $("#clSum", w);
     sum.textContent = m.back || m.miss ? fmtN(m.back) + " scanned back" + (m.miss ? ", " + fmtN(m.miss) + " not yet. What is not scanned back is written off with the reason below." : ". Everything is accounted for.") : "";
     $("#clMiss", w).hidden = !(m.miss && m.back);
+    clGate();
   };
   const needDest = () => C.dest ? "" : "Scan the shelf label first, or pick it under Back to.";
   if (lo.length) {
@@ -5199,7 +5243,7 @@ function openClose(t) {
   }
   w.addEventListener("change", e => {
     const tg = e.target;
-    if (tg.name === "clMode") { $("#clRet", w).hidden = tg.value !== "return"; $("#clWo", w).hidden = tg.value !== "writeoff"; }
+    if (tg.name === "clMode") { $("#clRet", w).hidden = tg.value !== "return"; $("#clWo", w).hidden = tg.value !== "writeoff"; clGate(); }
     if (tg.name === "clVan") $("#clVanWo", w).hidden = tg.value !== "writeoff";
     if (tg.id === "clLoc") C.dest = tg.value;
     if (tg.dataset && tg.dataset.clu) {
@@ -5230,9 +5274,11 @@ function openClose(t) {
       const m = tally();
       if (!m.back) return fail("Nothing is scanned back yet. Scan the shelf and each leftover, press All of it back, or choose Write off.");
       if (m.miss && !reason) { $("#clMiss", w).hidden = false; return fail(fmtN(m.miss) + " not scanned back. Scan them, or give a reason and they are written off."); }
+      const miss = RS.missing(clBack()); if (miss) return fail(miss + ".");
     }
+    const rs = new Map(); clBack().forEach(id => rs.set(id, RS.get(id)));
     closeModal(w);
-    const r = await doClose(t, { mode, units: C.units, counts: C.counts, reason, vanReason: van.length ? vanReason : null, note: $("#clNote", w).value.trim() || null });
+    const r = await doClose(t, { mode, units: C.units, counts: C.counts, rs, reason, vanReason: van.length ? vanReason : null, note: $("#clNote", w).value.trim() || null });
     if (r) { toast((r === "demo" ? "Demo mode, not saved: " : "") + "Job #" + t.number + " closed"); }
   });
 }
@@ -6136,12 +6182,14 @@ const AUDIT_OLD_DAYS = 60;
 /* icons drawn in the tab bar's stroke: clipboard with a tick = audit, box with the arrow out = pull, box leaving = pick up, truck = deliver.
    when = the door's tooltip; why = the short half after the count (0.8.2) */
 const DOORS = {
-  audit: { label: "Audit a shelf", when: "When a shelf looks off, or it is due for a check.", why: "a check every " + AUDIT_OLD_DAYS + " days", icon: ICON('<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 12.5l2.5 2.5 4.5-5"/>') },
-  pull: { label: "Pull for a job", when: "When a job is waiting for its product.", why: "shelf to staging area", icon: ICON('<path d="M4 10h16v10H4zM12 3v10M8.5 6.5 12 3l3.5 3.5"/>') },
-  pickup: { label: "Pick up from staging", when: "Take a job's staged product into your van; it is yours until it is delivered.", why: "staging area to your van", icon: ICON('<path d="M3 9h10v10H3z"/><path d="M13 14h8M18 11l3 3-3 3"/>') },
-  deliver: { label: "Confirm a delivery", when: "When the product is on site with the client.", why: "van or staging area to the client", icon: ICON('<path d="M2 6h11v10H2zM13 9h4l3 3.5V16h-7"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>') },
+  audit: { label: "Audit a shelf", ft: "Count what is on a shelf", when: "When a shelf looks off, or it is due for a check.", why: "a check every " + AUDIT_OLD_DAYS + " days", icon: ICON('<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 12.5l2.5 2.5 4.5-5"/>') },
+  pull: { label: "Pull for a job", ft: "Shelf to staging area", when: "When a job is waiting for its product.", icon: ICON('<path d="M4 10h16v10H4zM12 3v10M8.5 6.5 12 3l3.5 3.5"/>') },
+  pickup: { label: "Pick up from staging", ft: "Staging area to van", when: "Take a job's staged product into your van; it is yours until it is delivered.", icon: ICON('<path d="M3 9h10v10H3z"/><path d="M13 14h8M18 11l3 3-3 3"/>') },
+  deliver: { label: "Confirm a delivery", ft: "Van to client", when: "When the product is on site with the client.", icon: ICON('<path d="M2 6h11v10H2zM13 9h4l3 3.5V16h-7"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>') },
   /* 0.9.0 (PLAN 20.2): a box with the arrow going in */
-  receive: { label: "Receive a shipment", when: "When a carrier drops a box at the shop.", why: "box to staging area or shelf", icon: ICON('<path d="M4 10h16v10H4z"/><path d="M12 2v10M8.5 8.5 12 12l3.5-3.5"/>') }
+  receive: { label: "Receive a shipment", ft: "Carrier to shelf or staging area", when: "When a carrier drops a box at the shop.", icon: ICON('<path d="M4 10h16v10H4z"/><path d="M12 2v10M8.5 8.5 12 12l3.5-3.5"/>') },
+  /* 0.15.0 (PLAN 33.1 item 1): a box with the arrow turning back */
+  return: { label: "Return from a client", ft: "Client to shelf", when: "When product delivered to a client comes back and goes back on the shelf.", icon: ICON('<path d="M4 11h16v9H4z"/><path d="M9 3H5v4M5 3l4.5 4.5A5 5 0 0 1 17 7"/>') }
 };
 /* 0.8.2 (PLAN 19 item 1): the list behind each door. The door count and the
    door's screen both read these, so the number on Home is the list you get.
@@ -6186,6 +6234,7 @@ function doorCount(k) {
   }
   if (S.errors.tickets) return { h: "Could not load jobs", q: 1, nw: 1 };
   if (!S.loaded.tickets) return { h: "Loading jobs", q: 1, nw: 1 };
+  if (k === "return") { const n = retJobsThisMonth(); return n ? { h: n1(n, "job delivered this month", "jobs delivered this month") } : { h: "Nothing delivered this month", q: 1 }; }
   if (k === "pickup") { const n = pickupJobs().length; return n ? { h: n1(n, "job waiting", "jobs waiting") } : { h: "Nothing staged", q: 1 }; }
   if (k === "pull") {
     const pj = pullJobs(), parts = [], wc = waitCounts();
@@ -6208,8 +6257,8 @@ function doorCount(k) {
 }
 const doorHTML = k => {
   const c = doorCount(k);
-  return '<a class="door ' + k + '" href="#' + k + '" title="' + esc(DOORS[k].when) + '">' + DOORS[k].icon + "<b>" + esc(DOORS[k].label) + '</b><span class="dn' + (c.q ? " q" : "") + '">' + c.h +
-    (c.nw ? "" : '<span class="dw">, ' + esc(DOORS[k].why) + "</span>") + "</span></a>";
+  return '<a class="door ' + k + '" href="#' + k + '" title="' + esc(DOORS[k].when) + '">' + DOORS[k].icon + "<b>" + esc(DOORS[k].label) + '</b><span class="dft">' + esc(DOORS[k].ft) + '</span><span class="dn' + (c.q ? " q" : "") + '">' + c.h +
+    (c.nw || !DOORS[k].why ? "" : '<span class="dw">, ' + esc(DOORS[k].why) + "</span>") + "</span></a>";
 };
 /* the line under a door stays one line: when the count and the why would
    wrap (a phone, two counts on Deliver), the why drops */
@@ -6220,7 +6269,8 @@ function fitDoors() {
   });
 }
 addEventListener("resize", () => { if (S.view === "home" && !BOARD) fitDoors(); });
-const bandHTML = k => '<div class="band ' + k + '" aria-hidden="true"></div>';
+/* 0.15.0 (PLAN 33.1 item 2): the band carries the door's from-to line */
+const bandHTML = k => '<div class="band ' + k + '">' + esc(DOORS[k] ? DOORS[k].ft : "") + "</div>";
 /* 0.11.1 (PLAN 28.1): the first thing on a door's screen is the way back,
    since the home-screen app has no browser Back. A plain link, so Escape
    and the keyboard treat it as one. */
@@ -6294,7 +6344,7 @@ function renderHome() {
   let h = "";
   /* the doors in the order the shop uses them most, Audit last (PLAN 18.7) */
   /* 0.9.0: Receive a shipment is fourth, above Audit, for warehouse and admin */
-  if (isTech()) h += '<h2 class="sr">What are you doing?</h2><div class="doors">' + ["pickup", "deliver", "pull", "receive", "audit"].filter(k => (k !== "audit" && k !== "receive") || isWriter()).map(doorHTML).join("") + "</div>";
+  if (isTech()) h += '<h2 class="sr">What are you doing?</h2><div class="doors">' + ["pickup", "deliver", "pull", "receive", "return", "audit"].filter(k => (k !== "audit" && k !== "receive") || isWriter()).map(doorHTML).join("") + "</div>";
   const list = liveJobs().sort(byInstall);
   h += '<div class="mcard"' + (isTech() ? ' style="margin-top:var(--s3)"' : "") + '><div class="thead"><h2 class="vt">Jobs</h2><span class="sp">' +
     (isAdmin() ? '<a class="btn sm" href="#week" title="The install schedule a week at a time. It also sits under ' + officeWord() + ', Orders and tracking.">Week</a>' : "") +
@@ -6305,7 +6355,7 @@ function renderHome() {
   el.innerHTML = h;
   fitDoors();
 }
-/* tech Home: what is out with me (units and picked-up lines by job), then the two doors a tech uses */
+/* tech Home: what is out with me (units and picked-up lines by job), then the three doors a tech uses (0.15.0: Return from a client) */
 function techHomeHTML() {
   const me = S.user, vanJobs = liveJobs().filter(t => ticketLines(t.id).some(l => lineInVan(l) > 0 && l.pickedUpBy === me.email)).sort(byInstall);
   const vanLine = new Set(); vanJobs.forEach(t => ticketLines(t.id).forEach(l => { if (lineInVan(l) > 0 && l.pickedUpBy === me.email) vanLine.add(l.id); }));
@@ -6322,7 +6372,7 @@ function techHomeHTML() {
     if (units.length) h += '<h3 class="h4" style="margin-top:var(--s3)">Units checked out to me</h3><div class="outme">' + units.map(i => '<div class="om"><b>' + esc(i.productName || "") + '</b> <span class="mono">' + esc(unitShort(i)) + "</span><small>" + esc(i.jobName || "No job") + (i.checkedOutAt ? ", since " + esc(fmtShort(i.checkedOutAt)) : "") + "</small></div>").join("") + "</div>";
   }
   h += "</div>";
-  h += '<h2 class="sr">What are you doing?</h2><div class="doors" style="margin-top:var(--s3)">' + doorHTML("pickup") + doorHTML("deliver") + "</div>";
+  h += '<h2 class="sr">What are you doing?</h2><div class="doors" style="margin-top:var(--s3)">' + doorHTML("pickup") + doorHTML("deliver") + doorHTML("return") + "</div>";
   return h;
 }
 /* serial or MAC, last six; the full value is on the unit's own panel */
@@ -6545,17 +6595,22 @@ function openBringBack(t, mine) {
   const B = { units: new Set(), counts: new Map() };
   const row = r => '<li class="lrow"><div class="lrn"><b>' + esc(lineName(r.l)) + "</b><small>" + esc(lqty(r.l, r.q)) + " in the van" + (r.l.pickedUpByName ? " with " + esc(r.l.pickedUpByName) : "") + "</small></div>" +
     (r.rest ? '<div class="lrq"><label class="sr" for="bbN-' + esc(r.l.id) + '">How many ' + esc(lineName(r.l)) + ' come back</label><input class="fld n" type="number" min="0" max="' + r.rest + '" step="1" inputmode="numeric" id="bbN-' + esc(r.l.id) + '" data-bbn="' + esc(r.l.id) + '" placeholder="0"><span class="z">of ' + esc(lqty(r.l, r.rest)) + "</span></div>" : "") +
-    (r.units.length ? '<div class="pickunits">' + r.units.map(i => '<label class="chk"><input type="checkbox" data-bbu="' + esc(i.id) + '"> <span class="mono">' + esc(itemLabel(i)) + "</span></label>").join("") + "</div>" : "") + "</li>";
+    (r.units.length ? '<div class="pickunits">' + r.units.map(i => '<label class="chk"><input type="checkbox" data-bbu="' + esc(i.id) + '"> <span class="mono">' + esc(itemLabel(i)) + "</span></label>").join("") + "</div>" : "") +
+    (rows.length > 1 ? lineReasonHTML("bb", r.l.id, lineName(r.l)) : "") + "</li>";
   const body = '<p class="hint" style="margin-top:0">Job ' + esc(t.number) + ", " + esc(tkWho(t)) + ". Scan what comes off the van, or tick it below. What is not scanned stays in the van.</p>" +
     scanFieldHTML("bb", "Scan or type a code", "A scanner that types, the camera, or the code under a label. A unit's QR ticks that unit, a UPC adds one to that product's count" + (W ? ", and a shelf label sets where it goes." : "."), W ? "Unit, UPC, or shelf" : "Unit or UPC") +
     (tg.opts ? '<label class="lab" for="bbTo" title="The job\'s staging area keeps it with the job for the next pick-up. A shelf puts it back in stock, and the line needs pulling again.">' + "<abbr>Back to</abbr></label><select class=\"fld\" id=\"bbTo\"" + (tg.bay ? "" : " data-decide") + ">" + tg.opts + "</select>" +
       (W ? "" : '<p class="hint">It goes to the job\'s staging area. The warehouse puts it back on a shelf if the job is off.</p>')
       : '<p class="err">This job has no staging area to bring it back to. Ask the warehouse to give it one, or to take it back to a shelf.</p>') +
     '<div class="btnrow"><button type="button" class="btn" id="bbAll" data-tk="bbAll">All of it back</button></div>' +
-    '<ul class="leftlist">' + rows.map(row).join("") + "</ul>" +
+    '<ul class="leftlist">' + rows.map(row).join("") + "</ul>" + reasonHTML("bb", rows.length > 1) +
     '<p class="hint" id="bbSum" role="status"></p><label class="lab" for="bbNote">Note</label><input class="fld" id="bbNote" placeholder="Optional, for example: job moved to next week"><p class="err" id="bbErr" hidden></p>';
-  const w = openModal("Bring back to the shop", body, '<button type="button" class="btn" data-close>Cancel</button>' + (tg.opts ? '<button type="button" class="btn acc" data-ok data-tk="bbOk">Bring back</button>' : ""), { wide: true });
+  const w = openModal("Bring back to the shop", body, '<button type="button" class="btn" data-close>Cancel</button>' + (tg.opts ? '<span class="hint rthint" id="bbRsHint" role="status"></span><button type="button" class="btn acc" data-ok data-tk="bbOk">Bring back</button>' : ""), { wide: true });
   wireGlow(w);
+  /* 0.15.0 (PLAN 33.1 item 6): Bring back stays disabled until it says why */
+  const bbPicked = () => rows.filter(r => r.units.some(i => B.units.has(i.id)) || (B.counts.get(r.l.id) || 0) > 0).map(r => r.l.id);
+  const bbGate = () => { const okb = w.querySelector("[data-ok]"); if (!okb) return; const msg = RS.missing(bbPicked()); okb.disabled = !!msg; $("#bbRsHint", w).textContent = msg; };
+  const RS = wireReason(w, () => bbGate());
   const paint = () => {
     rows.forEach(r => {
       const n = $("#bbN-" + r.l.id, w), c = B.counts.get(r.l.id) || 0; if (n && num(n.value) !== c) n.value = c || "";
@@ -6563,6 +6618,7 @@ function openBringBack(t, mine) {
     });
     const k = rows.reduce((a, r) => a + r.units.filter(i => B.units.has(i.id)).length + (B.counts.get(r.l.id) || 0), 0);
     $("#bbSum", w).textContent = k ? fmtN(k) + " coming back" + ($("#bbTo", w) && $("#bbTo", w).value ? " to " + locName($("#bbTo", w).value) : "") + "." : "";
+    bbGate();
   };
   wireScanField(w, "bb", code => {
     const s = scanParse(code);
@@ -6603,13 +6659,15 @@ function openBringBack(t, mine) {
     const picks = rows.map(r => ({ l: r.l, units: r.units.filter(i => B.units.has(i.id)), n: B.counts.get(r.l.id) || 0 })).filter(x => x.units.length + x.n > 0);
     if (!picks.length) return fail("Scan or tick at least one thing that is coming back.");
     if (!dest) return fail("Pick where it goes back to.");
+    const miss = RS.missing(picks.map(x => x.l.id)); if (miss) return fail(miss + ".");
+    picks.forEach(x => { x.rs = RS.get(x.l.id); });
     closeModal(w);
     const r = await doBringBack(t, picks, dest, $("#bbNote", w).value.trim() || null);
     if (r.ok || DEMO) toast((r.ok ? "" : "Demo mode, not saved: ") + "Brought back " + fmtN(r.k) + " to " + locName(dest));
   });
   paint();
 }
-/* picks: [{l, units: [the van units coming back], n: how many more of the line, counted}] */
+/* picks: [{l, units: [the van units coming back], n: how many more of the line, counted, rs: {reason, reasonNote} (0.15.0)}] */
 async function doBringBack(t, picks, dest, note) {
   const me = meNow(), b = tkBatch(t), ops = b.ops, shelf = !isBay(dest), where = locName(dest), went = [];
   let n = 0, k = 0;
@@ -6621,7 +6679,7 @@ async function doBringBack(t, picks, dest, note) {
     if (p && counted + units.length > 0) ops.push(productInc(p.id, counted + units.length));
     units.forEach(it => ops.push({ op: "update", coll: "loadout_items", id: it.id, data: Object.assign({ status: shelf ? "in_stock" : "staged", holderUid: null, holderName: null, locationId: dest, locationName: where, checkedInAt: NOW, updatedAt: NOW },
       shelf ? { ticketId: null, ticketNumber: null, ticketLineId: null, jobId: null, jobName: null, clientName: null } : {}) }));
-    ops.push(mv("move", Object.assign({ productId: l.productId || null, productName: lineName(l), qty: q, toLocationId: dest, holderName: l.pickedUpByName || null,
+    ops.push(mv("move", Object.assign({ productId: l.productId || null, productName: lineName(l), qty: q, toLocationId: dest, holderName: l.pickedUpByName || null, reason: (x.rs || {}).reason, reasonNote: (x.rs || {}).reasonNote,
       note: "Brought back from the van, job #" + t.number + (units.length ? ". Units " + units.map(itemLabel).join(", ") + (shelf ? " back in stock" : " staged again") : "") + (note ? ". " + note : "") }, tkBaseFields(t, l))));
     b.bump(l, shelf ? { qtyPickedUp: -q, qtyStaged: -q } : { qtyPickedUp: -q }, { broughtBackAt: NOW, broughtBackBy: me.email, broughtBackByName: me.name }, { shelf: shelf && p ? q : 0 });
     went.push(lqty(l, q) + " " + lineName(l) + (units.length ? " (units " + units.map(itemLabel).join(", ") + ")" : "") + " to " + where);
@@ -6630,6 +6688,245 @@ async function doBringBack(t, picks, dest, note) {
   const ok = await DB.commit(b.finish(), "Bring back on job #" + t.number);
   if (ok || DEMO) { S.doneBox = { tid: t.id, title: "Brought back from the van:", rows: went, demo: !ok }; scheduleRender(); }
   return { ok, n, k };
+}
+
+/* ---------------- Return reasons (0.15.0, PLAN 33.1 item 6) ----------------
+   Every return says why: Return from a client, Bring back, and what is
+   scanned back at Close job (Close's write-off keeps its own reason). One
+   reason covers the sheet; "Different reason for each line" gives each line
+   its own chips. Other needs a few typed words. Each movement stores reason
+   (the chip's value) and reasonNote (the typed words, empty otherwise). */
+const RET_REASONS = [["not_needed", "Not needed", "The job did not use it"], ["wrong_part", "Wrong part", "Not the part the job needed"], ["changed_mind", "Client changed mind", "The client no longer wants it"],
+  ["swapped", "Swapped out", "Replaced with a different part on site"], ["damaged", "Damaged", "It came back damaged"], ["other", "Other", "Something else: say what in a few words"]];
+function reasonText(r, note) { if (!r) return ""; const x = RET_REASONS.find(y => y[0] === r); return (x ? x[1] : r) + (note ? ": " + note : ""); }
+function rsChips(id, key, label) {
+  const k = esc(key), fid = id + "RsN-" + esc(key);
+  return '<div class="seg" role="group" aria-label="' + esc(label) + '">' + RET_REASONS.map(x => '<button type="button" data-rs="' + k + '" data-rv="' + x[0] + '" aria-pressed="false" title="' + esc(x[2]) + '">' + esc(x[1]) + "</button>").join("") + "</div>" +
+    '<div class="rsnote" data-rsn="' + k + '" hidden><label class="lab" for="' + fid + '">What happened <span class="req">required</span></label><input class="fld" id="' + fid + '" data-rsnote="' + k + '" maxlength="120" placeholder="A few words"></div>';
+}
+function reasonHTML(id, multi) {
+  return '<div class="rsn" data-rsall><span class="lab" title="Kept on the record of each line, so the office can see why product comes back">Why it came back <span class="req">required</span></span>' + rsChips(id, "*", "Why it came back") + "</div>" +
+    (multi ? '<label class="chk" title="Gives each line its own reason instead of one for the whole sheet"><input type="checkbox" data-rsper> Different reason for each line</label>' : "");
+}
+const lineReasonHTML = (id, key, name) => '<div class="rsline" data-rsrow="' + esc(key) + '" hidden><span class="z">Why ' + esc(name) + " came back</span>" + rsChips(id, key, "Why " + name + " came back") + "</div>";
+/* R.get(key) -> {reason, reasonNote} or null; R.missing(keys) -> "" or what is still needed */
+function wireReason(w, onChange) {
+  const R = { per: false, v: new Map() }, q = k => CSS.escape(k);
+  const paint = key => {
+    const c = R.v.get(key) || {};
+    w.querySelectorAll('[data-rs="' + q(key) + '"]').forEach(b => b.setAttribute("aria-pressed", b.dataset.rv === c.r ? "true" : "false"));
+    const n = w.querySelector('[data-rsn="' + q(key) + '"]'); if (n) n.hidden = c.r !== "other";
+    const f = w.querySelector('[data-rsnote="' + q(key) + '"]'); if (f && f.value !== (c.note || "")) f.value = c.note || "";
+  };
+  w.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("[data-rs]"); if (!b || !w.contains(b)) return;
+    const key = b.dataset.rs, c = R.v.get(key) || { r: "", note: "" };
+    c.r = b.dataset.rv; R.v.set(key, c); paint(key);
+    if (c.r === "other") { const f = w.querySelector('[data-rsnote="' + q(key) + '"]'); if (f) f.focus(); }
+    onChange();
+  });
+  w.addEventListener("input", e => { const k = e.target.dataset && e.target.dataset.rsnote; if (k == null) return; const c = R.v.get(k) || { r: "other", note: "" }; c.note = e.target.value; R.v.set(k, c); onChange(); });
+  w.addEventListener("change", e => {
+    if (!e.target.matches || !e.target.matches("[data-rsper]")) return;
+    R.per = e.target.checked;
+    const all = w.querySelector("[data-rsall]"); if (all) all.hidden = R.per;
+    w.querySelectorAll("[data-rsrow]").forEach(d => { d.hidden = !R.per; const k = d.dataset.rsrow; if (R.per && !R.v.has(k) && R.v.get("*")) { R.v.set(k, Object.assign({}, R.v.get("*"))); paint(k); } });
+    onChange();
+  });
+  R.get = key => { const c = R.per ? R.v.get(key) : R.v.get("*"); return c && c.r && (c.r !== "other" || String(c.note || "").trim()) ? { reason: c.r, reasonNote: c.r === "other" ? String(c.note).trim() : "" } : null; };
+  R.missing = keys => {
+    const ks = R.per ? keys : ["*"];
+    for (const k of ks) { const c = R.v.get(k); if (!c || !c.r) return "Pick a reason first"; if (c.r === "other" && !String(c.note || "").trim()) return "Say what happened under Other"; }
+    return "";
+  };
+  return R;
+}
+
+/* ---------------- Return from a client (0.15.0, PLAN 33.1 item 1) ----------------
+   Product delivered to a client comes back and goes back ON THE SHELF (never
+   a staging area or a van; there is no vendor return here). Per line:
+   qtyReturned goes up with who and when; the count goes onto the shelf and
+   on hand; each unit is in stock there again with its condition and its
+   job fields cleared; a return movement names the client, the shelf, the
+   condition, and the reason. Units get a movement each so their own
+   history shows the return. The job's status does not change. */
+const retLeft = l => Math.max(0, num(l.qtyDelivered) - num(l.qtyReturned));
+const retOk = L => !!L && !L.archived && L.kind !== "bay" && L.kind !== "van" && L.kind !== "vehicle";
+/* the units of a line at the client: installed, or checked out and not in the van */
+function retUnits(t, l) {
+  const van = new Set(vanUnits(t, l).map(i => i.id));
+  return Array.from(S.items.values()).filter(i => i.ticketId === t.id && i.ticketLineId === l.id && (i.status === "installed" || (i.status === "checked_out" && !van.has(i.id))))
+    .sort((a, b) => itemLabel(a).localeCompare(itemLabel(b))).slice(0, retLeft(l));
+}
+/* wire is cut on site and a line with no catalog product has no shelf, so neither comes back here */
+function retLines(t) { return ticketLines(t.id).filter(l => { const p = lineProduct(l); return p && p.unit !== "ft" && retLeft(l) > 0; }); }
+const retWhen = t => toDate(t.deliveredAt) || toDate(t.closedAt) || toDate(t.updatedAt) || null;
+/* an open job by its lines; a closed one by its stored summary (its lines load when it is opened here) */
+function retJobs() {
+  return Array.from(S.tickets.values()).filter(t => S.linesLoaded.has(t.id) ? retLines(t).length > 0 : t.status === "closed" && num((t.summary || {}).delivered) > 0)
+    .sort((a, b) => (retWhen(b) || 0) - (retWhen(a) || 0));
+}
+function retJobsThisMonth() { const now = new Date(); return Array.from(S.tickets.values()).filter(t => { const d = toDate(t.deliveredAt); return d && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth(); }).length; }
+/* the usual shelf: the one it was pulled from, else the product's default, else where most of it sits */
+function retUsual(p, l) {
+  const named = l.pickedFromName ? Array.from(S.locations.values()).find(L => L.name === l.pickedFromName && retOk(L)) : null; if (named) return named.id;
+  const D = S.locations.get(p.defaultLocationId); if (retOk(D)) return D.id;
+  const src = pullSources(p).find(e => retOk(S.locations.get(e.locationId))); return src ? src.locationId : "";
+}
+const retHref = t => "#return/" + encodeURIComponent(t.id);
+const retCardHTML = t => jobCardHTML(t, { label: "Return from this job", href: retHref(t), tip: "Lists what was delivered on this job, to scan back what came back" },
+  '<p class="hint" style="margin:0">' + (t.deliveredAt ? "Delivered " + esc(fmtShort(t.deliveredAt)) : "Delivered") + (t.status === "closed" ? ", job closed" : "") + "</p>", retHref(t));
+function retFindJob(code) {
+  const m = parseLabel(code), c = String(code || "").trim().replace(/^#/, "");
+  if (m && m.kind === "job") return S.tickets.get(m.id) || null;
+  return S.tickets.get(c) || Array.from(S.tickets.values()).find(t => String(t.number) === c || String(t.proposalId || "") === c) || null;
+}
+function renderReturn() {
+  const el = $("#v-return"), title = '<div class="thead"><h2 class="vt">Return from a client</h2></div>';
+  let h = bandHTML("return") + '<div class="mcard">';
+  if (!isTech()) { el.innerHTML = h + backHomeHTML() + title + '<div class="empty"><p>Returns are for techs, the warehouse, and the admin.</p><a class="btn" href="#home" title="Back to the doors">Back to Home</a></div></div>'; return; }
+  if (!S.retJob) {
+    const st = jobsStateHTML(), q = String(S.retQ || "").trim().toLowerCase(), all = st ? [] : retJobs();
+    const hits = q ? all.filter(t => [t.number, t.proposalId, t.clientName, t.jobName].filter(Boolean).join(" ").toLowerCase().includes(q)) : all.slice(0, 30);
+    h += backHomeHTML() + title + '<p class="hint" style="margin:0 0 var(--s2)">Product delivered to a client that comes back goes back on the shelf. Pick the job it came from, newest delivery first, or scan the job\'s QR.</p>' +
+      scanFieldHTML("rj", "Scan the job's QR", "The QR on the job's pull sheet opens that job's return. A typed job or proposal number works too.", "Job QR or job number") +
+      '<label class="lab" for="retQ" title="Searches the job number, the proposal number, the client, and the job name">Find a job</label><input class="fld" type="search" id="retQ" value="' + esc(S.retQ || "") + '" placeholder="Job number, proposal number, or client" autocomplete="off">';
+    if (st) h += st;
+    else if (!all.length) h += '<div class="empty"><p>Nothing delivered is waiting to come back. A job shows here once a delivery is confirmed.</p></div>';
+    else if (!hits.length) h += '<p class="hint">No delivered job matches "' + esc(S.retQ) + '".</p>';
+    else h += '<div class="jcards" style="margin-top:var(--s2)">' + hits.map(retCardHTML).join("") + "</div>" + (!q && all.length > hits.length ? '<p class="hint">The newest ' + fmtN(hits.length) + " of " + fmtN(all.length) + ". Search for an older one.</p>" : "");
+    el.innerHTML = h + "</div>";
+    wireScanField(el, "rj", code => {
+      const t = retFindJob(code);
+      if (!t) return { bad: "No job has that code. Nothing changed." };
+      S.retAuto = t.id; location.hash = retHref(t); return { ok: "Job " + t.number + "." };
+    }, "Scan the job's QR");
+    return;
+  }
+  const t = S.tickets.get(S.retJob), back = '<div class="crumb"><a class="textbtn" href="#return">Return from a client</a>';
+  if (S.errors.tickets) { el.innerHTML = h + back + "</div>" + errorBox("jobs", "tickets") + "</div>"; return; }
+  if (!S.loaded.tickets || (t && !S.linesLoaded.has(t.id))) { el.innerHTML = h + back + '</div><div class="empty"><p>Loading the job</p></div></div>'; return; }
+  if (!t) { el.innerHTML = h + back + '</div><div class="empty"><p>That job is not in Loadout, or has not reached this device yet.</p><a class="btn" href="#return" title="Back to the jobs with delivered product">Back to the list</a></div></div>'; return; }
+  const lines = retLines(t);
+  h += back + " / Job " + esc(t.number) + '</div><h2 class="vt">' + esc(t.clientName || "No client") + '</h2><p class="hint" style="margin:2px 0 var(--s1)">' + esc([t.jobName, t.deliveredAt ? "Delivered " + fmtShort(t.deliveredAt) : "", t.status === "closed" ? "Job closed" : ""].filter(Boolean).join(", ")) +
+    ' <a class="textbtn" href="' + jobHref(t) + '">Open the job</a></p>' + doneBoxHTML(t);
+  if (!lines.length) h += '<div class="empty"><p>Nothing delivered on this job is left to return.</p><a class="btn" href="#return" title="Back to the jobs with delivered product">Pick another job</a></div>';
+  else h += '<h3 class="h4" style="margin-top:var(--s3)">Delivered to ' + esc(t.clientName || "the client") + '</h3><ul class="flowlist">' + lines.map(l => {
+    const u = retUnits(t, l);
+    return '<li class="fl"><span>' + esc(lineName(l)) + "<small>" + esc(fmtN(retLeft(l)) + " delivered" + (u.length ? ", " + plural(u.length, "unit") + " with a QR" : "") + (num(l.qtyReturned) ? ", " + fmtN(l.qtyReturned) + " returned already" : "")) + "</small></span></li>";
+  }).join("") + '</ul><div class="flowfoot"><button type="button" class="btn acc" data-act="retOpen" data-id="' + esc(t.id) + '" title="Scan, tick, or count what came back, pick the shelf, and say why">Scan what came back</button></div>';
+  el.innerHTML = h + "</div>";
+  if (S.retAuto === t.id) { S.retAuto = null; if (lines.length) setTimeout(() => openReturn(t), 0); }
+}
+function openReturn(t) {
+  const lines = retLines(t); if (!lines.length) { toast("Nothing delivered on job " + t.number + " is left to return.", true); return; }
+  const rows = lines.map(l => { const p = lineProduct(l), units = retUnits(t, l); return { l, p, units, rest: Math.max(0, retLeft(l) - units.length), usual: retUsual(p, l) }; });
+  const B = { units: new Set(), counts: new Map(), dmg: new Set(), to: "" }, multi = rows.length > 1, client = t.clientName || "the client";
+  const shelves = Array.from(S.locations.values()).filter(retOk).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  const dmgBox = key => '<label class="chk" title="Records it as damaged on the unit and the movement. It still goes back on the shelf."><input type="checkbox" data-rtd="' + esc(key) + '"> Damaged</label>';
+  const row = r => '<li class="lrow"><div class="lrn"><b>' + esc(lineName(r.l)) + "</b><small>" + esc(fmtN(r.units.length + r.rest)) + ' delivered</small><small data-rtto="' + esc(r.l.id) + '"></small></div>' +
+    (r.rest ? '<div class="rtrow"><div class="lrq"><label class="sr" for="rtN-' + esc(r.l.id) + '">How many ' + esc(lineName(r.l)) + ' came back</label><input class="fld n" type="number" min="0" max="' + r.rest + '" step="1" inputmode="numeric" id="rtN-' + esc(r.l.id) + '" data-rtn="' + esc(r.l.id) + '" placeholder="0"><span class="z">of ' + fmtN(r.rest) + "</span></div>" + dmgBox("n:" + r.l.id) + "</div>" : "") +
+    (r.units.length ? '<div class="pickunits">' + r.units.map(i => '<div class="rtrow"><label class="chk"><input type="checkbox" data-rtu="' + esc(i.id) + '"> <span class="mono">' + esc(itemLabel(i)) + "</span></label>" + dmgBox(i.id) + "</div>").join("") + "</div>" : "") +
+    (multi ? lineReasonHTML("rt", r.l.id, lineName(r.l)) : "") + "</li>";
+  const body = '<p class="hint" style="margin-top:0">Job ' + esc(t.number) + ", " + esc(tkWho(t)) + ". Scan what came back, tick it, or type how many. It goes back on the shelf, never to a staging area or a van.</p>" +
+    scanFieldHTML("rt", "Scan or type a code", "A scanner that types, the camera, or the code under a label. A unit's QR ticks that unit, a UPC or product QR adds one to that product's count, and a shelf label sends it all to that shelf.", "Unit, UPC, or shelf") +
+    '<label class="lab" for="rtTo" title="The usual shelf is the one it was pulled from, else its default shelf, else where most of it sits. A shelf picked here or scanned takes everything.">Back to</label><select class="fld" id="rtTo"><option value="">Each product\'s usual shelf</option><optgroup label="Shelves">' +
+    shelves.map(L => '<option value="' + esc(L.id) + '">' + esc(L.name) + "</option>").join("") + "</optgroup></select>" +
+    '<div class="btnrow"><button type="button" class="btn" id="rtAll" title="Ticks every unit and fills every count, so everything delivered on this job comes back">All of it back</button></div>' +
+    '<ul class="leftlist">' + rows.map(row).join("") + '</ul><p class="hint" id="rtSum" role="status"></p>' + reasonHTML("rt", multi) +
+    '<label class="lab" for="rtNote">Note</label><input class="fld" id="rtNote" placeholder="Optional, for example: left in the client\'s closet"><p class="err" id="rtErr" hidden></p>';
+  const w = openModal("Return from " + client, body, '<button type="button" class="btn" data-close>Cancel</button><span class="hint rthint" id="rtRsHint" role="status"></span><button type="button" class="btn acc" data-ok title="Puts what is ticked or counted back on the shelf, with its condition and reason">Return to the shelf</button>', { wide: true });
+  const ok = w.querySelector("[data-ok]"), dest = r => B.to || r.usual;
+  let RS = null;
+  const picked = () => rows.filter(r => r.units.some(i => B.units.has(i.id)) || (B.counts.get(r.l.id) || 0) > 0);
+  const gate = () => {
+    const k = rows.reduce((a, r) => a + r.units.filter(i => B.units.has(i.id)).length + (B.counts.get(r.l.id) || 0), 0), msg = RS ? RS.missing(picked().map(r => r.l.id)) : "Pick a reason first";
+    ok.disabled = !!msg; $("#rtRsHint", w).textContent = msg; ok.textContent = k ? "Return " + fmtN(k) + " to the shelf" : "Return to the shelf";
+    $("#rtSum", w).textContent = k ? fmtN(k) + " coming back" + (B.to ? " to " + locName(B.to) : "") + "." : "";
+  };
+  const paint = () => {
+    rows.forEach(r => {
+      const n = $("#rtN-" + r.l.id, w), c = B.counts.get(r.l.id) || 0; if (n && num(n.value) !== c) n.value = c || "";
+      r.units.forEach(i => { const box = w.querySelector('input[data-rtu="' + CSS.escape(i.id) + '"]'); if (box) box.checked = B.units.has(i.id); });
+      const to = w.querySelector('[data-rtto="' + CSS.escape(r.l.id) + '"]'), d = dest(r);
+      if (to) { to.textContent = d ? "to " + locName(d) : "No usual shelf: pick one under Back to"; to.style.color = d ? "" : "var(--m-bad-text)"; }
+    });
+    gate();
+  };
+  RS = wireReason(w, gate);
+  wireScanField(w, "rt", code => {
+    const s = scanParse(code);
+    if (s.kind === "item") {
+      const r = rows.find(x => x.units.some(i => i.id === s.id)), it = S.items.get(s.id);
+      if (!r) return { bad: (it ? "Unit " + itemLabel(it) : "That unit") + " was not delivered on job #" + t.number + ". Nothing changed." };
+      if (B.units.has(s.id)) return { ok: "Unit " + itemLabel(it) + " is already ticked." };
+      B.units.add(s.id); paint(); return { ok: "Unit " + itemLabel(it) + " ticked." };
+    }
+    if (s.kind === "loc") {
+      const L = S.locations.get(s.id); if (!L) return { bad: "No location has that label." };
+      if (L.kind === "bay") return { bad: L.name + " is a staging area. Returns go back on a shelf: scan a shelf label." };
+      if (L.kind === "van" || L.kind === "vehicle") return { bad: L.name + " is a van. Returns go back on a shelf: scan a shelf label." };
+      if (L.archived) return { bad: L.name + " is archived. Scan another shelf." };
+      B.to = L.id; $("#rtTo", w).value = L.id; paint(); return { ok: "Everything goes back to " + L.name + "." };
+    }
+    if (s.kind === "ctr") return { bad: "Boxes of wire do not come back here. Nothing changed." };
+    const r = rows.find(x => x.rest > 0 && codeIsProduct(s, x.p) && (B.counts.get(x.l.id) || 0) < x.rest) || rows.find(x => x.rest > 0 && codeIsProduct(s, x.p));
+    if (!r) return { bad: rows.some(x => codeIsProduct(s, x.p)) ? "Units of that product have their own QR. Scan the unit's label." : "That code was not delivered on job #" + t.number + ". Nothing changed." };
+    const c = B.counts.get(r.l.id) || 0;
+    if (c >= r.rest) return { ok: "All " + fmtN(r.rest) + " " + lineName(r.l) + " are counted." };
+    B.counts.set(r.l.id, c + 1); paint(); return { ok: fmtN(c + 1) + " of " + fmtN(r.rest) + " " + lineName(r.l) + " counted." };
+  }, "Scan what came back");
+  $("#rtAll", w).addEventListener("click", () => { rows.forEach(r => { r.units.forEach(i => B.units.add(i.id)); if (r.rest) B.counts.set(r.l.id, r.rest); }); paint(); });
+  w.addEventListener("change", e => {
+    const tg = e.target, d = tg.dataset || {};
+    if (d.rtu) { tg.checked ? B.units.add(d.rtu) : B.units.delete(d.rtu); paint(); }
+    if (d.rtd) { if (tg.checked) B.dmg.add(d.rtd); else B.dmg.delete(d.rtd); }
+    if (tg.id === "rtTo") { B.to = tg.value; paint(); }
+  });
+  w.addEventListener("input", e => {
+    const tg = e.target; if (!tg.dataset || !tg.dataset.rtn) return;
+    const r = rows.find(x => x.l.id === tg.dataset.rtn), v = Math.max(0, Math.min(r.rest, Math.floor(num(tg.value))));
+    v ? B.counts.set(r.l.id, v) : B.counts.delete(r.l.id); paint();
+  });
+  ok.addEventListener("click", async () => {
+    const err = $("#rtErr", w), fail = m => { err.textContent = m; err.hidden = false; };
+    const ps = picked();
+    if (!ps.length) return fail("Scan or tick at least one thing that came back.");
+    const noShelf = ps.find(r => !dest(r)); if (noShelf) return fail(lineName(noShelf.l) + " has no usual shelf. Pick one under Back to, or scan a shelf label.");
+    const miss = RS.missing(ps.map(r => r.l.id)); if (miss) return fail(miss + ".");
+    closeModal(w);
+    const res = await doReturn(t, ps.map(r => ({ l: r.l, p: r.p, units: r.units.filter(i => B.units.has(i.id)), n: B.counts.get(r.l.id) || 0, dest: dest(r), dmg: B.dmg, rs: RS.get(r.l.id) })), $("#rtNote", w).value.trim() || null);
+    if (res.ok || DEMO) toast((res.ok ? "" : "Demo mode, not saved: ") + "Returned " + fmtN(res.k) + " to the shelf");
+  });
+  paint();
+}
+/* picks: [{l, p, units: [unit records coming back], n: how many more counted, dest, dmg: Set of unit ids and "n:"+lineId marked damaged, rs: {reason, reasonNote}}] */
+async function doReturn(t, picks, note) {
+  const me = meNow(), ops = [], went = [], client = t.clientName || "the client";
+  let k = 0;
+  picks.forEach(x => {
+    const l = x.l, p = x.p, q = x.units.length + num(x.n), where = locName(x.dest), tf = tkBaseFields(t, l), rs = x.rs || {};
+    if (q <= 0) return;
+    k += q;
+    const base = { productId: p.id, fromName: client, toLocationId: x.dest, reason: rs.reason, reasonNote: rs.reasonNote, note };
+    if (x.n > 0) {
+      /* the rules let a tech raise a shelf count only by what this batch returns on the line it names */
+      const so = stockInc(p, x.dest, x.n); Object.assign(so.data, { returnTicketId: t.id, returnLineId: l.id }); ops.push(so);
+      ops.push(mv("return", Object.assign({}, base, { qty: x.n, condition: x.dmg.has("n:" + l.id) ? "damaged" : "good" }, tf)));
+    }
+    x.units.forEach(it => {
+      const cond = x.dmg.has(it.id) ? "damaged" : "good";
+      ops.push({ op: "update", coll: "loadout_items", id: it.id, data: { status: "in_stock", holderUid: null, holderName: null, locationId: x.dest, locationName: where, ticketId: null, ticketNumber: null, ticketLineId: null, jobId: null, jobName: null, clientName: null, checkedInAt: NOW, condition: cond, updatedAt: NOW } });
+      ops.push(mv("return", Object.assign({}, base, { itemId: it.id, itemLabel: itemLabel(it), qty: 1, condition: cond, holderName: it.holderName || null }, tf)));
+    });
+    ops.push(productInc(p.id, q));
+    ops.push({ op: "update", coll: linesColl(t.id), id: l.id, data: { qtyReturned: INC(q), returnedAt: NOW, returnedBy: me.email, returnedByName: me.name, updatedAt: NOW } });
+    went.push(fmtN(q) + " " + lineName(l) + (x.units.length ? " (units " + x.units.map(itemLabel).join(", ") + ")" : "") + " to " + where + ", " + reasonText(rs.reason, rs.reasonNote).toLowerCase());
+  });
+  if (!k) return { ok: false, k: 0 };
+  const ok = await DB.commit(ops, "Return from " + client + " on job #" + t.number);
+  if (ok || DEMO) { S.doneBox = { tid: t.id, title: "Back on the shelf from " + client + ":", rows: went, demo: !ok }; scheduleRender(); }
+  return { ok, k };
 }
 
 /* ---------------- Audit a shelf (PLAN 18.1, 18.7) ----------------
@@ -7114,6 +7411,8 @@ const MV_FAM = { receive: "in", checkin: "in", return: "in", pull: "out", stage:
 function mvKind(m) {
   const n = String(m.note || ""), t = m.type;
   if (t === "move" && /^Brought back/i.test(n)) return { verb: "Brought back", fam: "in" };
+  /* 0.15.0: a return from a client names the client, which the movement keeps as where it came from */
+  if (t === "return" && !m.fromLocationId && m.fromLocationName) return { verb: "Returned from " + m.fromLocationName, fam: "in" };
   if (t === "edit" && /^Audit of /i.test(n)) return { verb: "Audited", fam: "in" };
   if (t === "adjust" && /^Installed at /i.test(n)) return { verb: "Installed", fam: "out" };
   if (t === "adjust" && /^Serialized/i.test(n)) return { verb: "Serialized", fam: "edit" };
@@ -7143,7 +7442,7 @@ function mvSentence(m, verb) {
   if (m.cut) bits.push("marks " + fmtN(m.cut.fromMark) + " to " + fmtN(m.cut.toMark) + " ft");
   if (bits.length) s += (s ? ", " : "") + bits.join(", ");
   const sp = () => (s ? " " : "");
-  if (m.fromLocationName) s += sp() + "from " + m.fromLocationName;
+  if (m.fromLocationName && !(t === "return" && !m.fromLocationId)) s += sp() + "from " + m.fromLocationName;
   if (m.toLocationName) s += sp() + (t === "edit" ? "" : t === "receive" ? "into " : t === "adjust" || t === "reading" || t === "note" || t === "cut" ? "at " : "to ") + m.toLocationName;
   if (m.holderName && t === "checkout") s += sp() + "to " + m.holderName;
   let n = String(m.note || "").trim();
@@ -7155,6 +7454,8 @@ function mvSentence(m, verb) {
   if (n && verb) { const v = new RegExp("^" + verb.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "[:,]?\\s+", "i"); if (v.test(n)) { n = n.replace(v, ""); n = n.charAt(0).toUpperCase() + n.slice(1); } }
   if (/^between locations\.?$/i.test(n)) n = "";
   if (n) s += (s ? ". " : "") + n;
+  if (t === "return" && m.condition && m.condition !== "good") s += (s ? ". " : "") + (CONDITIONS[m.condition] || m.condition);
+  if (m.reason) s += (s ? ". " : "") + "Why: " + reasonText(m.reason, m.reasonNote);
   s = s.charAt(0).toUpperCase() + s.slice(1);
   return s && !/[.!?]$/.test(s) ? s + "." : s;
 }
@@ -8269,6 +8570,7 @@ function curHash() {
   if (v === "office") return "#office" + (S.officeSec ? "/" + S.officeSec + (S.officeSec === "reports" ? "/" + S.repTab + (S.repTab === "job" && S.repJob ? "/" + e(S.repJob) : "") : "") : "");
   if (v === "pickup" || v === "deliver") return "#" + v + (S.flowJob ? "/" + e(S.flowJob) : "");
   if (v === "pull") return "#pull" + (S.pullJob ? "/" + e(S.pullJob) : "");
+  if (v === "return") return "#return" + (S.retJob ? "/" + e(S.retJob) : "");
   if (v === "audit") return "#audit" + (S.auditLoc ? "/" + e(S.auditLoc) : "");
   if (v === "week") return "#week" + (S.weekOff ? "/" + isoDay(addDays(weekStartOf(new Date()), S.weekOff * 7)) : "");
   return "#" + v;
@@ -10293,7 +10595,8 @@ const DATA_DICTIONARY = [
     ["lastAuditedAt", "When the last Audit a shelf finished here (0.8.0); empty means never audited"], ["lastAuditedBy", "Email of whoever finished it"], ["lastAuditedByName", "Their name"],
     ["archived", "True once an admin archives an empty location (0.11.1): it leaves the pick lists, the audit list, and the Shelf filter, and still names itself everywhere history shows it"], ["archivedAt", "When it was archived; empty once unarchived"], ["archivedBy", "Email of the admin who archived it"]].concat(DD_WHO) },
   { coll: "loadout_stock", id: "{productId}__{locationId}", about: "Counted quantity of one product on one shelf.", fields: [
-    ["productId", "Product"], ["productName", "Its name when written"], ["locationId", "Location"], ["locationName", "Its name when written"], ["qty", "Count in the product's unit"], ["updatedAt", "When it last changed"]] },
+    ["productId", "Product"], ["productName", "Its name when written"], ["locationId", "Location"], ["locationName", "Its name when written"], ["qty", "Count in the product's unit"], ["updatedAt", "When it last changed"],
+    ["returnTicketId, returnLineId", "The job and line of the latest Return from a client onto this shelf (0.15.0); the rules let a tech raise a shelf count only by what that line's qtyReturned goes up in the same write"]] },
   { coll: "loadout_containers", id: "the box label slug, as a1026", about: "Wire boxes and reels for by-the-foot products.", fields: [
     ["productId", "Product"], ["productName", "Its name"], ["locationId", "Where the box sits"], ["locationName", "Its name"], ["upc", "Barcode on the box"],
     ["label", "The shop's box code, printed on the QR sticker"], ["startLength", "Feet when new"], ["ftLeft", "Feet left"], ["lastMark", "Footage mark the box is stopped at"],
@@ -10310,13 +10613,14 @@ const DATA_DICTIONARY = [
     ["checkedOutAt", "When it went out"], ["checkedInAt", "When it came back"], ["condition", "good, damaged, or missing"], ["retiredReason", "Why it was retired"],
     ["importNote", "Condition text from the inventory sheet, and the Serial/MAC cell as typed when it was read as a MAC"], ["orderId, orderNumber, shipmentId", "The PO and shipment it came on"]].concat(DD_WHO) },
   { coll: "loadout_movements", id: "random", about: "The audit trail. Append-only: nothing here is ever edited or deleted.", fields: [
-    ["type", "receive, pull (shelf to a staging area for a job), move (shelf to shelf, no job; also leftovers scanned back at Close job), stage, pickup (out of the staging area into a person's van, 0.8.0), deliver (confirmed on site), cut, reading, adjust (note Audit: a correction from Audit a shelf), checkout, checkin, return (a unit back from a site), writeoff, note (0.8.0: a line not delivered, or a unit not found at an audit), or edit. Rows from before 0.5.2 may say pick, transfer, or return for leftovers; the app reads those as pull, move, and move"],
+    ["type", "receive, pull (shelf to a staging area for a job), move (shelf to shelf, no job; also leftovers scanned back at Close job), stage, pickup (out of the staging area into a person's van, 0.8.0), deliver (confirmed on site), cut, reading, adjust (note Audit: a correction from Audit a shelf), checkout, checkin, return (a unit back from a site at Check in; since 0.15.0 also Return from a client: product delivered to a client back on a shelf, from = the client's name, to = the shelf), writeoff, note (0.8.0: a line not delivered, or a unit not found at an audit), or edit. Rows from before 0.5.2 may say pick, transfer, or return for leftovers; the app reads those as pull, move, and move"],
     ["productId", "Product"], ["productName", "Its name when written"], ["containerId", "Box"], ["containerLabel", "Its label"], ["itemId", "Unit"], ["itemLabel", "Its label or serial"],
     ["qty", "Quantity moved; negative for a cut or a write-off"], ["unit", "each or ft"], ["fromLocationId", "Where it came from"], ["fromLocationName", "Its name"],
     ["toLocationId", "Where it went"], ["toLocationName", "Its name"], ["cut.fromMark, cut.toMark, cut.length", "A box cut: mark before, mark after, feet cut"],
     ["holderUid", "Who holds a checked-out unit"], ["holderName", "Their name"], ["condition", "Condition at check-in"], ["jobName", "Job it was for"],
     ["ticketId", "Job"], ["ticketNumber", "Its number"], ["ticketLineId", "Job line"], ["orderId", "Purchase order"], ["orderNumber", "Its PO number"], ["shipmentId", "Shipment"],
     ["note", "Free text"], ["by", "Email of the person who did it"], ["byName", "Their name"], ["at", "When it happened (the sheet's count date for imported rows)"],
+    ["reason", "Why it came back (0.15.0), on Return from a client, Bring back, and leftovers scanned back at Close job: not_needed, wrong_part, changed_mind, swapped, damaged, or other. Close's write-off keeps its reason in note"], ["reasonNote", "The words typed for Other; empty otherwise"],
     ["importTab, importRow, importKey", "Inventory sheet tab, row, and the key that stops a re-import repeating it"], ["importedAt", "When the import ran"]] },
   { coll: "loadout_clients", id: "client name slug", about: "Clients, mostly arriving with an imported proposal.", fields: [
     ["name", "Client name"], ["notes", "Gate codes, who to call"], ["archived", "Dropped from the New job list"], ["portalContactId", "Portal contact id when known"]].concat(DD_WHO) },
@@ -10337,6 +10641,7 @@ const DATA_DICTIONARY = [
     ["area", "Room on the proposal"], ["option", "Proposal option"], ["sort", "Order on the job"], ["productId", "Product, null until matched"], ["productName", "Its name"],
     ["brand, model, description", "As on the proposal, so the line reads before it matches"], ["unit", "each or ft"], ["matchState", "matched, unmatched, or new"],
     ["qtyNeeded", "From the proposal"], ["qtyFromStock", "Pulled off our shelves"], ["qtyToOrder", "A cache of what is still to order: needed minus staged minus shelf stock minus open PO lines for this line, rewritten with each warehouse save. The app works it out live"], ["qtyStaged", "Laid out in the staging area"], ["qtyDelivered", "Taken to site"],
+    ["qtyReturned", "Came back from the client and went back on a shelf (0.15.0); qtyDelivered stays as it was, so the job's status does not change"], ["returnedAt, returnedBy, returnedByName", "The latest Return from a client on this line: when, the email, and the name"],
     ["portalItemId", "Portal item id"], ["orderLineRefs", "Order lines serving it: orderId and orderLineId (one orderId/orderLineId; column in the export)"], ["notes", "Line note"],
     ["pickedFromName", "Shelf, box, or PO it was pulled from"], ["pickedByName", "Who pulled it"], ["pickedAt", "When"],
     ["qtyPickedUp", "Taken out of the staging area into a van (0.8.0). In the van = picked up minus delivered"], ["pickedUpAt, pickedUpBy, pickedUpByName", "The latest pick-up of this line (0.8.0)"],
@@ -10620,7 +10925,8 @@ const REPORTS = [
         numCol("cutFrom", "Cut from mark", m => m.cut ? m.cut.fromMark : null, { def: false }), numCol("cutTo", "Cut to mark", m => m.cut ? m.cut.toMark : null, { def: false }), numCol("cutLength", "Cut length", m => m.cut ? m.cut.length : null, { def: false }),
         txtCol("from", "From", m => m.fromLocationName), txtCol("to", "To", m => m.toLocationName), txtCol("by", "By", m => m.byName || m.by), txtCol("byEmail", "By email", m => m.by, { def: false }),
         txtCol("job", "Job", m => m.jobName), txtCol("ticket", "Job #", m => m.ticketNumber ? "#" + m.ticketNumber : "", { def: false }), txtCol("order", "PO", m => m.orderNumber, { def: false }),
-        txtCol("holder", "Holder", m => m.holderName, { def: false }), txtCol("condition", "Condition", m => m.condition, { def: false }), txtCol("note", "Note", m => m.note)];
+        txtCol("holder", "Holder", m => m.holderName, { def: false }), txtCol("condition", "Condition", m => m.condition, { def: false }),
+        txtCol("reason", "Why it came back", m => m.reason ? reasonText(m.reason) : ""), txtCol("reasonNote", "Reason note", m => m.reasonNote, { def: false }), txtCol("note", "Note", m => m.note)];
       return { id: "rep_movements", cols, rows, total: plural(rows.length, "movement") + (rows.length !== (S.rep.mvs || []).length ? " of " + fmtN((S.rep.mvs || []).length) + " in the range." : " in the range."), defaultSort: (a, b) => (toDate(b.at) || 0) - (toDate(a.at) || 0) };
     },
     empty: () => "No " + (S.rf.mvType ? (MV_LABEL[S.rf.mvType] || S.rf.mvType).toLowerCase() + " " : "") + "movements " + (S.rf.mvPerson ? "by " + S.rf.mvPerson + " " : "") + rrText() + "." },
@@ -10684,7 +10990,7 @@ function jrSum(rows, get) {
 }
 function jrRows(t) {
   const lines = ticketLines(t.id), mvs = S.tkHist[t.id] || [], stock = shelfStock();
-  const units = new Map(), cuts = new Map(), back = new Map();
+  const units = new Map(), cuts = new Map(), back = new Map(), why = new Map();
   S.items.forEach(i => { if (i.ticketId === t.id && i.ticketLineId) { if (!units.has(i.ticketLineId)) units.set(i.ticketLineId, []); units.get(i.ticketLineId).push(i); } });
   mvs.forEach(m => {
     /* a cut written without its line (older rows) goes to this job's line for the same product */
@@ -10692,6 +10998,8 @@ function jrRows(t) {
     if (!lid) return;
     if (m.type === "cut" && m.cut) { if (!cuts.has(lid)) cuts.set(lid, []); cuts.get(lid).push(m); }
     else if (m.type === "move" && /^Brought back/i.test(String(m.note || ""))) back.set(lid, (back.get(lid) || 0) + num(m.qty));
+    /* 0.15.0: why it came back, from every return, Bring back, and Close scan-back on the line */
+    if (m.reason) { if (!why.has(lid)) why.set(lid, new Set()); why.get(lid).add(reasonText(m.reason, m.reasonNote)); }
   });
   return lines.map(l => {
     const p = lineProduct(l), links = olinksFor(t, l);
@@ -10699,6 +11007,7 @@ function jrRows(t) {
     const cost = poCost != null ? poCost : unitCost(l.productId), need = num(l.qtyNeeded), dl = num(l.qtyDelivered);
     return { l, key: l.id, room: l.area || "", product: lineName(l), bm: [p ? p.brand : l.brand, p ? p.model : l.model].filter(Boolean).join(" "), unit: lineIsFt(l) ? "ft" : "each",
       need, pulled: num(l.qtyStaged), staged: lineInBay(l), picked: lineOut(l), delivered: dl, back: back.get(l.id) || 0, order: uncoveredFor(l, stock, t),
+      returned: num(l.qtyReturned), retOn: l.returnedAt ? fmtDate(l.returnedAt) + (l.returnedByName ? ", " + l.returnedByName : "") : "", why: Array.from(why.get(l.id) || []).join("; "),
       ordered: links.length > 0, po: links.map(x => poLabel(x.o)).join(", "), poStatus: links.map(x => ordDnr(x.o) ? DNR : pillLabel("po", x.o.status)).join(", "),
       cost, total: cost == null ? null : cost * need, dlValue: cost == null ? null : cost * dl,
       units: (units.get(l.id) || []).sort((a, b) => itemLabel(a).localeCompare(itemLabel(b))), cuts: (cuts.get(l.id) || []).sort((a, b) => (toDate(a.at) || 0) - (toDate(b.at) || 0)) };
@@ -10712,6 +11021,7 @@ function jrCols() {
   const cols = [txtCol("room", "Room", r => r.room), txtCol("product", "Product", r => r.product, { html: r => '<span class="pn">' + esc(r.product) + "</span>" }), txtCol("bm", "Brand and model", r => r.bm, { def: false }),
     qc("need", "Needed", r => r.need, "What the job needs"), qc("pulled", "Pulled", r => r.pulled, "Taken off the shelf or a PO for this job"), qc("staged", "Staged", r => r.staged, "In the job's staging area now"),
     qc("picked", "Picked up", r => r.picked, "Taken out of the staging area into a van"), qc("delivered", "Delivered", r => r.delivered, "Confirmed on site"), qc("back", "Brought back", r => r.back, "Brought back from a van to the staging area or a shelf"),
+    qc("returned", "Returned", r => r.returned, "Came back from the client and went back on the shelf"), txtCol("retOn", "Returned on", r => r.retOn), txtCol("why", "Why it came back", r => r.why),
     qc("order", "Still to order", r => r.order, "Short: the shelves cannot cover it and no PO carries it"),
     txtCol("po", "PO", r => r.po), txtCol("poStatus", "PO status", r => r.poStatus)];
   if (C) cols.push(moneyCol("cost", "Unit cost", r => r.cost), moneyCol("total", "Line total", r => r.total, { tot: rows => money(rows.reduce((a, r) => a + num(r.total), 0)) }));
@@ -11353,6 +11663,8 @@ if (DEMO) window.Loadout = { tipAudit, importBuffer:(buf, name) => importLoad(bu
   labels: { labelLink, parseLabel, scanParse, productByCode },
   /* 0.14.0: the Scan screen's read handler, the lookup, the history, and the QR drawing, for the checks by script */
   scan: { onCode, resolveCode, histRead, qrSvg },
+  /* 0.15.0: the return flow and how a return reads in the timeline and the Job report, for the checks by script */
+  ret: { openReturn, retJobs, mvKind, mvSentence, reasonText, jobRepBuild, timelineHTML },
   /* 0.5.0 checks by script: sync({online:false, pending:3}) drives the pill (sync(null) goes back to Demo);
      pending("products", id, true) puts the pending chip on a row; install("prompt"|"ios"|"menu"|"none"|null) picks the home screen card */
   sync: st => { S.demoSync = st ? { online: st.online !== false, pending: Math.max(0, num(st.pending)) } : null; paintSync(); return syncState(); },
@@ -11424,6 +11736,7 @@ document.addEventListener("click", e => {
     case "pfPull": { const t = S.tickets.get(S.pullJob), l = t && S.lines.get(t.id) ? S.lines.get(t.id).get(id) : null; if (t && l) openPull(t, l, { from: b.dataset.from || "", qty: num(b.dataset.qty), box: b.dataset.box || "" }); break; }
     case "pfOrder": { const t = S.tickets.get(S.pullJob); if (t) openOrderMissing(t); break; }
     case "bringBack": { const t = S.tickets.get(id); if (t) openBringBack(t, b.dataset.mine === "1"); break; }
+    case "retOpen": { const t = S.tickets.get(id); if (t) openReturn(t); break; }
     case "audStep": if (S.aud) { const x = auditContents(S.aud.loc).prods.find(y => y.p.id === id); const cur = S.aud.vals[id]; const base = cur === undefined || cur === "" ? (x ? x.exp : 0) : num(cur); S.aud.vals[id] = String(Math.max(0, base + num(b.dataset.d))); render(true); } break;
     case "audMatch": if (S.aud) { const x = auditContents(S.aud.loc).prods.find(y => y.p.id === id); if (x) { S.aud.vals[id] = String(x.exp); render(true); } } break;
     case "audUnit": if (S.aud) { S.aud.units[id] = S.aud.units[id] === b.dataset.v ? undefined : b.dataset.v; render(true); } break;
@@ -11585,6 +11898,7 @@ document.addEventListener("input", e => {
   if (t.id === "stockSearch") { S.search = t.value; scheduleRender(); }
   /* 0.10.0: the Job report's job search */
   else if (t.id === "jrQ") { S.repJobQ = t.value; scheduleRender(); }
+  else if (t.id === "retQ") { S.retQ = t.value; scheduleRender(); }
   else if (t.dataset && t.dataset.aud && S.aud) { S.aud.vals[t.dataset.aud] = t.value.replace(/[^0-9]/g, ""); scheduleRender(); }
   else if (t.dataset && t.dataset.audbox && S.aud) { S.aud.boxes[t.dataset.audbox] = t.value.replace(/[^0-9]/g, ""); scheduleRender(); }
   else if (t.dataset && t.dataset.flownote && S.flow) { S.flow.notes[t.dataset.flownote] = t.value; }
@@ -11623,7 +11937,7 @@ document.addEventListener("change", e => {
 /* the attributes section in a product panel stays open across redraws */
 document.addEventListener("toggle", e => { if (e.target.matches && e.target.matches("details[data-xattr]") && S.x) S.x.attrOpen = e.target.open; }, true);
 window.addEventListener("hashchange", () => applyHash());
-const VIEWS = ["home", "pull", "pickup", "deliver", "receive", "audit", "office", "tickets", "ticket", "stock", "scan", "items", "orders", "order", "tracking", "week"];
+const VIEWS = ["home", "pull", "pickup", "deliver", "receive", "return", "audit", "office", "tickets", "ticket", "stock", "scan", "items", "orders", "order", "tracking", "week"];
 function applyHash() {
   let parts = location.hash.replace(/^#/, "").split("/").map(x => { try { return decodeURIComponent(x); } catch (e) { return x; } });
   /* #shelf/units/... is the full Units list under Shelf */
@@ -11636,6 +11950,7 @@ function applyHash() {
     if (sub === "reports" && parts[2] === "job") { S.repTab = "job"; if (parts[3]) { S.repJob = parts.slice(3).join("/"); jrStore.set(S.repJob); if (DB && DB.syncLines) DB.syncLines(); } } }
   if (v === "pickup" || v === "deliver") { S.flowJob = sub || null; if (!sub) S.flow = null; }
   if (v === "pull") S.pullJob = sub || null;
+  if (v === "return") { S.retJob = sub || null; if (DB && DB.syncLines) DB.syncLines(); }
   if (v === "audit") { S.auditLoc = sub || null; if (!sub) S.aud = null; }
   S.x = null;
   if (v === "stock") { if (sub === "p" && rest) { xSet("p", rest); const p = S.products.get(rest); if (S.stockTab === "locations" || !p || !stockShows(p)) { S.stockTab = "all"; S.search = ""; S.sf = { cat: "", type: "", brand: "", loc: "" }; } } else if (sub === "l" && rest) { S.stockTab = "locations"; xSet("l", rest); } else if (sub) S.stockTab = sub; }

@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP, Tech spec and History v0.14.0</title>
+<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP, Tech spec and History v0.15.0</title>
 <meta name="description" content="Storyboard and functional SOP for Loadout, the internal inventory, job, and order tracking tool, matching the built app. The shop's reference document.">
 <meta name="robots" content="noindex, nofollow">
-<meta name="version" content="0.14.0">
+<meta name="version" content="0.15.0">
 <script>
   // ?print=1 strips the chrome for a PDF. ?tab=pictures|overview|drive|story|sop|tech|history picks the tab
   // (In pictures when none is given); ?sheet=warehouse|tech|office|accounting|all lays out the role sheets;
@@ -674,7 +674,7 @@
     Loadout
   </h1>
   <p class="subtitle">How product moves through the shop, from approved proposal to installed, and what gets recorded at each step</p>
-  <p class="meta">Version 0.14.0, updated Nov 18, 2026 <a href="#history" id="whatChanged">What changed</a></p>
+  <p class="meta">Version 0.15.0, updated Nov 18, 2026 <a href="#history" id="whatChanged">What changed</a></p>
 
   <div class="tabs" role="tablist" aria-label="Sections of this document">
     <button type="button" role="tab" id="tabbtn-pictures" aria-controls="tab-pictures" aria-selected="true" data-tab="pictures">In pictures<span class="hint">nine panels and one chart</span></button>
@@ -730,6 +730,7 @@
             <li><a href="#sop-10">SOP-10 Roles and Office</a></li>
             <li><a href="#sop-11">SOP-11 Portal notes</a></li>
             <li><a href="#sop-12">SOP-12 Receiving the inventory workbook</a></li>
+            <li><a href="#sop-13">SOP-13 Returning product from a client</a></li>
       </ul>
     </div>
   </nav>
@@ -1050,7 +1051,7 @@
   </div>
   <div class="sheets">
     <article class="sheet" id="role-warehouse" data-role="warehouse">
-      <div class="phead"><b>Your job in Loadout: Warehouse</b><span>Loadout v0.13.0</span></div>
+      <div class="phead"><b>Your job in Loadout: Warehouse</b><span>Loadout v0.15.0</span></div>
       <h4>Warehouse</h4>
       <p class="who">Shelves, the Tech area, the dock door. Phone in hand most of the day.</p>
       <ol>
@@ -1059,6 +1060,7 @@
         <li><b>Scan:</b> a shelf label, then the product, to pull or count right at the shelf.</li>
         <li><b>Request what is short:</b> on the Pull screen or the job, for lines no shelf covers. It makes an order request, and the admin approves it.</li>
         <li><b>Receive a shipment:</b> arrived boxes first; Receive puts each line in the staging area with its job, or on its shelf.</li>
+        <li><b>Return from a client:</b> pick the job, scan what came back, say why, and it goes back on its shelf.</li>
         <li><b>Office, Labels:</b> a label for every new shelf, wire box, and costly unit.</li>
         <li><b>Jobs, New job:</b> Make the list yourself, for a service call with no proposal.</li>
         <li><b>Close job:</b> scan the shelf label, then each leftover, so it goes back onto that shelf.</li>
@@ -1067,14 +1069,15 @@
       </ol>
     </article>
     <article class="sheet" id="role-tech" data-role="tech">
-      <div class="phead"><b>Your job in Loadout: Tech</b><span>Loadout v0.13.0</span></div>
+      <div class="phead"><b>Your job in Loadout: Tech</b><span>Loadout v0.15.0</span></div>
       <h4>Tech</h4>
       <p class="who">The Tech area, the van, the client's site. The last tab reads More instead of Office.</p>
       <ol>
         <li><b>Home, Out with me:</b> what is in your van and under your name.</li>
         <li><b>Pick up from staging:</b> tick what you take from the staging area and press Pick up.</li>
         <li><b>Confirm a delivery:</b> untick what did not arrive, note why, press Delivered to site.</li>
-        <li><b>Bring back:</b> scan each unit the install did not need, or type the count, and it goes from the van back to the staging area.</li>
+        <li><b>Bring back:</b> scan each unit the install did not need, or type the count, say why, and it goes from the van back to the staging area.</li>
+        <li><b>Return from a client:</b> product the client had comes back; pick the job, scan it, say why, and it goes back on its shelf.</li>
         <li><b>Scan:</b> a wire box to save its mark; a unit to check it out or in.</li>
         <li><b>Shelf, Out with people:</b> who has which unit, and since when.</li>
         <li><b>More:</b> Labels, Movements, This phone (Loadout on the home screen), and About.</li>
@@ -1185,6 +1188,7 @@
     <li><b>0.6.0 to 0.7.0, 2026-11-02 to 11-05.</b> One-handed phone layout, the nightly backup listed in the app, serials and MAC addresses, and the inventory sheet's pulled units.</li>
     <li><b>0.8.0, 2026-11-05.</b> Home with the doors, the words Job and Pull sheet, Shelf and Office, Pick up as its own step, Audit a shelf, and the board as a grid of six jobs.</li>
     <li><b>0.9.0, 2026-11-11.</b> Pull has its own screen, shelf by shelf, opened from the Pull list or the QR on the printed pull sheet. Bring back takes product from a van to the bay or a shelf, and Close job waits for it. Receive a shipment is a door, and a costly unit asks for its serial or MAC there. A carrier's box has Arrived, not Delivered. The progress line names only what has happened. The wall board reads on a phone.</li>
+    <li><b>0.15.0, 2026-11-18.</b> Return from a client: product delivered to a client goes back on the shelf, with its condition and why it came back. Bring back and Close job's scan-back ask why too, and every door says where product moves.</li>
     <li><b>0.13.0, 2026-11-13.</b> Words and steps that match the shop. Pulled product waits in the staging area, the shop's Tech area, shared by every job; the old word for it is gone from every screen. A short line becomes an order request that an admin approves (or sends back with a note) before anyone marks it ordered, and the Pull door counts lines as Not requested yet, Waiting for approval, or On order. Close job and Bring back scan the leftovers back: the shelf label, then each unit's QR, with a count for anything without one.</li>
     <li><b>0.12.1, 2026-11-13.</b> The comic and the flow chart start where the work starts: the office uploading the proposal file from Portal when a client says yes. No change in the app.</li>
     <li><b>0.12.0, 2026-11-12.</b> Office, About has How Loadout works, which opens this document's In pictures tab: the comic and the flow chart, for every role, from the phone.</li>
@@ -1222,7 +1226,7 @@
   <h2 id="drive">Test drive</h2>
   <p class="lede">One morning in the shop, with the real data in Loadout: 21 steps, in the order a job runs (pull, pick up, deliver, bring back), then receiving, an audit, and the office. The doors on Home are in the order the shop uses them most, so Audit a shelf is the last one. Each step says what to do, what you should see, and which panel or SOP it walks through. If something does not match, write it in the table at the bottom. Print this tab with the button at the bottom and carry it.</p>
   <ol class="drive">
-      <li><b>Sign in on your phone.</b><span class="do"><i>Do</i>Open Loadout on the phone and sign in with your work Google account.</span><span class="see"><i>You should see</i>Home, with five colored doors, most used on top: Pick up from staging (dark), Confirm a delivery (green), Pull for a job (amber), Receive a shipment (slate grey), and Audit a shelf (blue) last. Under each door the line leads with what waits behind it, such as "3 jobs waiting", "2 in vans, 1 in the staging area", "3 jobs to pull, 2 not requested yet, 1 waiting for approval, 1 on order", "2 arrived, 3 on the way", "5 shelves due"; a door with nothing behind it reads in grey, such as Nothing staged. Open a door and its list has that many jobs, boxes, or shelves. Then the open jobs, each with one progress line that names only what has happened, such as "Pulled 2 of 9, Staged 2", and one button. The pill in the top bar says Synced. A tech sees Out with me first, then Pick up and Confirm a delivery with the same counts. After signing in, Office &gt; This phone puts Loadout on the home screen.</span><span class="ref"><a href="#sop-10">SOP-10</a></span></li>
+      <li><b>Sign in on your phone.</b><span class="do"><i>Do</i>Open Loadout on the phone and sign in with your work Google account.</span><span class="see"><i>You should see</i>Home, with six colored doors, most used on top: Pick up from staging (dark), Confirm a delivery (green), Pull for a job (amber), Receive a shipment (slate grey), Return from a client (plum), and Audit a shelf (blue) last. Under each door's name a line says where product moves, such as Van to client. Under each door the line leads with what waits behind it, such as "3 jobs waiting", "2 in vans, 1 in the staging area", "3 jobs to pull, 2 not requested yet, 1 waiting for approval, 1 on order", "2 arrived, 3 on the way", "5 shelves due"; a door with nothing behind it reads in grey, such as Nothing staged. Open a door and its list has that many jobs, boxes, or shelves. Then the open jobs, each with one progress line that names only what has happened, such as "Pulled 2 of 9, Staged 2", and one button. The pill in the top bar says Synced. A tech sees Out with me first, then Pick up, Confirm a delivery, and Return from a client with the same counts. After signing in, Office &gt; This phone puts Loadout on the home screen.</span><span class="ref"><a href="#sop-10">SOP-10</a></span></li>
       <li><b>Make a job both ways.</b><span class="do"><i>Do</i>Open Jobs and press New job. As the admin, Use a proposal file (.csv) is first and picked: choose an accepted proposal's file, read Here is what the file says, pick the client and job, and press Create job. Then, as warehouse, press New job again: Make the list yourself is first and picked. Pick the client, type a job name such as Service call, lobby TV, press Next, search for two products and add them, press plus on one, press Next, and press Create job.</span><span class="see"><i>You should see</i>One sentence saying what a job is, then the two choices. The file shows every line in plain words, each marked On the shelf list, New to Loadout (will be added), or Kept as a note; the column table stays closed under Something look wrong? Fix the columns unless the file needs it. On the hand-built list each line says what the shelf holds, such as 12 on the shelf, and the last step sums it up, such as 2 lines: 2 on the shelf, 0 to order. Create job opens the new job's Pull screen. Cancel with lines on the list asks before throwing them away.</span><span class="ref"><a href="#panel-1">Panel 1, SOP-3</a></span></li>
       <li><b>Pull for a job.</b><span class="do"><i>Do</i>On Home press Pull for a job. Jobs the shelves can feed come first, then a quiet Waiting on orders group. Press Start pulling on the new job. On its Pull screen, press the one button on a line, for example Pull 2, check the shelf and quantity it filled in, and press Pull.</span><span class="see"><i>You should see</i>An amber band along the top, then the lines grouped by the shelf to take them from, in the same order as the board. After the pull the line drops to In the staging area with a tick, and the progress line reads Pulled 1 of 8, Staged 1. Lines no shelf can cover sit under Waiting on orders, each marked Not requested yet, Waiting for approval, or On order. As warehouse, press Request what is short: the lines read Waiting for approval. As the admin, open Office, Orders and tracking: the request is at the top. Press Send back with a note, then as warehouse change a quantity and press Ask again; as the admin press Approve, and Mark ordered is no longer greyed out. Open the job still opens the full job page.</span><span class="ref"><a href="#panel-5">Panel 5, SOP-4</a></span></li>
       <li><b>Print the pull sheet and scan it.</b><span class="do"><i>Do</i>On the job press Print pull sheet. Then, on the phone, open Scan and point it at the QR in the top right corner of the page (or type <code>loadout:job:</code> and the job number).</span><span class="see"><i>You should see</i>A letter page titled Pull sheet, job and the number, with every line by area and the shelf to pull it from, and a QR top right that says Scan to open this job. The scan opens that job's Pull screen (a tech lands on the job page).</span><span class="ref"><a href="#sop-4">SOP-4</a></span></li>
@@ -2323,15 +2327,15 @@
       <li>Every line in the staging area is ticked. Untick anything staying behind and press Pick up. The serialized units on those lines check out to you in the same tap, and the job shows Picked up by you with the time. It is yours until the delivery is confirmed.</li>
       <li>At the site, on Home press Confirm a delivery (a green band). Jobs you picked up come first; jobs still in the staging area come after, for the warehouse delivering straight from it.</li>
       <li>Every line is ticked. Untick anything that did not arrive and say why in its note, for example Left in the van; it stays where it is. Press Delivered to site. The job shows who confirmed it and when, and turns Delivered once every line is on site.</li>
-      <li>If the install is put off or a line is not needed after a pick-up, press Bring back: on your Home under Out with me, or on the job's Confirm a delivery screen. Scan the QR on each unit coming back, or tick it (nothing is ticked to start); type the count for anything without a QR. Keep Back to on the job's staging area, add a note if you like, and press Bring back. A unit from another job says so and changes nothing. It leaves your name and is in the staging area for the next pick-up. The warehouse can pick a shelf instead; then the line needs pulling again.</li>
+      <li>If the install is put off or a line is not needed after a pick-up, press Bring back: on your Home under Out with me, or on the job's Confirm a delivery screen. Scan the QR on each unit coming back, or tick it (nothing is ticked to start); type the count for anything without a QR. Keep Back to on the job's staging area and pick why it came back (Not needed, Wrong part, Client changed mind, Swapped out, Damaged, or Other with a few words); Bring back stays grey with Pick a reason first until you do. Different reason for each line gives each line its own. Add a note if you like and press Bring back. A unit from another job says so and changes nothing. It leaves your name and is in the staging area for the next pick-up. The warehouse can pick a shelf instead; then the line needs pulling again.</li>
       <li>Press Copy for Portal and paste the status into the proposal (SOP-11).</li>
       <li>After the install, check in anything that came back unused (SOP-7) before closing.</li>
-      <li>Open the job and press Close job (it is also the job card's button once every line is delivered). The window lists what is still in a van and with whom: the job will not close until each of those lines is delivered or brought back, and only an admin may write it off there instead, with a reason. It also lists the leftovers in the staging area. Keep Back to stock and scan the shelf label, then each unit's QR; type the count for a product with no QR. Each leftover goes onto the shelf scanned last. All of it back fills in the rest for the shelf picked, and anything not scanned back asks for a reason and is written off. Write off, as before, writes off every leftover with one reason.</li>
+      <li>Open the job and press Close job (it is also the job card's button once every line is delivered). The window lists what is still in a van and with whom: the job will not close until each of those lines is delivered or brought back, and only an admin may write it off there instead, with a reason. It also lists the leftovers in the staging area. Keep Back to stock and scan the shelf label, then each unit's QR; type the count for a product with no QR. Each leftover goes onto the shelf scanned last. All of it back fills in the rest for the shelf picked. Once anything is scanned back, pick why it came back, as in Bring back; Close job stays grey until you do. Anything not scanned back asks for its own write-off reason and is written off. Write off, as before, writes off every leftover with one reason.</li>
       <li>It also lists the units still out on the job as Marked installed at the job. They become Installed with the job and proposal, stop counting as stock, and keep their history.</li>
       <li>Press Close job in the window to finish.</li>
     </ol>
     <p class="open"><b>Settled:</b> units become Installed at close, not at pick-up or delivery, so a unit that comes back unused never shows as installed.</p>
-    <p class="recorded"><b>Recorded:</b> a pickup movement per line and a checkout movement per serialized unit at pick-up; a deliver movement per line at the site, and a note movement for a line left with a note; who and when on the job for both; for Bring back a move movement per line ("Brought back from the van, job #1042") and who and when on the line; and on close a move movement back to the shelf, or a writeoff movement with its reason, for each leftover.</p>
+    <p class="recorded"><b>Recorded:</b> a pickup movement per line and a checkout movement per serialized unit at pick-up; a deliver movement per line at the site, and a note movement for a line left with a note; who and when on the job for both; for Bring back a move movement per line ("Brought back from the van, job #1042") with why it came back, and who and when on the line; and on close a move movement back to the shelf with why it came back, or a writeoff movement with its write-off reason, for each leftover.</p>
   </section>
 
   <section class="sop" id="sop-9">
@@ -2421,6 +2425,24 @@ Staged 9/12 lines in Tech area. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
     </ol>
     <p class="open"><b>Still open (D16, D17):</b> box start lengths (SOP-6), and whether a per-job assigned list exists beside the Unassigned Inventory sheet and should come in as staged stock. For now only unassigned stock is imported.</p>
     <p class="recorded"><b>Recorded:</b> the products (with the sheet's UPC), shelves and vehicles, boxes with their existing codes, units with their serial or MAC, and new clients, plus one movement per row dated from the sheet's count date and one Check out by Import per pulled unit dated from Pull Date, with the import time, tab, and row kept beside each so a re-import knows what it already wrote.</p>
+  </section>
+
+  <section class="sop" id="sop-13">
+    <h3><span class="sop-id">SOP-13</span>Returning product from a client</h3>
+    <p class="purpose">Put product that was delivered to a client back on the shelf, with its condition and why it came back. There is no return to a vendor here.</p>
+    <p class="whowhen"><span><b>Who</b>Tech, warehouse, or admin</span><span><b>When</b>When product the client had comes back to the shop, whether the job is still open or closed</span></p>
+    <ol>
+      <li>On Home press Return from a client (a plum band reads Client to shelf).</li>
+      <li>Pick the job it came from. The jobs with delivered product are listed newest delivery first; type a job number, proposal number, or client to find an older one, or scan the job's QR.</li>
+      <li>On the job, press Scan what came back. Each unit with a QR has its own row; a product without one shows how many were delivered.</li>
+      <li>Scan each unit's QR, or tick it; scan a product's UPC or QR once for each one, or type how many. All of it back takes everything.</li>
+      <li>Check Back to. Each product goes to its usual shelf, shown on its row: the shelf it was pulled from, else its default shelf. To put everything on one shelf, scan that shelf's label. A staging area or a van is refused with a plain message.</li>
+      <li>Tick Damaged on anything that came back damaged. It still goes on the shelf, marked damaged.</li>
+      <li>Pick why it came back. Other needs a few words. Different reason for each line gives each line its own. The button stays grey with Pick a reason first until then.</li>
+      <li>Press Return N to the shelf. A done box lists what went back and where.</li>
+    </ol>
+    <p class="open"><b>Settled:</b> the job keeps its status, open or closed. Wire cut on site and lines not in the catalog do not come back this way.</p>
+    <p class="recorded"><b>Recorded:</b> the shelf count and on hand go up; each unit is in stock on that shelf with its condition and no job or holder; the line's Returned count with who and when; and a return movement per line, and per unit, from the client to the shelf with its condition and why it came back. The job page, the Job report, and the Movements report show them.</p>
   </section>
 
   <!-- ================= PART 3 ================= -->
@@ -2534,6 +2556,12 @@ Staged 9/12 lines in Tech area. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
   <h2 id="history">History</h2>
   <p class="lede">What changed in this document, newest first. The app's own releases are in the Overview, under What is built.</p>
   <ol class="hist">
+    <li>
+      <h3>0.15.0 <span class="when">Nov 18, 2026</span></h3>
+      <ul>
+        <li>A new door, Return from a client, puts product that comes back from a client on the shelf; SOP-13 walks through it. Bring back and Close job's scan-back now ask why it came back, and SOP-8 says so. Every door says where product moves, such as Van to client. The Warehouse and Tech sheets list the new door. The comic, the flow chart, and the training deck are not redrawn yet.</li>
+      </ul>
+    </li>
     <li>
       <h3>0.14.0 <span class="when">Nov 18, 2026</span></h3>
       <ul>
@@ -2658,7 +2686,7 @@ Staged 9/12 lines in Tech area. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
 </article>
 
 <footer class="pagefoot">
-  <p>Version 0.14.0, updated Nov 18, 2026</p>
+  <p>Version 0.15.0, updated Nov 18, 2026</p>
   <button type="button" class="btn-print" id="printTab">Print this tab as PDF</button>
   <button type="button" class="btn-print" id="printAll">Print everything as PDF</button>
 </footer>

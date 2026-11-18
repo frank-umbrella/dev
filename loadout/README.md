@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.14.0**.
+Current version: **0.15.0**.
 
 ## Files
 
@@ -973,6 +973,22 @@ line edits with and without clearing the approval, pre-0.13.0 receiving and
 cancel, a tech's Pick up, Confirm a delivery, and Bring back of one scanned
 unit plus a count to the staging area, and a tech refused raising a shelf
 count). **Not deployed.**
+0.15.0 (PLAN 33.1 item 1) lets a tech do Return from a client. A tech's
+line update may also write `qtyReturned`, `returnedAt`, `returnedBy`, and
+`returnedByName`. A tech may raise a stock count on a location that is not a
+staging area or a van (or start one there) only when the write names the job
+line in `returnTicketId` and `returnLineId`, that line is for the same
+product, and the same batch raises its `qtyReturned` by at least as much
+(`getAfter`). So a tech still cannot raise a shelf count by itself, and a
+counted return to a van or a staging area is refused. A unit going back in
+stock with its condition and `return` movements with `reason` and
+`reasonNote` already fit the tech unit and movement rules. On 2026-11-18 the
+block ran in the local Firestore emulator with the app's own write sets:
+65 of 65 cases passed (the 52 above, plus a tech, warehouse, and admin
+return to a shelf, a new shelf row, and refusals for raising more than was
+returned, naming a line that did not change, another product, a van, a
+staging area, accounting, and a tech touching another line field).
+**Not deployed.**
 The owner of the Firebase project deploys it from `work/watchtower` with:
 
 `firebase deploy --only firestore:rules --account frank@umbrellaautomation.com --project watchtower-6fbe1`
@@ -1097,7 +1113,9 @@ match /loadout_tickets/{tid} {
   match /lines/{lineId} {
     allow update: if loadoutTechOnly(['qtyStaged', 'qtyDelivered', 'updatedAt',
       'qtyPickedUp', 'pickedUpAt', 'pickedUpBy', 'pickedUpByName', 'deliveryNote',
-      'broughtBackAt', 'broughtBackBy', 'broughtBackByName']);
+      'broughtBackAt', 'broughtBackBy', 'broughtBackByName',
+      // 0.15.0 (PLAN 33.1 item 1): Return from a client raises qtyReturned and stamps who and when.
+      'qtyReturned', 'returnedAt', 'returnedBy', 'returnedByName']);
   }
 }
 // Pick up (0.8.0) and Deliver to site take counted units out of the bay: a tech may
@@ -1108,14 +1126,34 @@ match /loadout_tickets/{tid} {
 function loadoutIsBay(locId) {
   return get(/databases/$(database)/documents/loadout_locations/$(locId)).data.get('kind', '') == 'bay';
 }
+// 0.15.0 (PLAN 33.1 item 1): Return from a client puts delivered product back on a
+// shelf. A tech may raise a count on a location that is not a staging area or a van,
+// only by as much as the same batch raises qtyReturned on the job line the write
+// names (returnTicketId, returnLineId), and only for that line's product.
+function loadoutIsShelf(locId) {
+  return !(get(/databases/$(database)/documents/loadout_locations/$(locId)).data.get('kind', '') in ['bay', 'van', 'vehicle']);
+}
+function loadoutReturnCovers(before) {
+  let d = request.resource.data;
+  let line = /databases/$(database)/documents/loadout_tickets/$(d.returnTicketId)/lines/$(d.returnLineId);
+  return getAfter(line).data.get('productId', '') == d.productId
+    && getAfter(line).data.get('qtyReturned', 0) - get(line).data.get('qtyReturned', 0) >= d.qty - before;
+}
 match /loadout_stock/{id} {
-  allow update: if loadoutTechOnly(['qty', 'updatedAt'])
-    && (request.resource.data.qty < resource.data.qty || loadoutIsBay(resource.data.locationId));
+  allow update: if (loadoutTechOnly(['qty', 'updatedAt'])
+      && (request.resource.data.qty < resource.data.qty || loadoutIsBay(resource.data.locationId)))
+    || (loadoutTechOnly(['qty', 'updatedAt', 'returnTicketId', 'returnLineId'])
+      && request.resource.data.qty > resource.data.qty
+      && loadoutIsShelf(resource.data.locationId)
+      && loadoutReturnCovers(resource.data.qty));
   allow create: if isMSPAdmin() && loadoutRole() == 'tech'
-    && request.resource.data.keys().hasOnly(['productId', 'productName', 'locationId', 'locationName', 'qty', 'updatedAt'])
     && id == request.resource.data.productId + '__' + request.resource.data.locationId
     && request.resource.data.qty > 0
-    && loadoutIsBay(request.resource.data.locationId);
+    && ((request.resource.data.keys().hasOnly(['productId', 'productName', 'locationId', 'locationName', 'qty', 'updatedAt'])
+        && loadoutIsBay(request.resource.data.locationId))
+      || (request.resource.data.keys().hasOnly(['productId', 'productName', 'locationId', 'locationName', 'qty', 'updatedAt', 'returnTicketId', 'returnLineId'])
+        && loadoutIsShelf(request.resource.data.locationId)
+        && loadoutReturnCovers(0)));
 }
 // Warehouse may pin tickets to the wall board (Show on board) and save
 // the CSV column mapping; the rest of settings stays admin-only above.
@@ -1346,6 +1384,32 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.15.0 (2026-11-18)
+
+Product that came back from a client had no way back onto the shelf, people
+asked to know why things come back, and the doors did not say where product
+moves (PLAN 33.1 items 1, 2 and 6).
+
+- A new door, Return from a client, for techs, the warehouse, and the admin.
+  Pick the job (newest delivery first, search, or scan its QR), then scan,
+  tick, or count what came back, or press All of it back. It goes to each
+  product's usual shelf, or to the shelf whose label you scan. A staging area
+  or a van is refused. Mark anything damaged; it still goes on the shelf with
+  that noted. The job keeps its status.
+- Every return asks why: Not needed, Wrong part, Client changed mind, Swapped
+  out, Damaged, or Other with a few words. One reason covers the sheet, or
+  each line gets its own. This applies to Return from a client, Bring back,
+  and leftovers scanned back at Close job. Close's write-off keeps its own
+  reason.
+- The reason shows in the unit and product history, the Job report, and the
+  Movements report. The job page and the Job report show what was returned
+  and when.
+- Every door, and the color band on each door screen, now says where product
+  moves: Staging area to van, Van to client, Shelf to staging area, Carrier to
+  shelf or staging area, Client to shelf, Count what is on a shelf.
+- The Firestore rules change so a tech can return product to a shelf, and only
+  by what the job line records as returned. Not deployed.
 
 ### 0.14.0 (2026-11-18)
 

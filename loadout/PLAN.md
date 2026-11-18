@@ -2525,14 +2525,14 @@ Scanning inside Loadout on a real iPhone is still untested.
   printed size and error correction M, so the longest demo product id is about
   0.39 mm a module on Avery 5160.
 
-### 33.1 Still on the list for 0.14.0
+### 33.1 Still on the list (0.14.0 and 0.15.0 built some)
 
-1. A door "Return from a client": the product goes back on the shelf.
-2. A from-to line on every Home door.
+1. A door "Return from a client": the product goes back on the shelf. Built in 0.15.0: a plum door (tech, warehouse, admin) after Receive, #return and #return/<job>; jobs with delivered product newest delivery first (an open job by its lines, a closed one by its stored summary), search or job QR; the sheet is a window like Bring back (unit QR ticks, UPC or product QR adds one, a number, All of it back, Damaged per row); everything goes to each product's usual shelf (the shelf named as pulled from, else the default shelf, else the most stock) unless a shelf is picked or scanned, which then takes everything; staging areas and vans refused. Writes stock (naming the line), on hand, units in stock with condition, qtyReturned/returnedAt/By/ByName on the line, and a return movement per counted line and per unit (so a unit's own history shows it); the job's status is untouched. Wire (by the foot) and lines not in the catalog are left out. The door's count is jobs delivered this month.
+2. A from-to line on every Home door. Built in 0.15.0: under each door name and in each door screen's band. The door's old "why" after the count is dropped where the from-to line now says it; Audit keeps "a check every 60 days".
 3. Job report shows wire cut from a box logged on Shelf, and the box sheet asks for the job.
 4. "Proposal #" wording; a hand-made job says "No proposal".
 5. Scan: UPC library lookup, and a type-to-search list instead of the dropdown.
-6. A required reason on every return (client return, Bring back, Close job leftovers).
+6. A required reason on every return (client return, Bring back, Close job leftovers). Built in 0.15.0: six chips, Other needs a note, one reason or one per line; stored as reason and reasonNote on each movement. Close's write-off of what is not scanned back keeps its own typed reason in note (not merged).
 7. Scan page history of the codes this person scanned. Built in 0.14.0: "Scanned on this phone", per signed-in person, on the device only, 50 entries, 7 days, Clear.
 8. A button to lock the reading on the first good scan. Built in 0.14.0: Scan freezes on the first read with Use this code / Scan again; the task scanners take no tap, show the read for 1.5 s, and ignore the same code for 2 s and while it stays in view.
 9. Optional Amazon ASIN on a product.
