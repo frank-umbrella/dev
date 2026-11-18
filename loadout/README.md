@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.13.1**.
+Current version: **0.14.0**.
 
 ## Files
 
@@ -378,7 +378,12 @@ its address, and on Home already it scrolls back to the top.
   Pull for job, the box sheet a For job chip, and a staging area's label
   shows the jobs staged there. The QR on a printed pull sheet (0.9.0,
   `loadout:job:<id>`; a link to the app since 0.13.1) opens that job's Pull screen, or the job page for a
-  role that does not pull. On a phone or tablet, a label that explains itself
+  role that does not pull. Since 0.14.0 the camera stops on the first good
+  read (Use this code or Scan again; a typed code opens at once), "Scanned on
+  this phone" lists the last 7 days of codes for whoever is signed in (device
+  storage only), and a unit or product card ends with "On these jobs": the
+  open jobs it is on, with Pull for this job opening that job's Pull screen at
+  its line. On a phone or tablet, a label that explains itself
   has a ? beside it that opens the explanation (a mouse shows it on hover).
 - **Units** (Shelf, All units; called Items before 0.6.0): every serialized unit, with Out as
   the Friday list, and a search that finds a unit by serial, MAC address
@@ -1341,6 +1346,26 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.14.0 (2026-11-18)
+
+The reading on the Scan screen jumped as the phone moved, people wanted to
+see what they had just scanned, and they wanted to know which job needs the
+thing in their hand (PLAN 33.1 items 7, 8 and 10).
+
+- Scan locks on the first good read: the picture freezes and shows the code
+  and what it is. Use this code opens it; Scan again drops it. A typed code
+  opens at once.
+- Pull, Bring back and Close job do not ask for a tap. The code shows on the
+  picture for a moment, and the same label is not counted twice while it is
+  still in view.
+- Scan lists what was scanned on this phone in the last 7 days, newest first.
+  Tap one to look it up again; Clear empties it. It stays on the phone.
+- A scanned unit or product shows the open jobs it is on. A product shows
+  how much is pulled and how much is still to pull on each job, with a button
+  that opens that job's Pull screen at its line.
+- Printed QR codes have a wider white border (4 squares, the QR standard),
+  which helps phone cameras read them. The labels stay the same size.
 
 ### 0.13.1 (2026-11-17)
 

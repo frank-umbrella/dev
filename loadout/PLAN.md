@@ -2521,6 +2521,9 @@ Scanning inside Loadout on a real iPhone is still untested.
 - Density at error correction M: the longest demo product id goes from a
   37 to a 45 module QR, about 0.43 mm a module on Avery 5160 and 0.83 mm on
   2 x 4.
+- 0.14.0: every printed QR has a 4-module quiet zone (was 2) at the same
+  printed size and error correction M, so the longest demo product id is about
+  0.39 mm a module on Avery 5160.
 
 ### 33.1 Still on the list for 0.14.0
 
@@ -2530,10 +2533,10 @@ Scanning inside Loadout on a real iPhone is still untested.
 4. "Proposal #" wording; a hand-made job says "No proposal".
 5. Scan: UPC library lookup, and a type-to-search list instead of the dropdown.
 6. A required reason on every return (client return, Bring back, Close job leftovers).
-7. Scan page history of the codes this person scanned.
-8. A button to lock the reading on the first good scan.
+7. Scan page history of the codes this person scanned. Built in 0.14.0: "Scanned on this phone", per signed-in person, on the device only, 50 entries, 7 days, Clear.
+8. A button to lock the reading on the first good scan. Built in 0.14.0: Scan freezes on the first read with Use this code / Scan again; the task scanners take no tap, show the read for 1.5 s, and ignore the same code for 2 s and while it stays in view.
 9. Optional Amazon ASIN on a product.
-10. The scan result shows the jobs the product or unit is on.
+10. The scan result shows the jobs the product or unit is on. Built in 0.14.0: "On these jobs", with the Pull screen's own pulled and still-to-pull numbers and Pull for this job.
 11. The company house mark in the middle of every QR (needs the highest error correction; test on Avery 5160).
 12. Tracking numbers show the proposal or job they are for.
 

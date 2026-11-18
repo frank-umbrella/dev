@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP, Tech spec and History v0.13.1</title>
+<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP, Tech spec and History v0.14.0</title>
 <meta name="description" content="Storyboard and functional SOP for Loadout, the internal inventory, job, and order tracking tool, matching the built app. The shop's reference document.">
 <meta name="robots" content="noindex, nofollow">
-<meta name="version" content="0.13.1">
+<meta name="version" content="0.14.0">
 <script>
   // ?print=1 strips the chrome for a PDF. ?tab=pictures|overview|drive|story|sop|tech|history picks the tab
   // (In pictures when none is given); ?sheet=warehouse|tech|office|accounting|all lays out the role sheets;
@@ -674,7 +674,7 @@
     Loadout
   </h1>
   <p class="subtitle">How product moves through the shop, from approved proposal to installed, and what gets recorded at each step</p>
-  <p class="meta">Version 0.13.1, updated Nov 17, 2026 <a href="#history" id="whatChanged">What changed</a></p>
+  <p class="meta">Version 0.14.0, updated Nov 18, 2026 <a href="#history" id="whatChanged">What changed</a></p>
 
   <div class="tabs" role="tablist" aria-label="Sections of this document">
     <button type="button" role="tab" id="tabbtn-pictures" aria-controls="tab-pictures" aria-selected="true" data-tab="pictures">In pictures<span class="hint">nine panels and one chart</span></button>
@@ -2188,7 +2188,7 @@
     </ol>
     <p class="sub">Without a PO</p>
     <ol start="8">
-      <li>Open Scan and scan the box's UPC. If Loadout does not know it, pick the product under Link to a product without a UPC, or press New product.</li>
+      <li>Open Scan and scan the box's UPC. The picture stops on the first good read and shows what it found: press Use this code, or Scan again if it read the wrong label. If Loadout does not know it, pick the product under Link to a product without a UPC, or press New product.</li>
       <li>On the product card press Receive (Receive a box for wire), type the quantity, and pick where it goes.</li>
       <li>To follow a cheaper product unit by unit anyway (for example every AP), open it on Shelf and press Serialize; from then on every unit gets its own QR at receive.</li>
     </ol>
@@ -2238,7 +2238,7 @@
       <li>On Home press Pull for a job (an amber band runs along the top). Jobs the shelves can feed come first; jobs only waiting on orders sit under their own heading. Press Start pulling (or Keep pulling) on the job, or scan the QR on its printed pull sheet. The Pull screen lists the lines by the shelf to take them from, in walking order. Each line has one button, such as Pull 2, which opens Pull from stock with that shelf and quantity filled in. Lines no shelf covers wait under Waiting on orders, each marked Not requested yet, Waiting for approval, or On order, and Request what is short puts the not-requested ones on an order request. Pulled lines drop to In the staging area with a tick; when nothing is left on a shelf, the screen says Everything on the shelf is pulled.</li>
       <li>From the desk, Open the job shows the full job page, where Pull everything in stock fills what it can from each product's usual shelf first and lists what still needs ordering.</li>
       <li>Press Show on board. The TV in the shop shows this job's lines grouped by the shelf to pull from, in rack order, greys each line as it is scanned into the staging area and marks it Staged with a check, and shows On order lines in amber and Short lines in red. Walk the racks in that order.</li>
-      <li>To pull a line at the shelf: open Scan, scan the shelf label (the location chip changes to that shelf), then scan the product's UPC.</li>
+      <li>To pull a line at the shelf: open Scan, scan the shelf label and press Use this code (the location chip changes to that shelf), then scan the product's UPC and press Use this code. The product card lists the open jobs that need it; Pull for this job opens that job's Pull screen at its line.</li>
       <li>On the product card press Pull for job, choose the job and line, and press Continue.</li>
       <li>In Pull from stock check From and Quantity, tick the serialized units going (or scan their labels), and press Pull. From the desk, the same window opens from Pull from stock on the job line.</li>
       <li>For a part already on the bench that did not come through a pull, press Stage on the line.</li>
@@ -2279,7 +2279,7 @@
       <li>Receive the box on its PO (the line asks for a Box label), or without a PO scan its UPC and press Receive a box. The box starts at the start length for its cable type, set in Office, Settings.</li>
       <li>Print its label (Print label on the box sheet) and stick it on the side next to the cable exit (SOP-2).</li>
       <li>After pulling cable, read the footage printed on the jacket where it leaves the box.</li>
-      <li>Scan the box's label. The box sheet opens with the box's code, its shelf, and the feet left.</li>
+      <li>Scan the box's label and press Use this code. The box sheet opens with the box's code, its shelf, and the feet left.</li>
       <li>Type that number into Mark now, or tap -50, -100, or -250 to step down from the last mark.</li>
       <li>Cut this time fills in (last mark minus mark now). Change it only if you know the real figure.</li>
       <li>Check For job. It fills in when the box sits in a job's staging area or you scanned that staging area last; pick the job if the cable went to another job. When the job has a line for this wire, the feet count as staged on it. For job is optional free text.</li>
@@ -2298,7 +2298,7 @@
     <p class="whowhen"><span><b>Who</b>Tech checks out and in; Warehouse also moves units, retires them, and clears returns</span><span><b>When</b>Every time a labeled unit leaves the shop or comes back</span></p>
     <p class="sub">Check out</p>
     <ol>
-      <li>Scan the unit's label. The unit card shows its status, where it is or who holds it, and its last movements.</li>
+      <li>Scan the unit's label and press Use this code. The unit card shows its status, where it is or who holds it, and its last movements.</li>
       <li>Press Check out. In For, type the job, or press Van stock if it rides in your van with no job yet. Warehouse and admin can pick someone else in Held by.</li>
       <li>Add a note if it helps and press Check out. You are the holder. (Deliver to site does this on its own for units on a job line, SOP-8.)</li>
     </ol>
@@ -2344,7 +2344,7 @@
       <li>Press Finish audit. Each corrected product gets an adjust movement with the note Audit; a unit marked Not here gets a note and shows "Not found at last audit" on Shelf until the admin decides what happened to it. The shelf reads Last audited today.</li>
       <li>For a single product: before changing anything, open the product on Shelf (the row opens in place) and press History. A gap is often an unscanned pull or receive; record that movement instead of adjusting.</li>
       <li>Count what is on the shelf.</li>
-      <li>On Scan, scan the shelf label, then the product, and press Count. Type what you counted in Counted and press Save count.</li>
+      <li>On Scan, scan the shelf label, then the product (press Use this code after each), and press Count. Type what you counted in Counted and press Save count.</li>
       <li>From a desk, open the product's row on Shelf and press Adjust. Type the change in Change by (negative to take away, positive to add).</li>
       <li>Pick the Reason; it is required: Recount, Damaged, Lost, Found, Used on a job, Returned by a client, or Other (Other needs a note). Press Save adjustment.</li>
       <li>For wire, do not adjust. Tick Recount, no cut on the box sheet (SOP-6).</li>
@@ -2535,6 +2535,12 @@ Staged 9/12 lines in Tech area. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
   <p class="lede">What changed in this document, newest first. The app's own releases are in the Overview, under What is built.</p>
   <ol class="hist">
     <li>
+      <h3>0.14.0 <span class="when">Nov 18, 2026</span></h3>
+      <ul>
+        <li>Scan stops on the first good read until you press Use this code or Scan again, lists what was scanned on this phone, and shows the open jobs a unit or product is on. The SOP's scanning steps now say Use this code. Printed QR codes have a wider white border. The pictures are unchanged.</li>
+      </ul>
+    </li>
+    <li>
       <h3>0.13.1 <span class="when">Nov 17, 2026</span></h3>
       <ul>
         <li>Labels printed from 0.13.1 on hold a link, so the phone's own camera opens Loadout on that shelf, box, unit, product or job. Labels printed before still scan inside Loadout. The pictures and steps in this document are unchanged.</li>
@@ -2652,7 +2658,7 @@ Staged 9/12 lines in Tech area. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
 </article>
 
 <footer class="pagefoot">
-  <p>Version 0.13.1, updated Nov 17, 2026</p>
+  <p>Version 0.14.0, updated Nov 18, 2026</p>
   <button type="button" class="btn-print" id="printTab">Print this tab as PDF</button>
   <button type="button" class="btn-print" id="printAll">Print everything as PDF</button>
 </footer>

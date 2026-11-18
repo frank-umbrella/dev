@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.13.1</title>
+<title>Loadout v0.14.0</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.13.1">
+<meta name="loadout-version" content="0.14.0">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -442,6 +442,22 @@ select.fld{appearance:none;padding-right:30px;background-image:linear-gradient(4
 .onhand li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--m-line);font-size:13.5px}
 .onhand li:last-child{border-bottom:0}
 .onhand li b{font-variant-numeric:tabular-nums}
+/* 0.14.0: the locked reading under the frozen camera, and the scan history */
+.camlock{margin-top:10px;padding:10px 12px;border:1px solid var(--m-accent);border-radius:var(--m-radius);background:var(--m-card2);min-width:0}
+.camlock .lk{margin:0;display:flex;flex-direction:column;gap:2px;min-width:0}
+.camlock .lk .mono{font-size:12.5px;color:var(--m-muted);overflow-wrap:anywhere}
+.camlock .lk b{overflow-wrap:anywhere}
+.camlock .btnrow{margin-top:8px}
+.camlock .btn{min-height:44px}
+.shistw{margin-top:var(--s3)}
+.shistw .thead h3{margin:0}
+.shist{list-style:none;margin:6px 0 0;padding:0}
+.shrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;width:100%;min-height:44px;text-align:left;background:none;border:0;border-bottom:1px dashed var(--m-line);padding:8px 2px;color:inherit;font:inherit;font-size:13.5px;cursor:pointer}
+.shist li:last-child .shrow{border-bottom:0}
+.shrow .mono{grid-column:1;font-size:12.5px;color:var(--m-muted);overflow-wrap:anywhere}
+.shrow .m{grid-column:1;overflow-wrap:anywhere}
+.shrow small{grid-column:2;grid-row:1 / span 2;align-self:center;color:var(--m-muted);white-space:nowrap;font-size:12.5px}
+.prow.hl{background:color-mix(in srgb,var(--m-accent) 12%,transparent);box-shadow:inset 3px 0 0 var(--m-accent)}
 
 /* ---------- toast + modal ---------- */
 /* 12c item 8: just under the sticky header (sizeChrome sets --toast-top), so on the phone it sits in the thumb's view and never behind the notch */
@@ -1487,7 +1503,7 @@ a.textbtn{display:inline-flex;align-items:center}
     <!-- 0.10.0: the mark and name are one link to the person's Home; a relative hash keeps the demo's query string -->
     <a class="brand" href="#home" id="brandHome" aria-label="Loadout, go to Home">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.13.1</span>
+      Loadout <span class="v" id="verBadge">v0.14.0</span>
     </a>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
@@ -1526,7 +1542,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.13.1</span>
+    <span id="footVer">Loadout v0.14.0</span>
   </footer>
 
   <nav class="tabbar" aria-label="Views">
@@ -1552,7 +1568,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.13.1";
+const VERSION = "0.14.0";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -2291,6 +2307,12 @@ const TIPS = {
   "xupc": "Opens Scan and waits for the next barcode, which becomes this product's UPC once you confirm it.",
   "photoRemove": "Deletes the photo from storage after you confirm. The product and its counts stay. It cannot be undone; Add photo or Find a photo puts a new one on.",
   "startCam": "Asks the browser for the camera again. If it was blocked, allow it in the browser's site settings first.",
+  /* 0.14.0 (PLAN 33.1 items 7, 8, 10): the scan lock, the scan history, and the jobs on a scan result */
+  "scanUse": "Opens what this code points at, the same as a scan did before the camera was locked.",
+  "scanAgain": "Drops this reading and starts the camera again, for when it read the wrong label.",
+  "scanHist": "Looks this code up again as if it were scanned now, so the answer is current.",
+  "scanHistClear": "Empties the list of codes scanned on this phone for you. Nothing in Loadout changes.",
+  "scanPull": "Opens this job's Pull screen with this product's line marked. Nothing is pulled until you pull it there.",
   "linkUpc": "Saves this barcode as the UPC of the product you picked, after a confirm, so scanning it finds that product from now on.",
   "printOne:prod": "Opens a print preview of this product's QR label. Scanning it opens the product.",
   "printOne:item": "Opens a print preview of this unit's QR label, with its serial or MAC. Scanning it shows who has the unit.",
@@ -2603,7 +2625,9 @@ function ensureXLSX() {
 function qrSvg(text) {
   if (typeof window.qrcode !== "function") return '<svg viewBox="0 0 10 10"><text x="0" y="6" font-size="3">QR</text></svg>';
   const q = window.qrcode(0, "M"); q.addData(text); q.make();
-  const n = q.getModuleCount(), m = 2; let d = "";
+  /* 0.14.0: a 4-module white border (the QR standard's quiet zone, was 2), in the
+     same printed size, so the modules shrink a little instead of the label changing */
+  const n = q.getModuleCount(), m = 4; let d = "";
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += "M" + (c + m) + " " + (r + m) + "h1v1h-1z";
   return '<svg viewBox="0 0 ' + (n + m * 2) + " " + (n + m * 2) + '" shape-rendering="crispEdges" aria-hidden="true"><rect width="100%" height="100%" fill="#fff"/><path d="' + d + '" fill="#000"/></svg>';
 }
@@ -5375,24 +5399,30 @@ function openMiniScan(onProduct) {
    {ok|bad: text} shows under the picture; the same code read again within
    two seconds is the camera seeing it twice, not a second scan). */
 function openCamScan(o) {
-  const body = '<div class="mscan"><div class="cam mcam"><video id="msVideo" playsinline muted></video><div class="box"></div><p class="camhint" id="msHint">Starting the camera</p></div>' +
+  const body = '<div class="mscan"><div class="cam mcam"><video id="msVideo" playsinline muted></video><div class="box"></div><span class="read" id="msRead" hidden></span><p class="camhint" id="msHint">Starting the camera</p></div>' +
     '<p class="hint" id="msSaid" role="status" aria-live="polite"' + (o.once ? " hidden" : "") + '></p>' +
     '<label class="lab" for="msCode">' + esc(o.typeLabel || "Or type the code") + '</label><div class="srow"><input class="fld mono" id="msCode" autocomplete="off" spellcheck="false"><button type="button" class="btn" id="msGo"' + (o.once ? "" : ' title="Uses the typed code as if the camera had read it."') + ">" + (o.once ? "Find" : "Use") + '</button></div><p class="err" id="msErr" role="alert" hidden></p></div>';
-  let stream = null, timer = null, reader = null, done = false, last = "", lastAt = 0;
-  const stop = () => { clearInterval(timer); timer = null; if (reader) { try { reader.reset(); } catch (e) {} reader = null; } if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } };
+  let stream = null, timer = null, reader = null, done = false, readT = null;
+  const seen = { last: "", lastAt: 0, seenAt: 0 };
+  const stop = () => { clearTimeout(readT); clearInterval(timer); timer = null; if (reader) { try { reader.reset(); } catch (e) {} reader = null; } if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } };
   const w = openModal(o.title || "Scan a label", body, '<button type="button" class="btn' + (o.once ? "" : " acc") + '" data-close>' + (o.once ? "Cancel" : "Done") + "</button>", { onClose: stop, noFocus: true });
-  const hint = $("#msHint", w), err = $("#msErr", w), said = $("#msSaid", w);
+  const hint = $("#msHint", w), err = $("#msErr", w), said = $("#msSaid", w), rd = $("#msRead", w);
+  /* 0.14.0 (PLAN 33.1 item 8): no confirm tap in a chain of scans; the read code
+     shows on the picture for 1.5 s, and the same label is not counted twice (sameRead) */
   const hit = (code, typed) => {
     code = String(code || "").trim();
     if (done || !code) return;
-    if (!typed && code === last && Date.now() - lastAt < 2000) return;
-    last = code; lastAt = Date.now();
+    const now = Date.now();
+    if (!typed && sameRead(seen, code, now)) return;
+    seen.last = code; seen.lastAt = seen.seenAt = now;
+    if (!typed) { rd.textContent = codeText(code); rd.hidden = false; clearTimeout(readT); readT = setTimeout(() => { rd.hidden = true; }, 1500); }
     const r = o.onCode(code) || {};
     if (r.bad) { err.textContent = r.bad; err.hidden = false; if (said) said.textContent = ""; return; }
     err.hidden = true;
     if (o.once) { done = true; closeModal(w); return; }
     said.textContent = r.ok || "Read " + code + ".";
   };
+  w._read = code => hit(code); /* demo checks by script feed it a camera read */
   $("#msGo", w).addEventListener("click", () => { hit($("#msCode", w).value, true); $("#msCode", w).value = ""; });
   $("#msCode", w).addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); hit(e.target.value, true); e.target.value = ""; } });
   (async () => {
@@ -6307,7 +6337,7 @@ function unitShort(i) {
    jobs only waiting on orders; every card opens the focused Pull screen */
 function renderPull() {
   const el = $("#v-pull");
-  if (S.pullJob) { el.innerHTML = pullJobHTML(); return; }
+  if (S.pullJob) { el.innerHTML = pullJobHTML(); pullFocus(el); return; }
   const pj = pullJobs(), now = pj.now.sort(byInstall), waiting = pj.waiting.sort(byInstall), st = jobsStateHTML(), toPull = t => jobHref(t, "pull");
   let h = bandHTML("pull") + '<div class="mcard">' + backHomeHTML() + '<div class="thead"><h2 class="vt">Pull for a job</h2></div><p class="hint" style="margin:0 0 var(--s2)">Jobs with lines on the shelf, soonest install first. Open one and pull it shelf by shelf.</p>';
   if (st) h += st;
@@ -6319,6 +6349,17 @@ function renderPull() {
       jobCardsHTML(waiting, "", t => ({ label: "See what is waiting", href: toPull(t) }), null, toPull);
   }
   el.innerHTML = h + "</div>";
+}
+/* 0.14.0: Pull for this job on a scan result marks that product's rows and
+   scrolls to the first, once the job's lines are drawn */
+function pullFocus(el) {
+  const f = S.pullFocus; if (!f) return;
+  if (f.tid !== S.pullJob) { S.pullFocus = null; return; }
+  const t = S.tickets.get(f.tid); if (!t || !S.linesLoaded.has(t.id)) return;
+  S.pullFocus = null;
+  const rows = $$(".prow[data-pid]", el).filter(r => r.dataset.pid === f.pid); if (!rows.length) return;
+  rows.forEach(r => r.classList.add("hl"));
+  requestAnimationFrame(() => rows[0].scrollIntoView({ block: "center" }));
 }
 /* what one job still needs from the shelves, split by where to pull it from.
    A line split across two shelves gets a row under each with its share; the
@@ -6366,7 +6407,7 @@ function pullJobHTML() {
     h += '<section class="pgrp" aria-label="Pull from ' + esc(k) + '"><div class="ph"><h3>' + esc(k) + '</h3><span class="n">' + rows.length + " line" + (rows.length > 1 ? "s" : "") + "</span></div>" + rows.map(r => {
       const l = r.l, staged = num(l.qtyStaged), box = r.ft && r.boxes.length ? r.boxes[0] : null;
       const sub = [lqty(l, r.qty) + " needed here" + (r.qty < lineLeft(l) ? " of " + lqty(l, lineLeft(l)) + " left" : ""), box ? "box " + r.boxes.map(c => c.label).join(", ") : "", staged ? lqty(l, staged) + " already in " + bay : ""].filter(Boolean).join(", ");
-      return '<div class="prow"><div class="pw"><b>' + esc(lineName(l)) + "</b><small>" + esc(sub) + "</small></div>" +
+      return '<div class="prow" data-pid="' + esc(l.productId || "") + '"><div class="pw"><b>' + esc(lineName(l)) + "</b><small>" + esc(sub) + "</small></div>" +
         (W ? '<button type="button" class="btn acc" data-act="pfPull" data-id="' + esc(l.id) + '" data-from="' + esc(r.from || "") + '" data-qty="' + r.qty + '"' + (box ? ' data-box="' + esc(box.id) + '"' : "") + ' title="Opens the pull sheet for this shelf with the quantity filled in; scan the shelf or the unit there if you like">Pull ' + esc(lqty(l, r.qty)) + "</button>" : "") + "</div>";
     }).join("") + "</section>";
   });
@@ -6379,14 +6420,14 @@ function pullJobHTML() {
         const l = w.l, unc = uncoveredFor(l, stock, t), links = olinksFor(t, l);
         const chips = pill("wait", w.st, { tip: w.st === "none" ? "The shelves cannot cover it and no order request carries it yet" : w.st === "approval" ? "On an order request an admin has not approved yet" : "Approved or ordered; it comes in on Receive" }) +
           links.map(x => '<span class="chip ' + olChipClass(x.o, x.ol) + '"><i></i>' + esc(olChipText(x.o, x.ol)) + "</span>").join("") + (unc > 0 && links.length ? '<span class="chip bad"><i></i>' + esc(lqty(l, unc)) + " not requested yet</span>" : "");
-        return '<div class="prow"><div class="pw"><b>' + esc(lineName(l)) + "</b><small>" + esc(lqty(l, w.qty)) + " still needed" + (w.p ? "" : ", not in the catalog") + '</small><div class="chips">' + chips + "</div></div></div>";
+        return '<div class="prow" data-pid="' + esc(l.productId || "") + '"><div class="pw"><b>' + esc(lineName(l)) + "</b><small>" + esc(lqty(l, w.qty)) + " still needed" + (w.p ? "" : ", not in the catalog") + '</small><div class="chips">' + chips + "</div></div></div>";
       }).join("") + "</section>";
   }
   if (pl.inBay.length) h += '<section class="pgrp quiet" aria-label="In the staging area"><div class="ph"><h3>In the staging area</h3><span class="n">' + pl.inBay.length + " line" + (pl.inBay.length > 1 ? "s" : "") + " pulled</span></div>" +
     pl.inBay.map(l => {
       const van = lineInVan(l), dl = num(l.qtyDelivered), here = lineInBay(l);
       const where = [here ? lqty(l, here) + " in " + bay : "", van ? lqty(l, van) + " in the van" + (l.pickedUpByName ? " with " + l.pickedUpByName : "") : "", dl ? lqty(l, dl) + " delivered" : ""].filter(Boolean).join(", ") || lqty(l, l.qtyStaged) + " pulled";
-      return '<div class="prow done"><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><div class="pw"><b>' + esc(lineName(l)) + '<span class="sr">, pulled</span></b><small>' + esc(where) + "</small></div></div>";
+      return '<div class="prow done" data-pid="' + esc(l.productId || "") + '"><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><div class="pw"><b>' + esc(lineName(l)) + '<span class="sr">, pulled</span></b><small>' + esc(where) + "</small></div></div>";
     }).join("") + "</section>";
   if (!W) h += '<p class="hint">Read only for your role. The warehouse or an admin pulls from the shelves.</p>';
   return h + "</div>";
@@ -9010,21 +9051,22 @@ function openLocationForm(l) {
    so the video stream and anything being typed survive data updates.
    ============================================================== */
 const TORCH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8l-2 7h-4z"/><path d="M10 9v11a2 2 0 0 0 4 0V9"/></svg>';
-const CAM = { stream: null, track: null, timer: null, still: null, reader: null, last: "", lastAt: 0, torch: false };
+const CAM = { stream: null, track: null, timer: null, still: null, reader: null, last: "", lastAt: 0, seenAt: 0, torch: false, lock: null };
 function renderScan() {
   const el = $("#v-scan");
   if (!el.dataset.built) {
     el.dataset.built = "1";
     el.innerHTML = '<div class="scangrid"><div class="mcard"><div class="thead"><h2 class="vt">Scan</h2><span class="sp" id="locChipWrap"></span></div>' +
-      '<div class="cam" id="cam"></div>' +
+      '<div class="cam" id="cam"></div><div class="camlock" id="camLock" role="status" aria-live="polite" hidden></div>' +
       '<form class="manual" id="manualForm" autocomplete="off"><label class="sr" for="manualCode">Code</label><input class="fld" id="manualCode" placeholder="UPC, model, box label, or QR text" title="For a torn label or no camera. Type a UPC, a model like U6-Pro, a box label like A826, the line printed under a QR, or loadout:job: and the number from a pull sheet."><button type="submit" class="btn acc">Look up</button></form>' +
-      '<p class="hint" id="scanHelp">Shelf, box, and unit labels open their card here. The QR on a printed pull sheet opens that job.</p><p class="hint" id="upcPending" hidden></p></div>' +
+      '<p class="hint" id="scanHelp">Shelf, box, and unit labels open their card here. The QR on a printed pull sheet opens that job.</p><p class="hint" id="upcPending" hidden></p><div class="shistw" id="scanHist"></div></div>' +
       '<div class="mcard res" id="scanResult" aria-live="polite"></div></div>';
     $("#manualForm").addEventListener("submit", e => { e.preventDefault(); const v = $("#manualCode").value.trim(); if (v) { route(v); $("#manualCode").value = ""; } });
     paintCam("idle");
     paintScanResult();
   }
   paintLocChip();
+  paintScanHist();
   if (S.retryCode && S.loaded.products && !S.errors.products) { const code = S.retryCode; S.retryCode = null; route(code); }
   const up = $("#upcPending");
   if (S.pendingUpcFor && S.products.get(S.pendingUpcFor)) { up.hidden = false; up.innerHTML = "Waiting for a barcode to set as the UPC of <b>" + esc(productName(S.products.get(S.pendingUpcFor))) + '</b>. <button type="button" class="textbtn" data-act="cancelUpc">Cancel</button>'; }
@@ -9082,7 +9124,7 @@ async function startCamera() {
     try { const sup = await window.BarcodeDetector.getSupportedFormats(); formats = formats.filter(f => sup.includes(f)); } catch (e) {}
     const det = new window.BarcodeDetector({ formats });
     CAM.timer = setInterval(async () => {
-      if (!v.videoWidth) return;
+      if (!v.videoWidth || CAM.lock) return;
       try { const r = await det.detect(v); if (r && r[0]) onCode(r[0].rawValue); } catch (e) {}
     }, 280);
   } else {
@@ -9106,7 +9148,7 @@ function stopCamera(keepCard) {
   clearInterval(CAM.timer); CAM.timer = null; clearTimeout(CAM.still);
   if (CAM.reader) { try { CAM.reader.reset(); } catch (e) {} CAM.reader = null; }
   if (CAM.stream) { CAM.stream.getTracks().forEach(t => t.stop()); CAM.stream = null; }
-  CAM.track = null; CAM.torch = false;
+  CAM.track = null; CAM.torch = false; CAM.lock = null; paintLock();
   if (!keepCard && $("#cam")) paintCam("idle");
 }
 async function toggleTorch() {
@@ -9119,56 +9161,144 @@ function focusManual() { const m = $("#manualCode"); if (m) setTimeout(() => m.f
 function loadScript(src) {
   return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = () => rej(new Error("load failed")); document.head.appendChild(s); });
 }
+/* 0.14.0: one label is not read twice. The same code is ignored for 2 s after it
+   was used, and for as long as it stays in view (seen again within 1 s); a
+   different code always counts. st holds last, lastAt (used) and seenAt. */
+function sameRead(st, code, now) {
+  if (code !== st.last) return false;
+  const held = now - st.lastAt < 2000 || now - st.seenAt < 1000;
+  st.seenAt = now;
+  return held;
+}
+/* a label read as a link shows as its short printed line */
+function codeText(code) { const l = parseLabel(code); return l ? "loadout:" + l.kind + ":" + l.id : String(code || ""); }
+/* 0.14.0 (PLAN 33.1 item 8): the first good read freezes the picture and stops
+   reading, so the result cannot change while the phone moves. Use this code
+   acts on it; Scan again drops it. Typed codes never lock (route directly). */
 function onCode(raw) {
-  const code = String(raw || "").trim(); if (!code) return;
-  const now = Date.now();
-  if (code === CAM.last && now - CAM.lastAt < 3000) return;
-  CAM.last = code; CAM.lastAt = now;
+  const code = String(raw || "").trim(); if (!code || CAM.lock) return;
+  if (sameRead(CAM, code, Date.now())) return;
+  CAM.lock = code;
   try { if (navigator.vibrate) navigator.vibrate(40); } catch (e) {}
-  const r = $("#camRead"); if (r) { r.textContent = code; r.hidden = false; }
+  const v = $("#camVideo"); if (v) { try { v.pause(); } catch (e) {} }
+  clearTimeout(CAM.still);
+  const h = $("#camHint"); if (h) h.textContent = "Locked on this reading";
+  paintLock();
+}
+function paintLock() {
+  const el = $("#camLock"); if (!el) return;
+  const code = CAM.lock, rd = $("#camRead");
+  if (!code) { el.hidden = true; el.innerHTML = ""; if (rd) rd.hidden = true; return; }
+  el.innerHTML = '<p class="lk"><span class="mono">' + esc(codeText(code)) + "</span><b>" + esc(scanMatchText(resolveCode(code))) + "</b></p>" +
+    '<div class="btnrow"><button type="button" class="btn acc" data-act="scanUse">Use this code</button><button type="button" class="btn" data-act="scanAgain">Scan again</button></div>';
+  el.hidden = false;
+  if (rd) { rd.textContent = codeText(code); rd.hidden = false; }
+}
+function unlockCam(use) {
+  const code = CAM.lock; if (!code) return;
+  const now = Date.now();
+  CAM.lock = null;
+  /* after Use, the same label stays ignored until it leaves the picture; after Scan again it reads at once */
+  if (use) { CAM.last = code; CAM.lastAt = CAM.seenAt = now; } else CAM.last = "";
+  paintLock();
+  const v = $("#camVideo"); if (v && CAM.stream) { try { const p = v.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
   armStill();
-  route(code);
+  if (use) route(code);
+}
+
+/* 0.14.0: what a code points at, with no side effects. route() acts on it; the
+   scan lock and the scan history name it with scanMatchText. */
+function resolveCode(code) {
+  /* 0.13.1: the label forms (old text, the new link, bare kind:id) all come through parseLabel */
+  const m = parseLabel(code);
+  if (m && m.kind === "job") return S.tickets.has(m.id) || !S.loaded.tickets ? { kind: "job", id: m.id } : { kind: "unknown", code };
+  if (!S.loaded.products || S.errors.products) return { kind: "retry", code };
+  if (m) {
+    const kind = m.kind, id = m.id;
+    if (kind === "loc") return S.locations.get(id) ? { kind: "loc", id } : { kind: "unknown", code };
+    if (kind === "ctr") return S.containers.get(id) ? { kind: "ctr", id } : { kind: "unknown", code };
+    if (kind === "item") return S.items.get(id) ? { kind: "item", id } : { kind: "unknown", code };
+    return S.products.get(id) ? { kind: "prod", id } : { kind: "unknown", code };
+  }
+  const q = code.toLowerCase().replace(/\s+/g, " ");
+  const prods = Array.from(S.products.values());
+  let p = prods.find(x => x.upc && x.upc === code);
+  if (!p) p = prods.find(x => x.model && x.model.toLowerCase() === q);
+  const c = !p && Array.from(S.containers.values()).find(x => String(x.label).toLowerCase() === q || x.id === slug(code));
+  const box = !p && !c && Array.from(S.containers.values()).find(x => x.upc && x.upc === code);
+  /* 0.7.0: a typed serial or MAC finds its unit */
+  const mc = macOf(code);
+  const unit = !p && !c && !box && Array.from(S.items.values()).find(x => (x.serial && String(x.serial).toLowerCase() === q) || (mc && x.mac === mc));
+  if (unit) return { kind: "item", id: unit.id };
+  if (p) return { kind: "prod", id: p.id };
+  if (c) return { kind: "ctr", id: c.id };
+  if (box) return { kind: "prod", id: box.productId };
+  const hits = prods.filter(x => productName(x).toLowerCase().includes(q)).slice(0, 8);
+  return hits.length && !/^\d{6,}$/.test(code) ? { kind: "hits", code, ids: hits.map(h => h.id) } : { kind: "unknown", code };
+}
+function scanMatchText(r) {
+  if (r.kind === "job") { const t = S.tickets.get(r.id); return t ? "Job #" + t.number + (t.clientName ? ", " + t.clientName : "") : "A job, still loading"; }
+  if (r.kind === "prod") { const p = S.products.get(r.id); return p ? "Product: " + productName(p) : "Not found"; }
+  if (r.kind === "item") { const i = S.items.get(r.id); return i ? "Unit: " + (i.productName || "") + ", " + unitShort(i) : "Not found"; }
+  if (r.kind === "ctr") { const c = S.containers.get(r.id), p = c && S.products.get(c.productId); return c ? "Box " + c.label + (p ? ", " + productName(p) : "") : "Not found"; }
+  if (r.kind === "loc") { const l = S.locations.get(r.id); return l ? (l.kind === "bay" ? "Staging area: " : l.kind === "van" ? "Van: " : "Shelf: ") + l.name : "Not found"; }
+  if (r.kind === "hits") return r.ids.length + " product" + (r.ids.length > 1 ? "s" : "") + " with that in the name";
+  if (r.kind === "retry") return "Not looked up yet (offline)";
+  return "Not found";
 }
 
 /* routing on the payload prefix; a plain code is a UPC, model, or box label */
-function route(code) {
+function route(code, opt) {
+  const lab = parseLabel(code), r = resolveCode(code), upcWait = S.pendingUpcFor && !lab && r.kind !== "job";
+  if (!upcWait && !(opt && opt.noLog)) logScan(code, r);
   /* 0.9.0: a pull sheet's QR opens that job: the Pull screen for whoever pulls, the job page for everyone else */
-  /* 0.13.1: the label forms (old text, the new link, bare kind:id) all come through parseLabel */
-  const lab = parseLabel(code), jm = lab && lab.kind === "job" ? lab : null;
-  if (jm) { const id = jm.id; if (S.tickets.has(id) || !S.loaded.tickets) { go(isWriter() ? "pull" : "ticket", id); return; } S.scan = { kind: "unknown", code }; paintScanResult(); return; }
-  const m = lab;
-  if (S.pendingUpcFor && !m) { confirmUpc(S.pendingUpcFor, code); return; }
-  if (!S.loaded.products || S.errors.products) { S.scan = { kind: "retry", code }; paintScanResult(); return; }
-  if (m) {
-    const kind = m.kind, id = m.id;
-    if (kind === "loc") {
-      if (S.locations.get(id)) { setActiveLoc(id); S.scan = { kind: "loc", id }; }
-      else S.scan = { kind: "unknown", code };
-    } else if (kind === "ctr") S.scan = S.containers.get(id) ? { kind: "ctr", id } : { kind: "unknown", code };
-    else if (kind === "item") S.scan = S.items.get(id) ? { kind: "item", id } : { kind: "unknown", code };
-    else S.scan = S.products.get(id) ? { kind: "prod", id } : { kind: "unknown", code };
-  } else {
-    const q = code.toLowerCase().replace(/\s+/g, " ");
-    const prods = Array.from(S.products.values());
-    let p = prods.find(x => x.upc && x.upc === code);
-    if (!p) p = prods.find(x => x.model && x.model.toLowerCase() === q);
-    const c = !p && Array.from(S.containers.values()).find(x => String(x.label).toLowerCase() === q || x.id === slug(code));
-    const box = !p && !c && Array.from(S.containers.values()).find(x => x.upc && x.upc === code);
-    /* 0.7.0: a typed serial or MAC finds its unit */
-    const mc = macOf(code);
-    const unit = !p && !c && !box && Array.from(S.items.values()).find(x => (x.serial && String(x.serial).toLowerCase() === q) || (mc && x.mac === mc));
-    if (unit) S.scan = { kind: "item", id: unit.id };
-    else if (p) S.scan = { kind: "prod", id: p.id };
-    else if (c) S.scan = { kind: "ctr", id: c.id };
-    else if (box) S.scan = { kind: "prod", id: box.productId };
-    else {
-      const hits = prods.filter(x => productName(x).toLowerCase().includes(q)).slice(0, 8);
-      S.scan = hits.length && !/^\d{6,}$/.test(code) ? { kind: "hits", code, ids: hits.map(h => h.id) } : { kind: "unknown", code };
-    }
-  }
+  if (r.kind === "job") { go(isWriter() ? "pull" : "ticket", r.id); return; }
+  if (upcWait) { confirmUpc(S.pendingUpcFor, code); return; }
+  if (r.kind === "loc") setActiveLoc(r.id);
+  S.scan = r;
   paintScanResult();
 }
 function refreshScan() { if (S.view === "scan") setTimeout(paintScanResult, 60); }
+/* 0.14.0 (PLAN 33.1 item 7): the codes scanned on this phone, per signed-in
+   person (demo has its own key), newest first, 50 at most, none older than 7
+   days. Device storage only, so no rules change; every read and write is
+   wrapped, and blocked storage just means no history. */
+const HIST_MAX = 50, HIST_DAYS = 7;
+function histKey() { return DEMO ? "loadout.scanHist.demo" : S.user && S.user.uid ? "loadout.scanHist." + S.user.uid : ""; }
+function histRead() {
+  const k = histKey(); if (!k) return [];
+  try {
+    const a = JSON.parse(localStorage.getItem(k) || "[]"), cut = Date.now() - HIST_DAYS * 864e5;
+    return Array.isArray(a) ? a.filter(e => e && typeof e.c === "string" && e.c && num(e.t) > cut).slice(0, HIST_MAX) : [];
+  } catch (e) { return []; }
+}
+function histWrite(a) {
+  const k = histKey(); if (!k) return;
+  try { if (a.length) localStorage.setItem(k, JSON.stringify(a.slice(0, HIST_MAX))); else localStorage.removeItem(k); } catch (e) {}
+}
+/* the same code scanned again in a row moves its time up instead of adding a row */
+function logScan(code, r) {
+  const a = histRead(), e = { c: codeText(code), m: scanMatchText(r), t: Date.now() };
+  if (a[0] && a[0].c === e.c) a[0] = e; else a.unshift(e);
+  histWrite(a); paintScanHist();
+}
+function histWhen(t) {
+  const d = new Date(t), today = new Date(); today.setHours(0, 0, 0, 0);
+  if (d >= today) return fmtTime(d);
+  if (d.getTime() >= today.getTime() - 864e5) return "Yesterday " + fmtTime(d);
+  return fmtWhen(d);
+}
+function paintScanHist() {
+  const el = $("#scanHist"); if (!el) return;
+  const a = histRead();
+  const h = '<div class="thead"><h3 class="h4">Scanned on this phone</h3>' + (a.length ? '<span class="sp"><button type="button" class="btn sm" data-act="scanHistClear">Clear</button></span>' : "") + "</div>" +
+    (a.length ? '<ul class="shist">' + a.map(e => '<li><button type="button" class="shrow" data-act="scanHist" data-code="' + esc(e.c) + '"><span class="mono">' + esc(e.c) + '</span><span class="m">' + esc(e.m || "") + "</span><small>" + esc(histWhen(e.t)) + "</small></button></li>").join("") + "</ul>"
+      : '<p class="hint" style="margin:4px 0 0">Nothing scanned on this phone in the last 7 days.</p>');
+  if (el._h !== h) { el._h = h; el.innerHTML = h; }
+}
+function clearScanHist() {
+  confirmModal("Clear the scan history", "<p>Empties the list of codes scanned on this phone. Nothing in Loadout changes.</p>", "Clear", () => { histWrite([]); paintScanHist(); toast("Scan history cleared"); }, true);
+}
 function confirmUpc(pid, code) {
   const p = S.products.get(pid); if (!p) { S.pendingUpcFor = null; return; }
   const other = Array.from(S.products.values()).find(x => x.upc === code && x.id !== pid);
@@ -9183,9 +9313,9 @@ function paintScanResult() {
   const sc = S.scan;
   if (!sc) { el.innerHTML = '<div class="rk"><span>Result</span></div><p class="hint">Nothing scanned yet. A shelf label sets the location; a box UPC opens the product; a box QR opens its sheet; a unit QR shows who has it.</p>'; return; }
   if (sc.kind === "retry") { el.innerHTML = '<div class="rk"><span>Lookup</span></div><p class="err">Could not look that up. It is saved to retry when you are back online.</p><p class="mono">' + esc(sc.code) + "</p>"; S.retryCode = sc.code; return; }
-  if (sc.kind === "prod") { el.innerHTML = productCard(S.products.get(sc.id)); return; }
+  if (sc.kind === "prod") { el.innerHTML = productCard(S.products.get(sc.id)) + scanJobsHTML("prod", S.products.get(sc.id)); return; }
   if (sc.kind === "ctr") { const c = S.containers.get(sc.id); el.innerHTML = boxSheetHTML(c, "bs"); bindBoxSheet(el, c, "bs"); return; }
-  if (sc.kind === "item") { el.innerHTML = itemCard(S.items.get(sc.id)); return; }
+  if (sc.kind === "item") { el.innerHTML = itemCard(S.items.get(sc.id)) + scanJobsHTML("item", S.items.get(sc.id)); return; }
   if (sc.kind === "loc") {
     const l = S.locations.get(sc.id);
     const tks = l.kind === "bay" ? ticketForBay(l.id) : [], job = l.kind === "bay" ? Array.from(S.jobs.values()).find(j => j.stagingLocationId === l.id && j.status !== "closed") : null;
@@ -9212,6 +9342,32 @@ function paintScanResult() {
         noUpc.slice(0, 400).map(p => '<option value="' + esc(p.id) + '">' + esc(productName(p)) + "</option>").join("") + '</select><button type="button" class="btn acc" data-act="linkUpc" data-code="' + esc(sc.code) + '">Link</button></div>' : "") +
       '<div class="btnrow"><button type="button" class="btn' + (isUpc && noUpc.length ? "" : " acc") + '" data-act="newProduct" data-upc="' + (isUpc ? esc(sc.code) : "") + '" data-prefill="' + (isUpc ? "" : esc(sc.code)) + '">New product</button></div>');
   wireGlow(el);
+}
+/* 0.14.0 (PLAN 33.1 item 10): the open jobs a scanned unit or product is on;
+   nothing at all when it is on none. It never opens a job by itself. A
+   product's numbers are the Pull screen's own: qtyStaged is pulled, lineLeft
+   is still to pull. Only a role that pulls on the Pull screen gets Pull. */
+function scanJobsHTML(kind, x) {
+  if (!x || !S.loaded.tickets) return "";
+  const head = t => "Job #" + t.number + (t.proposalId ? ", proposal #" + t.proposalId : "");
+  const openBtn = t => '<button type="button" class="btn" data-act="ticket" data-id="' + esc(t.id) + '">Open the job</button>';
+  const row = (t, sub, btn) => '<div class="prow"><div class="pw"><b>' + esc(head(t)) + "</b><small>" + esc([t.clientName || "No client", sub].join(", ")) + "</small></div>" + btn + "</div>";
+  let rows = [];
+  if (kind === "item") {
+    const t = x.ticketId ? S.tickets.get(x.ticketId) : null;
+    if (!t || t.status === "closed") return "";
+    const where = x.status === "checked_out" ? "in a van" + (x.holderName ? " with " + x.holderName : "") : x.status === "installed" ? "at the client" :
+      x.status === "staged" ? "in the staging area" + (x.locationId ? ", " + locName(x.locationId) : "") : "on the shelf" + (x.locationId ? ", " + locName(x.locationId) : "");
+    rows.push(row(t, "now " + where, openBtn(t)));
+  } else {
+    liveJobs().sort(byInstall).forEach(t => {
+      const ls = ticketLines(t.id).filter(l => l.productId === x.id && num(l.qtyNeeded) > 0); if (!ls.length) return;
+      const pulled = ls.reduce((s, l) => s + num(l.qtyStaged), 0), left = ls.reduce((s, l) => s + lineLeft(l), 0);
+      rows.push(row(t, lqty(ls[0], pulled) + " pulled, " + lqty(ls[0], left) + " still to pull",
+        left > 0 && isWriter() ? '<button type="button" class="btn acc" data-act="scanPull" data-id="' + esc(t.id) + '" data-pid="' + esc(x.id) + '">Pull for this job</button>' : openBtn(t)));
+    });
+  }
+  return rows.length ? '<h4 class="h4" style="margin-top:12px">On these jobs</h4><div class="scanjobs">' + rows.join("") + "</div>" : "";
 }
 function productCard(p) {
   if (!p) return '<p class="err">That product is gone from the catalog.</p>';
@@ -11195,6 +11351,8 @@ if (DEMO) window.Loadout = { tipAudit, importBuffer:(buf, name) => importLoad(bu
   lists: { normKey, tidyName, brandList, categoryList, listSpell, importOps: () => S.imp && S.imp.plan ? importOps(S.imp.plan) : null },
   /* 0.13.1 (PLAN 33): the label link and the one parser every scan path uses, for the checks by script */
   labels: { labelLink, parseLabel, scanParse, productByCode },
+  /* 0.14.0: the Scan screen's read handler, the lookup, the history, and the QR drawing, for the checks by script */
+  scan: { onCode, resolveCode, histRead, qrSvg },
   /* 0.5.0 checks by script: sync({online:false, pending:3}) drives the pill (sync(null) goes back to Demo);
      pending("products", id, true) puts the pending chip on a row; install("prompt"|"ios"|"menu"|"none"|null) picks the home screen card */
   sync: st => { S.demoSync = st ? { online: st.online !== false, pending: Math.max(0, num(st.pending)) } : null; paintSync(); return syncState(); },
@@ -11301,6 +11459,11 @@ document.addEventListener("click", e => {
     case "backToStock": openMoveItem(I(), true); break;
     case "nudge": nudge(I()); break;
     case "startCam": startCamera(); break;
+    case "scanUse": unlockCam(true); break;
+    case "scanAgain": unlockCam(false); break;
+    case "scanHist": route(b.dataset.code, { noLog: true }); if (S.view === "scan" && $("#scanResult")) $("#scanResult").scrollIntoView({ block: "start" }); break;
+    case "scanHistClear": clearScanHist(); break;
+    case "scanPull": S.pullFocus = { tid: id, pid: b.dataset.pid }; go("pull", id); break;
     case "clearLoc": setActiveLoc(null); break;
     case "cancelUpc": S.pendingUpcFor = null; render(true); break;
     case "linkUpc": { const sel = $("#linkUpc"); if (!sel || !sel.value) { toast("Pick the product first.", true); return; } S.pendingUpcFor = sel.value; confirmUpc(sel.value, b.dataset.code); break; }
