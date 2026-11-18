@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP, Tech spec and History v0.15.0</title>
+<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP, Tech spec and History v0.16.0</title>
 <meta name="description" content="Storyboard and functional SOP for Loadout, the internal inventory, job, and order tracking tool, matching the built app. The shop's reference document.">
 <meta name="robots" content="noindex, nofollow">
-<meta name="version" content="0.15.0">
+<meta name="version" content="0.16.0">
 <script>
   // ?print=1 strips the chrome for a PDF. ?tab=pictures|overview|drive|story|sop|tech|history picks the tab
   // (In pictures when none is given); ?sheet=warehouse|tech|office|accounting|all lays out the role sheets;
@@ -674,7 +674,7 @@
     Loadout
   </h1>
   <p class="subtitle">How product moves through the shop, from approved proposal to installed, and what gets recorded at each step</p>
-  <p class="meta">Version 0.15.0, updated Nov 18, 2026 <a href="#history" id="whatChanged">What changed</a></p>
+  <p class="meta">Version 0.16.0, updated Nov 18, 2026 <a href="#history" id="whatChanged">What changed</a></p>
 
   <div class="tabs" role="tablist" aria-label="Sections of this document">
     <button type="button" role="tab" id="tabbtn-pictures" aria-controls="tab-pictures" aria-selected="true" data-tab="pictures">In pictures<span class="hint">nine panels and one chart</span></button>
@@ -1051,7 +1051,7 @@
   </div>
   <div class="sheets">
     <article class="sheet" id="role-warehouse" data-role="warehouse">
-      <div class="phead"><b>Your job in Loadout: Warehouse</b><span>Loadout v0.15.0</span></div>
+      <div class="phead"><b>Your job in Loadout: Warehouse</b><span>Loadout v0.16.0</span></div>
       <h4>Warehouse</h4>
       <p class="who">Shelves, the Tech area, the dock door. Phone in hand most of the day.</p>
       <ol>
@@ -1062,14 +1062,14 @@
         <li><b>Receive a shipment:</b> arrived boxes first; Receive puts each line in the staging area with its job, or on its shelf.</li>
         <li><b>Return from a client:</b> pick the job, scan what came back, say why, and it goes back on its shelf.</li>
         <li><b>Office, Labels:</b> a label for every new shelf, wire box, and costly unit.</li>
-        <li><b>Jobs, New job:</b> Make the list yourself, for a service call with no proposal.</li>
+        <li><b>Jobs, New job:</b> Make the list yourself, for a service call with no proposal. It shows as Job # with No proposal; a job from a proposal file shows Proposal #.</li>
         <li><b>Close job:</b> scan the shelf label, then each leftover, so it goes back onto that shelf.</li>
         <li><b>Audit a shelf:</b> one shelf at a time, the longest since an audit first.</li>
         <li><b>Shelf:</b> find a product, filter by category or location, read its history.</li>
       </ol>
     </article>
     <article class="sheet" id="role-tech" data-role="tech">
-      <div class="phead"><b>Your job in Loadout: Tech</b><span>Loadout v0.15.0</span></div>
+      <div class="phead"><b>Your job in Loadout: Tech</b><span>Loadout v0.16.0</span></div>
       <h4>Tech</h4>
       <p class="who">The Tech area, the van, the client's site. The last tab reads More instead of Office.</p>
       <ol>
@@ -1078,7 +1078,7 @@
         <li><b>Confirm a delivery:</b> untick what did not arrive, note why, press Delivered to site.</li>
         <li><b>Bring back:</b> scan each unit the install did not need, or type the count, say why, and it goes from the van back to the staging area.</li>
         <li><b>Return from a client:</b> product the client had comes back; pick the job, scan it, say why, and it goes back on its shelf.</li>
-        <li><b>Scan:</b> a wire box to save its mark; a unit to check it out or in.</li>
+        <li><b>Scan:</b> a wire box to save its mark and say which job the cut is for (or Not for a job); a unit to check it out or in.</li>
         <li><b>Shelf, Out with people:</b> who has which unit, and since when.</li>
         <li><b>More:</b> Labels, Movements, This phone (Loadout on the home screen), and About.</li>
       </ol>
@@ -1092,7 +1092,7 @@
         <li><b>The job page:</b> Request what is short puts every Short line on an order request.</li>
         <li><b>Office, Orders and tracking:</b> requests waiting for your approval come first. Approve one, or Send back with a note (admin only).</li>
         <li><b>Mark ordered:</b> once a request is approved, then Add shipment with the tracking number.</li>
-        <li><b>Tracking:</b> what is on the way, and any box that arrived and was never received.</li>
+        <li><b>Tracking:</b> what is on the way and which job each box is for, and any box that arrived and was never received.</li>
         <li><b>Week:</b> the installs day by day, with each job's lines.</li>
         <li><b>Copy for Portal:</b> a status note to paste into the proposal.</li>
         <li><b>Close job:</b> once every line is delivered; leftovers are scanned back onto their shelf or written off.</li>
@@ -1135,7 +1135,7 @@
     <li><b>New job.</b> Use a proposal file (.csv) reads the file Portal exports and marks each line On the shelf list, New to Loadout, or Kept as a note. Make the list yourself is for a service call with no proposal.</li>
     <li><b>Pull.</b> The Pull screen lists each line by shelf in walking order with one button, such as Pull 2; the QR on the printed pull sheet opens it. On the job page, Pull everything in stock fills what the shelves can cover, and Show on board puts the job on the TV.</li>
     <li><b>Order and receive.</b> Request what is short puts every Short line on an order request, which waits for an admin to Approve it (or Send back with a note). Once approved: Mark ordered, then Add shipment with the tracking number. Office, Orders and tracking shows every package and the install Week. A unit at or above $250 gets its own QR and asks for its serial or MAC at Receive. A box shipped to a job site gets Mark arrived instead and never touches the shelves.</li>
-    <li><b>Wire.</b> After pulling cable, scan the box, type the footage mark into Mark now, and press Save cut; the box's feet left update.</li>
+    <li><b>Wire.</b> After pulling cable, scan the box, type the footage mark into Mark now, pick the job the cable went to (or Not for a job), and press Save cut; the box's feet left update and the job's Job report lists the cut under Wire used.</li>
     <li><b>Close.</b> Close job waits for anything still in a van. Each leftover in the staging area is scanned back onto its shelf (or counted, when it has no QR); what is not scanned back is written off with a reason, and units still out become Installed at the job. Copy for Portal copies a status note to paste into the proposal.</li>
   </ul>
 
@@ -1188,6 +1188,7 @@
     <li><b>0.6.0 to 0.7.0, 2026-11-02 to 11-05.</b> One-handed phone layout, the nightly backup listed in the app, serials and MAC addresses, and the inventory sheet's pulled units.</li>
     <li><b>0.8.0, 2026-11-05.</b> Home with the doors, the words Job and Pull sheet, Shelf and Office, Pick up as its own step, Audit a shelf, and the board as a grid of six jobs.</li>
     <li><b>0.9.0, 2026-11-11.</b> Pull has its own screen, shelf by shelf, opened from the Pull list or the QR on the printed pull sheet. Bring back takes product from a van to the bay or a shelf, and Close job waits for it. Receive a shipment is a door, and a costly unit asks for its serial or MAC there. A carrier's box has Arrived, not Delivered. The progress line names only what has happened. The wall board reads on a phone.</li>
+    <li><b>0.16.0, 2026-11-18.</b> Which job: every wire cut says which job it was for (or Not for a job), and the Job report and job page show Wire used. A job from a proposal shows Proposal #, a hand-made one Job # with No proposal. Tracking names the job each package is for.</li>
     <li><b>0.15.0, 2026-11-18.</b> Return from a client: product delivered to a client goes back on the shelf, with its condition and why it came back. Bring back and Close job's scan-back ask why too, and every door says where product moves.</li>
     <li><b>0.13.0, 2026-11-13.</b> Words and steps that match the shop. Pulled product waits in the staging area, the shop's Tech area, shared by every job; the old word for it is gone from every screen. A short line becomes an order request that an admin approves (or sends back with a note) before anyone marks it ordered, and the Pull door counts lines as Not requested yet, Waiting for approval, or On order. Close job and Bring back scan the leftovers back: the shelf label, then each unit's QR, with a count for anything without one.</li>
     <li><b>0.12.1, 2026-11-13.</b> The comic and the flow chart start where the work starts: the office uploading the proposal file from Portal when a client says yes. No change in the app.</li>
@@ -2265,7 +2266,7 @@
       <li>Press Mark ordered (it stays greyed out, with the reason, until the request is approved), type the vendor's order number, and pick where it ships: the office, or straight to the job's site.</li>
       <li>When the vendor says a line is backordered, set it to Backordered and type the vendor's ETA.</li>
       <li>When a ship notice arrives, press Add shipment, paste the tracking number, tick the lines in that box, and type the expected date. Loadout guesses the carrier from the number (1Z is UPS, 12 or 15 digits FedEx, 20 to 22 digits starting with 9 USPS); change it if it guessed wrong. One box can be sent somewhere other than the PO says.</li>
-      <li>Open Tracking each morning. Packages coming to the office are in the left column, packages going straight to a client's site in the right column grouped by client and job, and the last 30 days of packages in Recently received or arrived along the bottom. Each card shows the carrier, the tracking number as a link, what is in it, the PO and vendor, who it is for, and its status with the date and time. The filters (client and job, vendor, carrier, status, Late only) apply to all three parts.</li>
+      <li>Open Tracking each morning. Packages coming to the office are in the left column, packages going straight to a client's site in the right column grouped by client and job, and the last 30 days of packages in Recently received or arrived along the bottom. Each card shows the carrier, the tracking number as a link, what is in it, the PO and vendor, the job each line is for (Proposal # or Job #, a link to the job) or For stock, and its status with the date and time. The search finds a package by tracking number, PO, proposal or job number, or client; it and the filters (client and job, vendor, carrier, status, Late only) apply to all three parts.</li>
       <li>Late cards read like "Expected Oct 30, 3 days late" in amber; call the vendor about those.</li>
       <li>A card that reads Arrived, not received sits at the top of the Office column in amber. That is a box somewhere in the building that nobody scanned: find it and press Receive (SOP-1).</li>
       <li>For a box shipped to a job site, press Mark arrived on its card once the site has it, set the time it arrived, and add a note such as who signed. The card reads Delivered to site, and its lines count as received on the PO and staged on the job; nothing goes onto the shelves.</li>
@@ -2284,9 +2285,9 @@
       <li>Print its label (Print label on the box sheet) and stick it on the side next to the cable exit (SOP-2).</li>
       <li>After pulling cable, read the footage printed on the jacket where it leaves the box.</li>
       <li>Scan the box's label and press Use this code. The box sheet opens with the box's code, its shelf, and the feet left.</li>
-      <li>Type that number into Mark now, or tap -50, -100, or -250 to step down from the last mark.</li>
+      <li>Type that number into Mark now, or tap -50, -100, or -250 to step down from the last mark. The box sheet opens the same way from Shelf (Open box sheet under By the foot).</li>
       <li>Cut this time fills in (last mark minus mark now). Change it only if you know the real figure.</li>
-      <li>Check For job. It fills in when the box sits in a job's staging area or you scanned that staging area last; pick the job if the cable went to another job. When the job has a line for this wire, the feet count as staged on it. For job is optional free text.</li>
+      <li>Pick For which job: type the proposal or job number or the client to find it, or pick Not for a job for shop use. It is required for a cut. It starts empty with an amber glow, or with the job you picked last on this phone today, or with the job you opened the box from (Pull everything on a job lists its boxes). When the job has a line for this wire, the feet count as staged on it, and every cut for the job shows under Wire used on its Job report and job page.</li>
       <li>If the box moved, set Location. Press Save cut.</li>
       <li>End of day: before the box goes back on the rack or into the van, scan it and save the mark. It takes thirty seconds and puts the right footage and the right name on the job.</li>
       <li>To recount without a cut, tick Recount, no cut; the button changes to Save reading.</li>
@@ -2372,7 +2373,7 @@
       <li>To change a role, press Change role. When someone leaves, press Deactivate; their name stays on everything they did, and Reactivate brings them back.</li>
       <li>Settings: change what is needed and press the one Save button at the bottom.</li>
       <li>Brands and categories (from Settings): Probably the same lists anything saved two ways; press Merge into one and pick the spelling to keep. Rename or Merge into on a row changes that brand or category on every product carrying it, with one line in the history. Both need a connection.</li>
-      <li>Accounting: open Office, Reports, and pick the report: Stock on hand, Spend, Delivered, Job report, Items out, Wire usage, Movements, or Aging. The Job report has no dates: find the job by client, job name, job number, or proposal number, and it shows every line of that job with its units, boxes, PO, and costs when they are on.</li>
+      <li>Accounting: open Office, Reports, and pick the report: Stock on hand, Spend, Delivered, Job report, Items out, Wire usage, Movements, or Aging. The Job report has no dates: find the job by client, job name, job number, or proposal number, and it shows every line of that job with its units, boxes, PO, and costs when they are on, then Wire used: every box cut for the job and the feet per wire type.</li>
       <li>Set From and To (this month by default; This month and Last month fill them in), pick the view, and use Columns to hide what you do not need.</li>
       <li>Press Export CSV or Export XLSX. The file holds the rows and columns shown, with the one-line total.</li>
       <li>About lists every collection and field in the database with what it means. Export everything downloads the whole database as one workbook or as zipped CSVs, stamped with the date and time.</li>
@@ -2557,6 +2558,12 @@ Staged 9/12 lines in Tech area. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
   <p class="lede">What changed in this document, newest first. The app's own releases are in the Overview, under What is built.</p>
   <ol class="hist">
     <li>
+      <h3>0.16.0 <span class="when">Nov 18, 2026</span></h3>
+      <ul>
+        <li>SOP-6's cut step now picks For which job (required, or Not for a job) instead of the optional free text, and the box sheet opens from Shelf too. SOP-5's Tracking step names the job on each package and the search. SOP-10's Reports step adds Wire used. The Warehouse, Tech, and Office role sheets say Proposal # and Job #, the cut's job, and Tracking's job. Not redrawn: the comic, the flow chart, the deck, and the storyboard sketches still show "Job #1042" and the old For job field.</li>
+      </ul>
+    </li>
+    <li>
       <h3>0.15.0 <span class="when">Nov 18, 2026</span></h3>
       <ul>
         <li>A new door, Return from a client, puts product that comes back from a client on the shelf; SOP-13 walks through it. Bring back and Close job's scan-back now ask why it came back, and SOP-8 says so. Every door says where product moves, such as Van to client. The Warehouse and Tech sheets list the new door. The comic, the flow chart, and the training deck are not redrawn yet.</li>
@@ -2686,7 +2693,7 @@ Staged 9/12 lines in Tech area. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
 </article>
 
 <footer class="pagefoot">
-  <p>Version 0.15.0, updated Nov 18, 2026</p>
+  <p>Version 0.16.0, updated Nov 18, 2026</p>
   <button type="button" class="btn-print" id="printTab">Print this tab as PDF</button>
   <button type="button" class="btn-print" id="printAll">Print everything as PDF</button>
 </footer>

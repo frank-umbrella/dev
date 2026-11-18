@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.15.0</title>
+<title>Loadout v0.16.0</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.15.0">
+<meta name="loadout-version" content="0.16.0">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -1522,7 +1522,7 @@ a.textbtn{display:inline-flex;align-items:center}
     <!-- 0.10.0: the mark and name are one link to the person's Home; a relative hash keeps the demo's query string -->
     <a class="brand" href="#home" id="brandHome" aria-label="Loadout, go to Home">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.15.0</span>
+      Loadout <span class="v" id="verBadge">v0.16.0</span>
     </a>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
@@ -1562,7 +1562,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.15.0</span>
+    <span id="footVer">Loadout v0.16.0</span>
   </footer>
 
   <nav class="tabbar" aria-label="Views">
@@ -1588,7 +1588,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.15.0";
+const VERSION = "0.16.0";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -1763,7 +1763,7 @@ const S = {
   showArchived: false, liveLostAt: null,
   /* 0.3.0 */
   orders: new Map(), olines: new Map(), olinesLoaded: new Set(), shipments: new Map(), orderId: null,
-  ordFilter: { status: "open", vendor: "" }, trFilter: { job: "", vendor: "", carrier: "", status: "", late: false },
+  ordFilter: { status: "open", vendor: "" }, trFilter: { job: "", vendor: "", carrier: "", status: "", late: false, q: "" },
   weekOff: 0, x: null, focusLine: null,
   /* 0.4.0: the Console. rr is the report date range (default this month),
      rf the per-report view choices, rep what the reports last read */
@@ -1911,7 +1911,7 @@ function mvWhat(m) {
   if (m.toLocationName) parts.push("to " + m.toLocationName);
   if (m.holderName && m.type === "checkout") parts.push("held by " + m.holderName);
   if (m.jobName) parts.push("for " + m.jobName);
-  if (m.ticketNumber) parts.push("job #" + m.ticketNumber);
+  if (m.ticketNumber) parts.push(jobLabelOf(m, 1));
   if (m.note) parts.push(m.note);
   return parts.filter(Boolean).join(", ");
 }
@@ -2475,7 +2475,7 @@ const TIPS = {
   /* marker attributes and forms */
   "boxq": "Lowers Mark now by this many feet, for a cut of a known length. Nothing is saved until Save cut.",
   "boxEmpty": "Writes a final cut down to zero and closes the box, after a confirm. It drops out of on hand, and an emptied box cannot be reopened from the app.",
-  "boxSave": "Saves the cut, or the reading when Recount is ticked, with your name and the job if one is picked.",
+  "boxSave": "Saves the cut, or the reading when Recount is ticked, with your name and the job picked in For which job.",
   "fclear": "Clears every filter in this sheet. The list behind it changes at once.",
   "fdone": "Closes the filters and shows the list with them applied.",
   "upact:next": "Moves on to the next product in the review. This one keeps what you chose.",
@@ -2977,6 +2977,9 @@ function mv(type, f) {
      row, and key let a later import skip what is already written */
   /* 0.15.0 (PLAN 33.1 item 6): why it came back, on every return */
   if (f.reason) Object.assign(out.data, { reason: f.reason, reasonNote: f.reasonNote || "" });
+  /* 0.16.0 (PLAN 33.1 item 3): a box cut names its job in words, or says it was not for a job */
+  if (f.jobLabel) Object.assign(out.data, { jobLabel: f.jobLabel, proposalId: f.proposalId || null, clientName: f.clientName || null });
+  if (f.noJob) out.data.noJob = true;
   if (f.importKey) Object.assign(out.data, { importTab: f.importTab || null, importRow: f.importRow || null, importKey: f.importKey, importedAt: NOW });
   return out;
 }
@@ -3100,11 +3103,16 @@ async function doBox(c, markNow, cut, recount, jobName, note, locId, tk) {
   /* tk = {ticket, line}: the box sheet's For ticket chip. The cut is tagged
      with the ticket, and the feet count as staged on the ticket's line for
      this product when it has one. */
-  const tkf = tk && tk.ticket ? { ticketId: tk.ticket.id, ticketNumber: tk.ticket.number, ticketLineId: tk.line ? tk.line.id : null } : {};
+  /* 0.16.0 (PLAN 33.1 item 3): tk.none is Not for a job. The job's readable
+     label and client ride on the movement the way other movements carry names,
+     and the box keeps the last cut's job for its sheet. */
+  const tkf = tk && tk.ticket ? { ticketId: tk.ticket.id, ticketNumber: tk.ticket.number, ticketLineId: tk.line ? tk.line.id : null, proposalId: tk.ticket.proposalId || null, jobLabel: jobLabel(tk.ticket), clientName: tk.ticket.clientName || null }
+    : tk && tk.none ? { noJob: true } : {};
   if (tk && tk.ticket && !jobName) jobName = tk.ticket.jobName || null;
   const p = S.products.get(c.productId);
   const prevFt = num(c.ftLeft);
   const data = { ftLeft: markNow, lastMark: markNow, status: markNow <= 0 ? "empty" : "open", lastReadingAt: NOW, lastReadingBy: S.user.name };
+  if (!recount && tk && (tk.ticket || tk.none)) Object.assign(data, { lastCutTicketId: tk.ticket ? tk.ticket.id : null, lastCutJob: tk.ticket ? [jobLabel(tk.ticket), tk.ticket.clientName].filter(Boolean).join(", ") : "Not for a job" });
   if (locId && locId !== c.locationId) { data.locationId = locId; data.locationName = locName(locId); data.confirmLocation = false; }
   else if (locId) data.confirmLocation = false;
   const ops = [{ op: "update", coll: "loadout_containers", id: c.id, data }];
@@ -3198,6 +3206,16 @@ function tkStatus(t) { return t.status === "closed" ? "closed" : S.linesLoaded.h
 const openTickets = () => Array.from(S.tickets.values()).filter(t => t.status !== "closed").sort((a, b) => (toDate(b.createdAt) || 0) - (toDate(a.createdAt) || 0));
 function tkBay(t) { return t && t.stagingLocationId ? locName(t.stagingLocationId) : ""; }
 function tkWho(t) { return [t.clientName, t.jobName].filter(Boolean).join(", "); }
+/* 0.16.0 (PLAN 33.1 item 4): one name for a job's number. A job made from a
+   proposal file or Portal (it has proposalId) shows "Proposal #<n>"; a job
+   made by hand shows its own "Job #<n>". lc: mid-sentence, lower case.
+   jobLabelOf reads a row that names a job (movement, PO, PO line, unit). */
+function jobLabel(t, lc) { if (!t) return ""; return t.proposalId ? (lc ? "proposal #" : "Proposal #") + t.proposalId : (lc ? "job #" : "Job #") + (t.number || t.id); }
+function jobLabelOf(x, lc) {
+  const t = x && x.ticketId ? S.tickets.get(x.ticketId) : null; if (t) return jobLabel(t, lc);
+  const n = x ? x.ticketNumber || x.ticketId : null; return n ? (x.proposalId ? (lc ? "proposal #" : "Proposal #") + x.proposalId : (lc ? "job #" : "Job #") + n) : "";
+}
+const NO_PROPOSAL = ' <span class="chip" title="Made by hand in Loadout, not from a proposal file, so it carries its own job number."><i></i>No proposal</span>';
 function tkBaseFields(t, l) { return { ticketId: t.id, ticketNumber: t.number, ticketLineId: l ? l.id : null, jobName: t.jobName || null }; }
 /* what a unit carries while it serves a ticket line (PLAN 16 rule 3, finding 16) */
 function tkItemFields(t, l) { return { ticketId: t.id, ticketNumber: t.number || null, ticketLineId: l ? l.id : null, jobId: t.jobId || null, jobName: t.jobName || null, clientName: t.clientName || null }; }
@@ -3376,7 +3394,7 @@ async function doPickup(t, lines) {
     b.bump(l, { qtyPickedUp: base + d.q }, { pickedUpAt: NOW, pickedUpBy: me.email, pickedUpByName: me.name });
   });
   if (!n) return { ok: false, n: 0 };
-  const ok = await DB.commit(b.finish({ pickedUpAt: NOW, pickedUpBy: me.email, pickedUpByName: me.name }), "Pick up on job #" + t.number);
+  const ok = await DB.commit(b.finish({ pickedUpAt: NOW, pickedUpBy: me.email, pickedUpByName: me.name }), "Pick up on " + jobLabel(t, 1));
   return { ok, n, units };
 }
 /* lines: ticked lines to confirm; notes: {lineId: text} for the lines left unticked */
@@ -3396,7 +3414,7 @@ async function doDeliverLines(t, lines, notes) {
     ops.push(mv("note", Object.assign({ productId: l.productId || null, productName: lineName(l), qty: null, note: "Not delivered: " + txt }, tkBaseFields(t, l))));
   });
   if (!n) return { ok: false, n: 0 };
-  const ok = await DB.commit(b.finish({ deliveredAt: NOW, deliveredBy: me.email, deliveredByName: me.name }), "Delivery on job #" + t.number);
+  const ok = await DB.commit(b.finish({ deliveredAt: NOW, deliveredBy: me.email, deliveredByName: me.name }), "Delivery on " + jobLabel(t, 1));
   return { ok, n };
 }
 async function doDeliver(t, l) { const r = await doDeliverLines(t, [l], {}); return r.ok; }
@@ -3430,28 +3448,28 @@ async function doClose(t, o) {
       const c = ret ? counts.get(x.line.id) : null, back = c ? Math.min(x.counted, num(c.n)) : 0, off = x.counted - back;
       ops.push(stockInc(x.p, bay, -x.counted));
       /* leftovers back to a shelf are a move; return means a unit back from a site (finding 13) */
-      if (back > 0) { ops.push(stockInc(x.p, c.dest, back)); ops.push(mv("move", Object.assign({ productId: x.p.id, qty: back, fromLocationId: bay, toLocationId: c.dest, note: "Leftover from job #" + t.number + ", scanned back to stock" }, rsOf(x.line), tf(x.line)))); went.push(fmtN(back) + " " + productName(x.p) + " to " + locName(c.dest)); }
-      if (off > 0) { less(x.p.id, off); ops.push(mv("writeoff", Object.assign({ productId: x.p.id, qty: -off, fromLocationId: bay, note: "Written off at close of job #" + t.number + ": " + o.reason }, tf(x.line)))); lost.push(fmtN(off) + " " + productName(x.p)); }
+      if (back > 0) { ops.push(stockInc(x.p, c.dest, back)); ops.push(mv("move", Object.assign({ productId: x.p.id, qty: back, fromLocationId: bay, toLocationId: c.dest, note: "Leftover from " + jobLabel(t, 1) + ", scanned back to stock" }, rsOf(x.line), tf(x.line)))); went.push(fmtN(back) + " " + productName(x.p) + " to " + locName(c.dest)); }
+      if (off > 0) { less(x.p.id, off); ops.push(mv("writeoff", Object.assign({ productId: x.p.id, qty: -off, fromLocationId: bay, note: "Written off at close of " + jobLabel(t, 1) + ": " + o.reason }, tf(x.line)))); lost.push(fmtN(off) + " " + productName(x.p)); }
     }
     x.items.forEach(it => {
       const dest = ret ? units.get(it.id) : null;
       if (dest) {
         ops.push({ op: "update", coll: "loadout_items", id: it.id, data: { status: "in_stock", locationId: dest, locationName: locName(dest), ticketId: null, ticketNumber: null, ticketLineId: null, jobId: null, jobName: null, clientName: null, updatedAt: NOW } });
-        ops.push(mv("move", Object.assign({ productId: it.productId, itemId: it.id, itemLabel: itemLabel(it), qty: 1, fromLocationId: it.locationId, toLocationId: dest, note: "Leftover from job #" + t.number + ", scanned back to stock" }, rsOf(x.line), tf(x.line))));
+        ops.push(mv("move", Object.assign({ productId: it.productId, itemId: it.id, itemLabel: itemLabel(it), qty: 1, fromLocationId: it.locationId, toLocationId: dest, note: "Leftover from " + jobLabel(t, 1) + ", scanned back to stock" }, rsOf(x.line), tf(x.line))));
         went.push(productName(x.p) + " unit " + itemLabel(it) + " to " + locName(dest));
       } else {
         lost.push(productName(x.p) + " unit " + itemLabel(it));
         less(it.productId, 1);
         ops.push({ op: "update", coll: "loadout_items", id: it.id, data: { status: "retired", locationId: null, locationName: null, retiredReason: o.reason, updatedAt: NOW } });
-        ops.push(mv("writeoff", Object.assign({ productId: it.productId, itemId: it.id, itemLabel: itemLabel(it), qty: -1, fromLocationId: it.locationId, note: "Written off at close of job #" + t.number + ": " + o.reason }, tf(x.line))));
+        ops.push(mv("writeoff", Object.assign({ productId: it.productId, itemId: it.id, itemLabel: itemLabel(it), qty: -1, fromLocationId: it.locationId, note: "Written off at close of " + jobLabel(t, 1) + ": " + o.reason }, tf(x.line))));
       }
     });
   });
   /* 0.9.0 (PLAN 20.2): a van line is delivered or brought back before a close; only the admin's write-off passes one here */
   const van = ticketLines(t.id).filter(l => lineInVan(l) > 0), gone = new Set();
-  if (van.length && !o.vanReason) { toast("Product is still in a van on job #" + t.number + ". Deliver it or bring it back first.", true); return false; }
+  if (van.length && !o.vanReason) { toast("Product is still in a van on " + jobLabel(t, 1) + ". Deliver it or bring it back first.", true); return false; }
   van.forEach(l => {
-    const p = lineProduct(l), q = lineInVan(l), units = vanUnits(t, l), counted = p && p.unit !== "ft" ? Math.max(0, q - units.length) : 0, why = "Written off from the van at close of job #" + t.number + ": " + o.vanReason;
+    const p = lineProduct(l), q = lineInVan(l), units = vanUnits(t, l), counted = p && p.unit !== "ft" ? Math.max(0, q - units.length) : 0, why = "Written off from the van at close of " + jobLabel(t, 1) + ": " + o.vanReason;
     /* on hand already dropped at the pick-up; the write-off is the record of where it went */
     if (counted > 0 || !p) ops.push(mv("writeoff", Object.assign({ productId: l.productId || null, productName: lineName(l), qty: -(p ? counted : q), holderName: l.pickedUpByName || null, note: why }, tf(l))));
     units.forEach(it => {
@@ -3462,14 +3480,14 @@ async function doClose(t, o) {
   });
   installsFor(t).filter(it => !gone.has(it.id)).forEach(it => {
     ops.push({ op: "update", coll: "loadout_items", id: it.id, data: { status: "installed", locationId: null, locationName: null, jobId: t.jobId || null, jobName: t.jobName || null, clientName: t.clientName || null, ticketNumber: t.number || null, updatedAt: NOW } });
-    ops.push(mv("adjust", Object.assign({ productId: it.productId, itemId: it.id, itemLabel: itemLabel(it), qty: 0, holderName: it.holderName, note: "Installed at " + (t.jobName || "the job") + " (job #" + t.number + " closed)" }, tf({ id: it.ticketLineId }))));
+    ops.push(mv("adjust", Object.assign({ productId: it.productId, itemId: it.id, itemLabel: itemLabel(it), qty: 0, holderName: it.holderName, note: "Installed at " + (t.jobName || "the job") + " (" + jobLabel(t, 1) + " closed)" }, tf({ id: it.ticketLineId }))));
   });
   drop.forEach((n, pid) => ops.push(productInc(pid, -n)));
-  ops.push(mv("edit", Object.assign({ note: "Job #" + t.number + " closed" + (went.length ? ", scanned back: " + went.join("; ") : "") + (lost.length ? ", written off (" + o.reason + "): " + lost.join("; ") : "") + (van.length ? ", what was in the van written off: " + o.vanReason : "") + (o.note ? ". " + o.note : "") }, tf(null))));
+  ops.push(mv("edit", Object.assign({ note: jobLabel(t) + " closed" + (went.length ? ", scanned back: " + went.join("; ") : "") + (lost.length ? ", written off (" + o.reason + "): " + lost.join("; ") : "") + (van.length ? ", what was in the van written off: " + o.vanReason : "") + (o.note ? ". " + o.note : "") }, tf(null))));
   ops.push({ op: "update", coll: "loadout_tickets", id: t.id, data: { status: "closed", summary: summarize(ticketLines(t.id), Object.assign({}, t, { status: "closed" })), closedAt: NOW, closedBy: S.user.email, closedByName: S.user.name, closeNote: o.note || null, updatedAt: NOW } });
-  const ok = await commitChunks(ops, "Close of job #" + t.number);
+  const ok = await commitChunks(ops, "Close of " + jobLabel(t, 1));
   if (ok || DEMO) {
-    S.doneBox = { tid: t.id, title: "Job #" + t.number + " closed" + (went.length ? ". Back on the shelf:" : "."), rows: went.concat(lost.length ? ["Written off (" + o.reason + "): " + lost.join(", ")] : []), demo: !ok };
+    S.doneBox = { tid: t.id, title: jobLabel(t) + " closed" + (went.length ? ". Back on the shelf:" : "."), rows: went.concat(lost.length ? ["Written off (" + o.reason + "): " + lost.join(", ")] : []), demo: !ok };
     scheduleRender();
   }
   return ok ? true : DEMO ? "demo" : false;
@@ -3570,7 +3588,7 @@ const unapprove = o => o && o.approvedAt ? { approvedAt: null, approvedBy: null,
 /* 0.5.2 (finding 8): a request started with no connection has an id of
    draft-<random> and no number until Mark ordered gives it one */
 function poLabel(o) { return !o ? "" : o.status === "draft" ? (o.number ? "Order request " + o.number : "Order request (no number yet)") : o.number ? "PO " + o.number : "PO with no number"; }
-function ordFor(o) { return o.ticketId ? [o.clientName, o.jobName].filter(Boolean).join(", ") || "Job #" + (o.ticketNumber || o.ticketId) : "Stock"; }
+function ordFor(o) { return o.ticketId ? [o.clientName, o.jobName].filter(Boolean).join(", ") || jobLabelOf(o) : "Stock"; }
 /* PLAN 4: 1Z = UPS, 20 to 22 digits starting with 9 = USPS, 12 or 15 digits = FedEx */
 function detectCarrier(n) {
   const s = String(n || "").replace(/[\s-]+/g, "").toUpperCase();
@@ -3671,7 +3689,7 @@ function tkSourceLabel(t) { const s = tkSource(t); return s === "manual" ? "Buil
 const REVIEW_CHIP = '<span class="chip warn" title="Zapier made or changed this job from a Portal proposal. Check the lines and the matches, then press Reviewed on the job."><i></i>Imported from Portal, review</span>';
 async function doReviewed(t) {
   return DB.commit([{ op: "update", coll: "loadout_tickets", id: t.id, data: { needsReview: false, reviewedAt: NOW, reviewedBy: S.user.email, reviewedByName: S.user.name, updatedAt: NOW } },
-    mv("edit", Object.assign({ note: "Job #" + t.number + " reviewed after the import from Portal" }, tkBaseFields(t, null)))], "the review on job #" + t.number);
+    mv("edit", Object.assign({ note: jobLabel(t) + " reviewed after the import from Portal" }, tkBaseFields(t, null)))], "the review on " + jobLabel(t, 1));
 }
 
 /* ---------------- order writes ---------------- */
@@ -3949,7 +3967,7 @@ function wrap80(s) {
 function portalBlock(t) {
   const d = new Date(), lines = ticketLines(t.id), s = summarize(lines);
   const stamp = isoDay(d) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
-  const head = "[Loadout " + stamp + "] Job #" + t.number + ", " + (tkWho(t) || "no client");
+  const head = "[Loadout " + stamp + "] " + jobLabel(t) + ", " + (tkWho(t) || "no client");
   const bits = ["Staged " + s.staged + "/" + s.lines + " lines" + (t.stagingLocationId ? " in " + tkBay(t) : "") + ".", "Delivered " + s.delivered + "/" + s.lines + "."];
   const onPo = [];
   lines.forEach(l => olinksFor(t, l).forEach(x => onPo.push(lineName(l) + (x.ol ? " x" + fmtN(x.ol.qtyOrdered) + (lineIsFt(l) ? " ft" : "") : "") + ", " + olChipText(x.o, x.ol).replace(DNR, "arrived at the shop, not received yet"))));
@@ -4137,7 +4155,7 @@ function loadDemoTickets(t, ST) {
     const j = S.jobs.get(jobId);
     S.tickets.set(num_, Object.assign({ id: num_, number: num_, proposalId: num_, jobId, jobName: j.name, clientId: j.clientId, clientName: j.clientName, status, stagingLocationId: bay, stagingLocationName: locName(bay),
       source: "csv", createdAt: t(created), createdBy: "warehouse@example.com", createdByName: "Warehouse", updatedAt: t(created) }, extra || {}));
-    S.proposals.set(num_, { id: num_, number: num_, name: j.name, jobId, jobName: j.name, clientId: j.clientId, clientName: j.clientName, status: "Accepted", importedAt: t(created), importSource: "csv", portalId: null });
+    if (!(extra && extra.proposalId === null)) S.proposals.set(num_, { id: num_, number: num_, name: j.name, jobId, jobName: j.name, clientId: j.clientId, clientName: j.clientName, status: "Accepted", importedAt: t(created), importSource: "csv", portalId: null });
     S.lines.set(num_, new Map()); S.linesLoaded.add(num_);
     if (!bay) S.tickets.get(num_).stagingLocationName = null;
   };
@@ -4208,7 +4226,8 @@ function loadDemoTickets(t, ST) {
   Ln("1058", "Lobby", "patch-cable-hdmi-patch-hdmim-hdmim-black-6ft", 2, Object.assign({ qtyFromStock: 2, qtyStaged: 2, qtyPickedUp: 2, pickedFromName: "Storage room, RCA A/V Video", pickedByName: "Warehouse", pickedAt: t(1) }, up));
   Ln("1058", "Lobby", "patch-cable-power-cable-edison-m-c13-f-black-6ft", 2, Object.assign({ qtyFromStock: 2, qtyStaged: 2, qtyPickedUp: 2, pickedFromName: "Storage room, Patch cables", pickedByName: "Warehouse", pickedAt: t(1) }, up));
   Ln("1058", "Lobby", "connector-xlr-female-3", 1, { qtyFromStock: 1, qtyStaged: 1, pickedFromName: "Storage room, RCA A/V Video", pickedByName: "Warehouse", pickedAt: t(1) });
-  T("1061", "harbor-clinic--harbor-clinic-network", "open", "bay-1", 1, { updatedAt: t(1), installAt: at(3) });
+  /* 0.16.0: 1061 was built by hand, so it has no proposal and shows "Job #1061" with No proposal */
+  T("1061", "harbor-clinic--harbor-clinic-network", "open", "bay-1", 1, { updatedAt: t(1), installAt: at(3), proposalId: null, source: "manual" });
   Ln("1061", "Front desk", "axis-m3065-v", 1, {});
   Ln("1061", "Front desk", "middle-atlantic-u2v", 1, {});
   Ln("1061", "Front desk", "patch-cable-cat6-utp-patch-cable-rj45m-rj45m-blue-3ft", 4, {});
@@ -4218,11 +4237,11 @@ function loadDemoTickets(t, ST) {
   const tag = (id, tid, lid) => { const m = S.movements.find(x => x.id === id); if (m) Object.assign(m, { ticketId: tid, ticketNumber: tid, ticketLineId: lid || null }); };
   tag("dm19", "1042", wr); tag("dm15", "1042", u6); tag("dm6", "1031", sw); tag("dm7", "1031", sw);
   const add = [
-    ["edit", 26, "Warehouse", { ticketId: "1031", note: "Job #1031 created from CSV, 2 lines" }],
-    ["edit", 18, "Warehouse", { ticketId: "1031", note: "Job #1031 closed" }],
-    ["edit", 5, "Warehouse", { ticketId: "1042", note: "Job #1042 created from CSV, 9 lines, 3 rows skipped" }],
-    ["edit", 4, "Warehouse", { ticketId: "1048", note: "Job #1048 created from CSV, 3 lines" }],
-    ["edit", 0.1, "Zapier", { ticketId: "1056", note: "Job #1056 created from Portal by Zapier, 2 lines. Imported from Portal, review." }],
+    ["edit", 26, "Warehouse", { ticketId: "1031", note: "Proposal #1031 created from CSV, 2 lines" }],
+    ["edit", 18, "Warehouse", { ticketId: "1031", note: "Proposal #1031 closed" }],
+    ["edit", 5, "Warehouse", { ticketId: "1042", note: "Proposal #1042 created from CSV, 9 lines, 3 rows skipped" }],
+    ["edit", 4, "Warehouse", { ticketId: "1048", note: "Proposal #1048 created from CSV, 3 lines" }],
+    ["edit", 0.1, "Zapier", { ticketId: "1056", note: "Proposal #1056 created from Portal by Zapier, 2 lines. Imported from Portal, review." }],
     ["pick", 3, "Warehouse", { ticketId: "1042", ticketLineId: ax, productId: "axis-m3065-v", qty: 2, fromLocationId: "warehouse", toLocationId: "bay-2" }],
     ["pick", 3, "Warehouse", { ticketId: "1042", ticketLineId: u6, productId: "ubiquiti-u6-pro", itemId: "k3m9q2x7a1", itemLabel: "E063DA00A1B2", qty: 1, fromLocationId: "warehouse", toLocationId: "bay-2" }],
     ["pick", 2, "Warehouse", { ticketId: "1042", ticketLineId: pc, productId: "patch-cable-cat6-utp-patch-cable-rj45m-rj45m-blue-3ft", qty: 6, fromLocationId: "storage-room--patch-cables", toLocationId: "bay-2" }],
@@ -4415,7 +4434,7 @@ function loadDemoConsole() {
   const l39 = pid => (ticketLines("1039").find(l => l.productId === pid) || {}).id || null;
   const l42 = pid => (ticketLines("1042").find(l => l.productId === pid) || {}).id || null;
   const add = [
-    ["edit", mAt(-1, 2), "Warehouse", Object.assign({ note: "Job #1017 created from CSV, 3 lines" }, k17)],
+    ["edit", mAt(-1, 2), "Warehouse", Object.assign({ note: "Proposal #1017 created from CSV, 3 lines" }, k17)],
     ["edit", mAt(-1, 3), "Warehouse", { orderId: "7712", orderNumber: "7712", note: "PO 7712 marked ordered with Northline Supply, vendor order SO 4410215" }],
     ["checkout", mAt(-1, 5), "Lead tech", Object.assign({ productId: "sonos-amp", itemId: "h4n6v8b2c3", itemLabel: "V8B2C3", qty: 1, fromLocationId: "warehouse", holderName: "Lead tech" }, k17)],
     ["pick", mAt(-1, 6), "Warehouse", Object.assign({ productId: "patch-cable-hdmi-patch-hdmim-hdmim-black-6ft", qty: 4, fromLocationId: "storage-room--rca-av-video", toLocationId: "bay-3", ticketLineId: tl["patch-cable-hdmi-patch-hdmim-hdmim-black-6ft"] }, k17)],
@@ -4435,7 +4454,7 @@ function loadDemoConsole() {
     ["cut", mAt(-1, 16), "Tech", Object.assign({ productId: "wire-cat5e-riser-244-gray", containerId: "c926", containerLabel: "C926", qty: -150, toLocationId: "warehouse", cut: { fromMark: 740, toMark: 590, length: 150 } }, k31)],
     ["receive", mAt(-1, 18), "Warehouse", { productId: "patch-cable-hdmi-patch-hdmim-hdmim-black-6ft", qty: 12, toLocationId: "storage-room--rca-av-video", orderId: "7719", orderNumber: "7719", shipmentId: s19, note: "Received on PO 7719, FedEx 748912340019" }],
     ["receive", mAt(-1, 18, 11), "Warehouse", { productId: "patch-cable-power-cable-edison-m-c13-f-black-6ft", qty: 10, toLocationId: "storage-room--patch-cables", orderId: "7719", orderNumber: "7719", shipmentId: s19, note: "Received on PO 7719, FedEx 748912340019" }],
-    ["edit", mAt(-1, 20), "Warehouse", Object.assign({ note: "Job #1017 closed" }, k17)],
+    ["edit", mAt(-1, 20), "Warehouse", Object.assign({ note: "Proposal #1017 closed" }, k17)],
     ["checkin", mAt(-1, 22), "Tech", { productId: "ubiquiti-udm-se", itemId: "p8r2w5t1z9", itemLabel: "F09FC2A1B3C4", qty: 1, toLocationId: "warehouse", condition: "good", holderName: "Tech", jobName: "Van stock" }],
     ["edit", mAt(0, 0, 9), "Warehouse", { orderId: "7724", orderNumber: "7724", note: "PO 7724 marked ordered with Harbor AV Supply, vendor order HAV-5490" }],
     ["cut", mAt(0, 0, 15), "Lead tech", Object.assign({ productId: "wire-coaxial-rg6-white", containerId: "d926", containerLabel: "D926", qty: -60, cut: { fromMark: 400, toMark: 340, length: 60 } }, k39)],
@@ -4767,7 +4786,7 @@ function progressMini(s) {
 }
 function ticketCols() {
   return [
-    { k: "number", label: "Job", sort: t => t.number, html: t => '<button type="button" class="linkbtn" data-act="ticket" data-id="' + esc(t.id) + '"><div class="pn"><b>#' + esc(t.number) + "</b></div></button>" + (t.needsReview ? '<div class="chips" style="margin-top:4px">' + REVIEW_CHIP + "</div>" : '<div class="pd">' + esc(tkSourceLabel(t)) + "</div>") },
+    { k: "number", label: "Job", sort: t => t.number, html: t => '<button type="button" class="linkbtn" data-act="ticket" data-id="' + esc(t.id) + '"><div class="pn"><b>' + esc(jobLabel(t)) + "</b></div></button>" + (t.needsReview ? '<div class="chips" style="margin-top:4px">' + REVIEW_CHIP + "</div>" : '<div class="pd">' + esc(tkSourceLabel(t)) + (t.proposalId ? "" : NO_PROPOSAL) + "</div>") },
     { k: "client", label: "Client", text: t => t.clientName || "" },
     { k: "job", label: "Job", text: t => t.jobName || "" },
     { k: "proposal", label: "Proposal", text: t => t.proposalId ? "#" + t.proposalId : "" },
@@ -4788,7 +4807,7 @@ function tkMatches(t) {
   if (f.client && t.clientId !== f.client) return false;
   if (f.toOrder && !tkSummary(t).toOrder) return false;
   if (f.backorders && !tkHasBackorder(t)) return false;
-  if (f.q) { const hay = ["#" + t.number, t.number, t.clientName, t.jobName, t.proposalId, tkBay(t)].join(" ").toLowerCase(); if (!f.q.toLowerCase().split(/\s+/).filter(Boolean).every(w => hay.includes(w))) return false; }
+  if (f.q) { const hay = [jobLabel(t), "#" + t.number, "job #" + t.number, t.proposalId ? "proposal #" + t.proposalId + " #" + t.proposalId : "", t.number, t.clientName, t.jobName, t.proposalId, tkBay(t)].join(" ").toLowerCase(); if (!f.q.toLowerCase().split(/\s+/).filter(Boolean).every(w => hay.includes(w))) return false; }
   if (f.install) {
     const d = installDay(t), ws = weekStartOf(new Date()), a = isoDay(ws), b = isoDay(addDays(ws, 6)), na = isoDay(addDays(ws, 7)), nb = isoDay(addDays(ws, 13));
     if (f.install === "none" && d) return false;
@@ -4896,7 +4915,7 @@ function renderTicket() {
   const W = isWriter(), pinned = (S.board.ticketIds || []).includes(t.id), job = S.jobs.get(t.jobId);
   const T_ = isTech(), canPick = !closed && T_ && lines.some(l => lineInBay(l) > 0), canDlv = !closed && T_ && lines.some(l => lineInBay(l) + lineInVan(l) > 0);
   let h = bandHTML("pull") + '<div class="mcard">' + back + " / " + esc(TK_LABEL[st]) + "</div>" +
-    '<div class="tkrow"><h2 class="tktitle">Job <span class="n">#' + esc(t.number) + "</span></h2>" + tkPill(st, true) + (t.needsReview ? REVIEW_CHIP : "") +
+    '<div class="tkrow"><h2 class="tktitle"><span class="n">' + esc(jobLabel(t)) + "</span></h2>" + (t.proposalId ? "" : NO_PROPOSAL) + tkPill(st, true) + (t.needsReview ? REVIEW_CHIP : "") +
     '<div class="tkbtns">' + (canPick ? '<a class="btn" href="' + jobHref(t, "pickup") + '" title="Take what is laid out in the staging area into your van; it is yours until the delivery is confirmed">Pick up</a>' : "") +
     (canDlv ? '<a class="btn" href="' + jobHref(t, "deliver") + '" title="Tick what arrived on site and confirm it">Confirm delivery</a>' : "") + (t.needsReview && W ? '<button type="button" class="btn acc" data-act="tkReviewed" title="Clears the review flag once the lines, quantities, and product matches from Portal look right. The timeline keeps who reviewed it.">Mark reviewed</button>' : "") + '<button type="button" class="btn" data-act="tkCopy" title="Copies the status block below so you can paste it into the proposal\'s internal notes in Portal">Copy for Portal</button>' +
     '<button type="button" class="btn" data-act="tkPrint" title="The pull sheet for the clipboard, grouped by area, with where to pull each line from">Print pull sheet</button>' +
@@ -4908,8 +4927,8 @@ function renderTicket() {
     (W && !closed ? '<button type="button" class="btn" data-act="tkClose" title="Scans back what is left in the staging area, then marks units out on this job installed">Close job</button>' : "") + "</div></div>" + doneBoxHTML(t) +
     '<dl class="meta"><div><dt>Client</dt><dd>' + esc(t.clientName || "None") + "</dd></div>" +
     "<div><dt>Job</dt><dd>" + esc(t.jobName || "None") + (job && job.address ? "<small>" + esc(job.address) + "</small>" : "") + "</dd></div>" +
-    "<div><dt>Proposal</dt><dd>" + (t.proposalId ? "#" + esc(t.proposalId) : "None") + "<small>" + esc(tkSourceLabel(t)) + (t.reviewedAt && !t.needsReview ? ", reviewed by " + esc(t.reviewedByName || t.reviewedBy || "") : "") + "</small></dd></div>" +
-    "<div><dt>Staging</dt><dd>" + (t.stagingLocationId ? esc(tkBay(t)) : "Not set yet") + "<small>" + (t.stagingLocationId ? "Where its pulled product waits" : "Pull from stock asks for one") + "</small></dd></div>" +
+    "<div><dt>Proposal</dt><dd>" + (t.proposalId ? "#" + esc(t.proposalId) : "No proposal") + "<small>" + esc(tkSourceLabel(t)) + (t.reviewedAt && !t.needsReview ? ", reviewed by " + esc(t.reviewedByName || t.reviewedBy || "") : "") + "</small></dd></div>" +
+    jobWireLine(t) + "<div><dt>Staging</dt><dd>" + (t.stagingLocationId ? esc(tkBay(t)) : "Not set yet") + "<small>" + (t.stagingLocationId ? "Where its pulled product waits" : "Pull from stock asks for one") + "</small></dd></div>" +
     "<div><dt>Install</dt><dd>" + (W && !closed ? '<label class="sr" for="tkInstall">Install date</label><input class="fld" type="date" id="tkInstall" data-install="' + esc(t.id) + '" value="' + esc(installDay(t)) + '" title="The day this job installs. It puts the job on that day in the Week view, sorts the Jobs list, and feeds the board\'s Today mode." style="max-width:200px">'
       : (t.installAt ? esc(fmtDate(t.installAt)) : '<span class="z">Not set</span>')) + "</dd></div>" +
     "<div><dt>Created</dt><dd>by " + esc(t.createdByName || t.createdBy || "") + ", " + esc(fmtDate(t.createdAt)) + (closed ? "<small>Closed " + esc(fmtDate(t.closedAt)) + (t.closedByName ? " by " + esc(t.closedByName) : "") + "</small>" : "") + "</dd></div></dl>" + (loaded ? jobStripHTML(s, true) : "") + "</div>";
@@ -4962,6 +4981,31 @@ function ticketTimeline(t) {
   S.movements.forEach(x => { if (x.ticketId === t.id) m.set(x.id, x); });
   return Array.from(m.values()).sort((a, b) => (toDate(b.at) || 0) - (toDate(a.at) || 0));
 }
+/* 0.16.0 (PLAN 33.1 item 3): Wire used on a job is every box cut stamped with
+   it, whichever screen logged it (box sheet, Shelf, Scan, Pull from a box).
+   The job page and the Job report read the same list and the same totals. */
+function jobWire(t) {
+  const m = new Map();
+  (Array.isArray(S.tkHist[t.id]) ? S.tkHist[t.id] : []).forEach(x => m.set(x.id, x));
+  S.movements.forEach(x => { if (x.ticketId === t.id) m.set(x.id, x); });
+  const cuts = Array.from(m.values()).filter(x => x.type === "cut" && x.cut && x.ticketId === t.id).sort((a, b) => (toDate(a.at) || 0) - (toDate(b.at) || 0));
+  const by = new Map(); cuts.forEach(x => { const k = x.productName || (S.products.get(x.productId) ? productName(S.products.get(x.productId)) : "Wire"); by.set(k, (by.get(k) || 0) + num(x.cut.length)); });
+  return { cuts, types: Array.from(by, ([wire, ft]) => ({ wire, ft })).sort((a, b) => a.wire.localeCompare(b.wire)), ft: cuts.reduce((a, x) => a + num(x.cut.length), 0) };
+}
+function jobWireLine(t) {
+  const w = jobWire(t); if (!w.cuts.length) return "";
+  return "<div><dt>Wire used</dt><dd>" + fmtN(w.ft) + " ft<small>" + esc(w.types.map(x => x.wire + " " + fmtN(x.ft) + " ft").join(", ")) + "</small></dd></div>";
+}
+function jrWireHTML(t, print) {
+  const w = jobWire(t);
+  const head = print ? '<h2 class="jrwh">Wire used</h2>' : '<div class="thead"><h4 title="Every box cut logged for this job, from the box sheet, Shelf, Scan, or Pull from stock on a box">Wire used</h4><span class="hint" style="margin:0">' + (w.cuts.length ? fmtN(w.ft) + " ft in " + plural(w.cuts.length, "cut") : "") + "</span></div>";
+  if (!w.cuts.length) return head + '<p class="hint">No wire cut for this job yet.</p>';
+  if (print) return head + "<table><thead><tr><th>Box</th><th>Wire</th><th class=\"r\">Feet</th><th>Who</th><th>When</th></tr></thead><tbody>" +
+    w.cuts.map(x => "<tr><td>" + esc(x.containerLabel || "") + "</td><td>" + esc(x.productName || "") + '</td><td class="r">' + fmtN(x.cut.length) + "</td><td>" + esc(x.byName || x.by || "") + "</td><td>" + esc(fmtDate(x.at)) + "</td></tr>").join("") +
+    w.types.map(x => '<tr class="tot"><td>Total</td><td>' + esc(x.wire) + '</td><td class="r">' + fmtN(x.ft) + "</td><td></td><td></td></tr>").join("") + "</tbody></table>";
+  return head + '<ul class="onhand">' + w.cuts.map(x => "<li><span>Box " + esc(x.containerLabel || "") + ", " + esc(x.productName || "") + ' <span class="z">' + esc([x.byName || x.by, fmtDate(x.at)].filter(Boolean).join(", ")) + "</span></span><b>" + fmtN(x.cut.length) + " ft</b></li>").join("") + "</ul>" +
+    '<ul class="onhand">' + w.types.map(x => "<li><span><b>Total</b> " + esc(x.wire) + "</span><b>" + fmtN(x.ft) + " ft</b></li>").join("") + "</ul>";
+}
 const curTicket = () => S.tickets.get(S.ticketId);
 const curLine = id => { const t = curTicket(); return t && S.lines.get(t.id) ? S.lines.get(t.id).get(id) : null; };
 
@@ -5000,7 +5044,7 @@ function openPull(t, l, preset = {}) {
   if (left <= 0) { toast("This line is fully staged.", true); return; }
   const presetSrc = preset.from && srcs.find(e => e.locationId === preset.from) ? preset.from : (srcs.length === 1 && !ft ? srcs[0].locationId : "");
   const boxes = ft ? srcs.flatMap(e => e.boxes) : [];
-  const body = '<p class="hint" style="margin-top:0"><b>' + esc(productName(p)) + "</b>, job #" + esc(t.number) + ". Needs " + esc(lqty(l, left)) + " more (needed " + esc(lqty(l, l.qtyNeeded)) + ", staged " + esc(lqty(l, l.qtyStaged)) + ").</p>" +
+  const body = '<p class="hint" style="margin-top:0"><b>' + esc(productName(p)) + "</b>, " + esc(jobLabel(t, 1)) + ". Needs " + esc(lqty(l, left)) + " more (needed " + esc(lqty(l, l.qtyNeeded)) + ", staged " + esc(lqty(l, l.qtyStaged)) + ").</p>" +
     (t.stagingLocationId ? "" : '<label class="lab" for="plBay" title="Where this job\'s product is laid out. It is saved on the job, so the next pull goes there too.">' + "<abbr>Staging area</abbr></label><select class=\"fld\" id=\"plBay\" data-decide>" + bayOptions(onlyStaging()) + "</select>") +
     (ft ? '<label class="lab" for="plBox" title="Wire is pulled by cutting a box. The cut is logged with your name and this job.">' + "<abbr>Box</abbr></label><select class=\"fld\" id=\"plBox\" data-decide><option value=\"\">Choose a box</option>" +
         boxes.map(c => '<option value="' + esc(c.id) + '"' + (boxes.length === 1 || c.id === preset.box ? " selected" : "") + ">" + esc(c.label) + ", " + esc(c.locationId ? locName(c.locationId) : "no location") + ", " + fmtN(c.ftLeft) + " ft left</option>").join("") + "</select>" +
@@ -5062,7 +5106,7 @@ function openPull(t, l, preset = {}) {
       if (q < 1 || q > num(c.ftLeft)) { err("Feet must be between 1 and the " + fmtN(c.ftLeft) + " ft left in box " + c.label + "."); return; }
       if (q > left) { err("The line needs " + fmtN(left) + " ft more."); return; }
       closeModal(w);
-      if (await doPull(t, l, { qty: q, items: [], box: c, bayId: bay })) toast("Cut " + fmtN(q) + " ft from box " + c.label + " for job #" + t.number);
+      if (await doPull(t, l, { qty: q, items: [], box: c, bayId: bay })) toast("Cut " + fmtN(q) + " ft from box " + c.label + " for " + jobLabel(t, 1));
       return;
     }
     const e = src();
@@ -5116,11 +5160,17 @@ function planPullAll(t) {
   });
   return { moves, wire, order };
 }
+/* 0.16.0: the open boxes of a job's wire, each opening the box sheet with the job chosen */
+function boxBtnsFor(t, wireLines) {
+  const pids = new Set(wireLines.map(l => l.productId).filter(Boolean));
+  const bs = Array.from(S.containers.values()).filter(c => pids.has(c.productId) && c.status !== "empty");
+  return bs.length ? '<div class="btnrow">' + bs.map(c => '<button type="button" class="btn sm" data-act="boxSheet" data-id="' + esc(c.id) + '" data-tk="' + esc(t.id) + '" title="Opens the box sheet with ' + esc(jobLabel(t, 1)) + ' chosen">Box ' + esc(c.label) + ", " + fmtN(c.ftLeft) + " ft</button>").join("") + "</div>" : "";
+}
 function openPullAll(t) {
   const pl = planPullAll(t);
   const body = (pl.moves.length ? '<p class="hint" style="margin-top:0">Moves these to ' + (t.stagingLocationId ? esc(tkBay(t)) : "the staging area") + ":</p>" + '<ul class="onhand">' + pl.moves.map(m => "<li><span>" + esc(productName(m.p)) + ' <span class="z">from ' + esc(locName(m.from)) + (m.items.length ? ", " + m.items.length + " serialized" : "") + "</span></span><b>" + fmtN(m.qty) + "</b></li>").join("") + "</ul>" : "<p>Nothing on the shelves covers what this job still needs.</p>") +
     (t.stagingLocationId || !pl.moves.length ? "" : '<label class="lab" for="paBay" title="Saved on the job, so every pull goes there.">' + "<abbr>Staging area</abbr></label><select class=\"fld\" id=\"paBay\" data-decide>" + bayOptions(onlyStaging()) + "</select>") +
-    (pl.wire.length ? '<div class="sect"><h4 class="h4">Wire, cut on a box</h4><p class="hint" style="margin-top:0">' + pl.wire.map(l => esc(lineName(l)) + " (" + esc(lqty(l, lineLeft(l))) + ")").join(", ") + ". Use Pull from stock on the line, or the box sheet with this job chosen.</p></div>" : "") +
+    (pl.wire.length ? '<div class="sect"><h4 class="h4">Wire, cut on a box</h4><p class="hint" style="margin-top:0">' + pl.wire.map(l => esc(lineName(l)) + " (" + esc(lqty(l, lineLeft(l))) + ")").join(", ") + ". Use Pull from stock on the line, or open a box here with this job chosen.</p>" + boxBtnsFor(t, pl.wire) + "</div>" : "") +
     '<div class="sect"><h4 class="h4">Still needs ordering after this</h4>' + (pl.order.length ? '<ul class="onhand">' + pl.order.map(o => "<li><span>" + esc(lineName(o.l)) + "</span><b>" + esc(lqty(o.l, o.qty)) + "</b></li>").join("") + "</ul>" : '<p class="hint" style="margin-top:0">Nothing. Stock covers every line.</p>') + '</div><p class="err" id="paErr" hidden></p>';
   const w = openModal("Pull everything in stock", body, '<button type="button" class="btn" data-close>Cancel</button>' + (pl.moves.length ? '<button type="button" class="btn acc" data-ok data-tk="pullAllOk">Pull ' + pl.moves.reduce((a, m) => a + m.qty, 0) + " units</button>" : ""), { wide: true });
   wireGlow(w);
@@ -5141,7 +5191,7 @@ function openPullAll(t) {
       b.bump(m.l, { qtyFromStock: m.qty, qtyStaged: m.qty }, { pickedFromName: locName(m.from), pickedByName: S.user.name, pickedAt: NOW }, { shelf: -taken.get(m.p.id) });
     });
     const extra = !t.stagingLocationId ? { stagingLocationId: bay, stagingLocationName: locName(bay) } : null;
-    if (await commitChunks(b.finish(extra), "Pull everything on job #" + t.number)) toast("Pulled " + pl.moves.length + " line" + (pl.moves.length > 1 ? "s" : "") + " to " + locName(bay) + (pl.order.length ? ". " + pl.order.length + " still need ordering." : "."));
+    if (await commitChunks(b.finish(extra), "Pull everything on " + jobLabel(t, 1))) toast("Pulled " + pl.moves.length + " line" + (pl.moves.length > 1 ? "s" : "") + " to " + locName(bay) + (pl.order.length ? ". " + pl.order.length + " still need ordering." : "."));
   });
 }
 function openClose(t) {
@@ -5179,7 +5229,7 @@ function openClose(t) {
     '<div class="sect"><h4 class="h4">Marked installed at ' + esc(t.jobName || "the job") + "</h4>" + (inst.length ? '<ul class="onhand">' + inst.map(i => "<li><span>" + esc(i.productName || "") + ' <span class="z mono">' + esc(itemLabel(i)) + "</span></span><span>" + esc(i.holderName || "") + "</span></li>").join("") + "</ul>" : '<p class="hint" style="margin-top:0">No serialized units are out on this job.</p>') + "</div>" +
     '<label class="lab" for="clNote">Note</label><input class="fld" id="clNote" placeholder="Optional"><p class="err" id="clErr" hidden></p>';
   const blocked = van.length && !A;
-  const w = openModal("Close job #" + t.number, body, '<button type="button" class="btn" data-close>Cancel</button>' + (blocked ? '<span title="Product is still in a van"><button type="button" class="btn acc" disabled aria-describedby="clBlk" title="Product is still in a van. Deliver it or bring it back first, then close the job.">Close job</button><span class="sr" id="clBlk">Product is still in a van. Deliver it or bring it back first.</span></span>' : '<span class="hint rthint" id="clRsHint" role="status"></span><button type="button" class="btn acc" data-ok data-tk="closeOk">Close job</button>'), { wide: true });
+  const w = openModal("Close " + jobLabel(t, 1), body, '<button type="button" class="btn" data-close>Cancel</button>' + (blocked ? '<span title="Product is still in a van"><button type="button" class="btn acc" disabled aria-describedby="clBlk" title="Product is still in a van. Deliver it or bring it back first, then close the job.">Close job</button><span class="sr" id="clBlk">Product is still in a van. Deliver it or bring it back first.</span></span>' : '<span class="hint rthint" id="clRsHint" role="status"></span><button type="button" class="btn acc" data-ok data-tk="closeOk">Close job</button>'), { wide: true });
   wireGlow(w);
   /* 0.15.0 (PLAN 33.1 item 6): what is scanned back says why; the write-off keeps its own reason below */
   const clBack = () => lo.filter(x => (C.counts.get(x.line.id) || {}).n > 0 || x.items.some(i => C.units.has(i.id))).map(x => x.line.id);
@@ -5222,14 +5272,14 @@ function openClose(t) {
       }
       if (s.kind === "item") {
         const x = lo.find(y => y.items.some(i => i.id === s.id)), it = S.items.get(s.id);
-        if (!x) return { bad: (it ? "Unit " + itemLabel(it) : "That unit") + " is not a leftover on job #" + t.number + ". Nothing changed." };
+        if (!x) return { bad: (it ? "Unit " + itemLabel(it) : "That unit") + " is not a leftover on " + jobLabel(t, 1) + ". Nothing changed." };
         if (C.units.has(s.id)) return { ok: "Unit " + itemLabel(it) + " is already scanned back to " + locName(C.units.get(s.id)) + "." };
         const nd = needDest(); if (nd) return { bad: nd };
         C.units.set(s.id, C.dest); paint(); return { ok: "Unit " + itemLabel(it) + " back to " + locName(C.dest) + "." };
       }
-      if (s.kind === "ctr") return { bad: "That box is not a leftover on job #" + t.number + ". Wire is cut from its box on the shelf, so the box stays where it is." };
+      if (s.kind === "ctr") return { bad: "That box is not a leftover on " + jobLabel(t, 1) + ". Wire is cut from its box on the shelf, so the box stays where it is." };
       const x = lo.find(y => y.counted > 0 && codeIsProduct(s, y.p) && num((C.counts.get(y.line.id) || {}).n) < y.counted) || lo.find(y => y.counted > 0 && codeIsProduct(s, y.p));
-      if (!x) return { bad: lo.some(y => codeIsProduct(s, y.p)) ? "Units of that product have their own QR. Scan the unit's label." : "That code is not a leftover on job #" + t.number + ". Nothing changed." };
+      if (!x) return { bad: lo.some(y => codeIsProduct(s, y.p)) ? "Units of that product have their own QR. Scan the unit's label." : "That code is not a leftover on " + jobLabel(t, 1) + ". Nothing changed." };
       const c = C.counts.get(x.line.id) || { n: 0, dest: "" };
       if (c.n >= x.counted) return { ok: "All " + fmtN(x.counted) + " " + productName(x.p) + " are counted back." };
       const nd = needDest(); if (nd) return { bad: nd };
@@ -5279,7 +5329,7 @@ function openClose(t) {
     const rs = new Map(); clBack().forEach(id => rs.set(id, RS.get(id)));
     closeModal(w);
     const r = await doClose(t, { mode, units: C.units, counts: C.counts, rs, reason, vanReason: van.length ? vanReason : null, note: $("#clNote", w).value.trim() || null });
-    if (r) { toast((r === "demo" ? "Demo mode, not saved: " : "") + "Job #" + t.number + " closed"); }
+    if (r) { toast((r === "demo" ? "Demo mode, not saved: " : "") + jobLabel(t) + " closed"); }
   });
 }
 /* 0.13.0 (PLAN 32.2): the box on the job page (and the Deliver screen) that
@@ -5295,9 +5345,9 @@ function printTicket(t) {
   const from = l => { const p = lineProduct(l); if (!p || lineLeft(l) <= 0) return ""; return pullSources(p).slice(0, 2).map(e => (e.locationId ? locName(e.locationId) : "No location") + " (" + fmtN(e.qty) + ")").join(", ") || "Not on a shelf"; };
   const rows = areas.map(a => '<tr class="ga"><td colspan="6">' + esc(a) + "</td></tr>" + lines.filter(l => (l.area || "No area") === a).map(l =>
     '<tr><td><span class="box"></span></td><td><b>' + esc(lineName(l)) + "</b>" + (l.description ? "<br>" + esc(l.description) : "") + (l.notes ? "<br><i>" + esc(l.notes) + "</i>" : "") + '</td><td class="r">' + esc(lqty(l, l.qtyNeeded)) + '</td><td class="r">' + esc(lqty(l, l.qtyStaged)) + '</td><td class="r">' + esc(lqty(l, lineLeft(l))) + "</td><td>" + esc(from(l)) + "</td></tr>").join("")).join("");
-  $("#printSheet").innerHTML = '<div class="pvbar"><button type="button" class="btn acc" id="pvPrint">Print</button><button type="button" class="btn" id="pvClose">Close preview</button><span>Pull sheet for job #' + esc(t.number) + ", letter paper.</span></div>" +
+  $("#printSheet").innerHTML = '<div class="pvbar"><button type="button" class="btn acc" id="pvPrint">Print</button><button type="button" class="btn" id="pvClose">Close preview</button><span>Pull sheet for ' + esc(jobLabel(t, 1)) + ", letter paper.</span></div>" +
     /* 0.9.0 (PLAN 20.2): the QR top right opens this job's Pull screen from the clipboard */
-    '<div class="picksheet"><div class="phead"><div><h1>Pull sheet, job #' + esc(t.number) + "</h1>" +
+    '<div class="picksheet"><div class="phead"><div><h1>Pull sheet, ' + esc(jobLabel(t, 1)) + "</h1>" +
     '<div class="pmeta"><span><b>Client:</b> ' + esc(t.clientName || "") + "</span><span><b>Job:</b> " + esc(t.jobName || "") + "</span><span><b>Staging:</b> " + esc(tkBay(t) || "not set yet") + "</span><span><b>Status:</b> " + esc(TK_LABEL[tkStatus(t)]) + "</span><span><b>Printed:</b> " + esc(fmtWhen(new Date())) + " by " + esc(S.user.name) + "</span></div></div>" +
     '<div class="pqr" data-qr="' + esc(PAYLOAD.job(t.id)) + '">' + qrSvg(labelLink("job", t.id)) + "<div>Scan to open this job</div></div></div>" +
     (lines.length ? '<table><thead><tr><th style="width:22px"></th><th>Product</th><th class="r">Needed</th><th class="r">Staged</th><th class="r">To pull</th><th>Pull from</th></tr></thead><tbody>' + rows + "</tbody></table>" : "<p>This job has no lines.</p>") +
@@ -5504,7 +5554,7 @@ function openNewTicket(opts = {}) {
     card("csv", "Use a proposal file (.csv)", "The office downloads this from Portal when a client accepts a proposal. If someone sent you a file ending in .csv, choose this.")];
   if (fileFirst) cards.reverse();
   const portalOn = isAdmin() && S.portal && (S.portal.tier === "t1" || S.portal.tier === "t2");
-  const body = (addTo ? '<p class="ntlead">Add product to job #' + esc(addTo.number) + ", " + esc(tkWho(addTo)) + ". Lines already on it stay as they are.</p>"
+  const body = (addTo ? '<p class="ntlead">Add product to ' + esc(jobLabel(addTo, 1)) + ", " + esc(tkWho(addTo)) + ". Lines already on it stay as they are.</p>"
       : '<p class="ntlead">A job is the list of product one client\'s install needs. Loadout uses it to show what to pull, what to order, and what was delivered.</p>') +
     (portalOn && !addTo ? '<p class="hint" style="margin-top:0">Accepted proposals arrive here on their own; look for jobs marked To review.</p>' : "") +
     '<div class="ncards" role="radiogroup" aria-label="How to make the list">' + cards.join("") + "</div>" +
@@ -5519,7 +5569,7 @@ function openNewTicket(opts = {}) {
       '<p class="hint" id="ntFileName"></p><div id="ntRead"></div><div id="ntTk"></div></div>' +
     '<p class="sr" id="ntLive" aria-live="polite"></p><p class="err" id="ntErr" role="alert" hidden></p>';
   const foot = '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn" id="ntBack">Back</button><button type="button" class="btn acc" id="ntNext">Next</button><button type="button" class="btn acc" data-ok data-tk="ntCreate">Create job</button>';
-  const w = openModal(addTo ? "Add lines to job #" + addTo.number : "New job", body, foot, { wide: true, noFocus: true, cls: "ntbox" });
+  const w = openModal(addTo ? "Add lines to " + jobLabel(addTo, 1) : "New job", body, foot, { wide: true, noFocus: true, cls: "ntbox" });
   const err = m => { const e = $("#ntErr", w); e.textContent = m || ""; e.hidden = !m; if (m) e.scrollIntoView({ block: "nearest" }); };
   const live = m => { const l = $("#ntLive", w); l.textContent = ""; setTimeout(() => { l.textContent = m; }, 30); };
   const curLines = () => I.tab === "hand" ? handLines(I) : I.lines;
@@ -5542,7 +5592,7 @@ function openNewTicket(opts = {}) {
     if (ex) {
       const have = S.lines.get(ex.id) || new Map(), ls = Array.from(curLines().values());
       const nNew = ls.filter(l => !have.has(l.id)).length, nChg = ls.filter(l => have.has(l.id) && num(have.get(l.id).qtyNeeded) !== num(l.qtyNeeded)).length;
-      h += '<p class="hint" style="margin-top:0"><b>Job #' + esc(ex.number) + "</b>, " + esc(tkWho(ex)) + ". " + (addTo && I.tab === "hand" ? "These lines are added to it" : "This " + (addTo ? "file" : "proposal number") + " updates it") + ": " + plural(nNew, "new line") + ", " + nChg + " changed quantit" + (nChg === 1 ? "y" : "ies") + ". Lines not in this " + (I.tab === "hand" ? "list" : "file") + " stay as they are.</p>";
+      h += '<p class="hint" style="margin-top:0"><b>' + esc(jobLabel(ex)) + "</b>, " + esc(tkWho(ex)) + ". " + (addTo && I.tab === "hand" ? "These lines are added to it" : "This " + (addTo ? "file" : "proposal number") + " updates it") + ": " + plural(nNew, "new line") + ", " + nChg + " changed quantit" + (nChg === 1 ? "y" : "ies") + ". Lines not in this " + (I.tab === "hand" ? "list" : "file") + " stay as they are.</p>";
     }
     if (file && !addTo) h += '<div class="grid2"><div><label class="lab" for="ntProp" title="Prefilled from the file when it carries one. Reading the same number again adds or adjusts lines on that job instead of making a second one.">' + '<abbr>Proposal number</abbr></label><input class="fld mono" id="ntProp" value="' + esc(I.proposal) + '" placeholder="1042"></div></div>';
     if (!ex) {
@@ -5571,7 +5621,7 @@ function openNewTicket(opts = {}) {
   const paintFoot = () => {
     const back = $("#ntBack", w), next = $("#ntNext", w), ok = w.querySelector("[data-ok]"), hand = I.tab === "hand", last = !hand || I.step === STEPS.length - 1;
     back.hidden = !hand || I.step === 0; next.hidden = last; ok.hidden = !last; ok.disabled = !last;
-    const ex = existing(); ok.textContent = addTo ? "Add to job #" + addTo.number : ex ? "Update job #" + ex.number : "Create job";
+    const ex = existing(); ok.textContent = addTo ? "Add to " + jobLabel(addTo, 1) : ex ? "Update " + jobLabel(ex, 1) : "Create job";
   };
   /* ---- the hand-built path ---- */
   const listHTML = () => '<div class="ntfind"><label class="lab" for="ntQ" title="Searches brand, model, UPC, type, and category. Tap a result to add it; tap it again for one more.">' + '<abbr>Find a product on the shelf list</abbr></label><div class="srow"><input class="fld" type="search" id="ntQ" value="' + esc(I.q) + '" placeholder="Brand, model, or UPC" autocomplete="off" spellcheck="false"><button type="button" class="btn" id="ntScan" title="Reads the UPC or the Loadout label on a box with the camera and adds that product">Scan</button></div><div id="ntHits" class="nthits"></div></div>' +
@@ -5809,7 +5859,7 @@ function createTicket(I, addTo, w, err) {
     after.set(l.id, Object.assign({ id: l.id }, doc)); nNew++;
     ops.push({ op: "set", coll: linesColl(tid), id: l.id, data: doc });
   });
-  if (ex && !nNew && !nChg) { err("Nothing changes: every line already matches job #" + ex.number + "."); return; }
+  if (ex && !nNew && !nChg) { err("Nothing changes: every line already matches " + jobLabel(ex, 1) + "."); return; }
   const allLines = Array.from(after.values()), source = I.tab === "hand" ? "manual" : "csv";
   const instAt = I.install ? new Date(I.install + "T12:00:00") : null;
   if (ex) ops.push(ticketStatusOp(ex, allLines, instAt && I.install !== installDay(ex) ? { installAt: instAt } : null));
@@ -5822,12 +5872,13 @@ function createTicket(I, addTo, w, err) {
     const saved = (S.importMap && S.importMap.columns) || {};
     if (JSON.stringify(cols) !== JSON.stringify(saved)) ops.push({ op: "set", coll: "loadout_settings", id: "importMap", data: { columns: cols, updatedAt: NOW, updatedBy: S.user.email, updatedByName: S.user.name } });
   }
-  const what = ex ? (source === "csv" ? "Re-imported " + I.fileName : "Added by hand") + ": " + nNew + " new lines, " + nChg + " changed" : "Job #" + number + (source === "csv" ? " created from CSV, " + ls.length + " lines" + (I.skipped.length ? ", " + I.skipped.length + " rows skipped" : "") : " built by hand, " + ls.length + " lines");
+  const numLbl = ex ? jobLabel(ex) : (clean(I.proposal) ? "Proposal #" : "Job #") + number;
+  const what = ex ? (source === "csv" ? "Re-imported " + I.fileName : "Added by hand") + ": " + nNew + " new lines, " + nChg + " changed" : numLbl + (source === "csv" ? " created from CSV, " + ls.length + " lines" + (I.skipped.length ? ", " + I.skipped.length + " rows skipped" : "") : " built by hand, " + ls.length + " lines");
   ops.push(mv("edit", { ticketId: tid, ticketNumber: number, jobName: jobNm, note: what + (nProd ? ", " + nProd + " products created" : "") }));
   w._guard = null; closeModal(w);
-  commitChunks(ops, ex ? "the changes to job #" + number : "job #" + number).then(ok => {
+  commitChunks(ops, ex ? "the changes to " + numLbl.toLowerCase() : numLbl.toLowerCase()).then(ok => {
     if (!ok) return;
-    toast(ex ? "Job #" + number + " updated: " + nNew + " new, " + nChg + " changed" : "Job #" + number + " created");
+    toast(ex ? numLbl + " updated: " + nNew + " new, " + nChg + " changed" : numLbl + " created");
   });
   /* 0.10.0 (PLAN 22.1): a new job lands on its Pull screen for whoever can pull; an update stays on the job page */
   if (!DEMO) go(!ex && isWriter() ? "pull" : "ticket", tid);
@@ -5926,9 +5977,9 @@ function boardHTML() {
     '<div><label class="lab" for="bdGroup" title="By shelf makes the board the pull path: lines in the walking order of the rack labels.">' + '<abbr>Group lines by</abbr></label><select class="fld" id="bdGroup"><option value="location"' + (d.groupBy !== "area" ? " selected" : "") + '>Shelf to pull from</option><option value="area"' + (d.groupBy === "area" ? " selected" : "") + ">Area on the proposal</option></select></div>" +
     '<div><label class="lab" for="bdTheme" title="Dark reads best in a dim corner; light suits a bright shop.">' + '<abbr>Theme</abbr></label><select class="fld" id="bdTheme"><option value="dark"' + (d.theme !== "light" ? " selected" : "") + '>Dark</option><option value="light"' + (d.theme === "light" ? " selected" : "") + ">Light</option></select></div></div>" +
     '<label class="chk" title="Off hides staged lines so only the work left shows."><input type="checkbox" id="bdStaged"' + (d.showStaged !== false ? " checked" : "") + "> Show staged lines, greyed</label>" +
-    '<div class="sect"><h4 class="h4">Pinned jobs, in rotation order</h4>' + (pinned.length ? '<ul class="collist">' + pinned.map((t, i) => '<li><span style="flex:1;min-width:0"><b>#' + esc(t.number) + "</b> " + esc(tkWho(t)) + (t.status === "closed" ? ' <span class="st">Closed, skipped</span>' : "") + "</span>" +
-      '<button type="button" class="btn sm" data-bdup="' + i + '" aria-label="Move #' + esc(t.number) + ' up"' + (i === 0 ? " disabled" : "") + '>Up</button><button type="button" class="btn sm" data-bddown="' + i + '" aria-label="Move #' + esc(t.number) + ' down"' + (i === pinned.length - 1 ? " disabled" : "") + '>Down</button><button type="button" class="btn sm" data-bdrm="' + esc(t.id) + '" aria-label="Unpin #' + esc(t.number) + '">Unpin</button></li>').join("") + "</ul>" : '<p class="hint" style="margin-top:0">Nothing pinned. The board says so until a job is pinned here or with Show on board.</p>') +
-    (avail.length ? '<div class="manual"><label class="sr" for="bdAdd">Job to pin</label><select class="fld" id="bdAdd"><option value="">Choose an open job</option>' + avail.map(t => '<option value="' + esc(t.id) + '">#' + esc(t.number) + " " + esc(tkWho(t)) + "</option>").join("") + '</select><button type="button" class="btn" data-act="bdPin">Pin</button></div>' : "") + "</div>" +
+    '<div class="sect"><h4 class="h4">Pinned jobs, in rotation order</h4>' + (pinned.length ? '<ul class="collist">' + pinned.map((t, i) => '<li><span style="flex:1;min-width:0"><b>' + esc(jobLabel(t)) + "</b> " + esc(tkWho(t)) + (t.status === "closed" ? ' <span class="st">Closed, skipped</span>' : "") + "</span>" +
+      '<button type="button" class="btn sm" data-bdup="' + i + '" aria-label="Move ' + esc(jobLabel(t)) + ' up"' + (i === 0 ? " disabled" : "") + '>Up</button><button type="button" class="btn sm" data-bddown="' + i + '" aria-label="Move ' + esc(jobLabel(t)) + ' down"' + (i === pinned.length - 1 ? " disabled" : "") + '>Down</button><button type="button" class="btn sm" data-bdrm="' + esc(t.id) + '" aria-label="Unpin ' + esc(jobLabel(t)) + '">Unpin</button></li>').join("") + "</ul>" : '<p class="hint" style="margin-top:0">Nothing pinned. The board says so until a job is pinned here or with Show on board.</p>') +
+    (avail.length ? '<div class="manual"><label class="sr" for="bdAdd">Job to pin</label><select class="fld" id="bdAdd"><option value="">Choose an open job</option>' + avail.map(t => '<option value="' + esc(t.id) + '">' + esc(jobLabel(t)) + " " + esc(tkWho(t)) + "</option>").join("") + '</select><button type="button" class="btn" data-act="bdPin">Pin</button></div>' : "") + "</div>" +
     '<div class="btnrow"><a class="btn" href="' + url + '" target="_blank" rel="noopener" title="Opens the board in a new tab, the way the TV shows it">Open the board</a>' +
     (DEMO ? "" : '<a class="btn" href="?demo=1&amp;board=1" target="_blank" rel="noopener" title="The TV screen on invented sample data, with no sign-in, so you can show it without signing a TV in. Add &amp;mode=today, pinned, or all_open to the address to switch what it shows.">Open the demo board</a>') + '</div>' +
     (S.board.updatedByName ? '<p class="hint">Board last changed by ' + esc(S.board.updatedByName) + (S.board.updatedAt ? " on " + fmtWhen(S.board.updatedAt) : "") + ".</p>" : "") + "</div>";
@@ -5954,7 +6005,7 @@ function openPickFor(p, item) {
   const bayHit = c.find(x => x.t.stagingLocationId && x.t.stagingLocationId === S.activeLoc);
   if (c.length === 1) { openPull(c[0].t, c[0].l, preset); return; }
   const body = '<p class="hint" style="margin-top:0">' + esc(productName(p)) + (item ? ", unit " + esc(itemLabel(item)) : "") + '. Open jobs that still need it:</p><label class="lab" for="pfSel" title="The job you scanned or opened last is picked for you.">' + '<abbr>Job and line</abbr></label><select class="fld" id="pfSel" data-decide><option value="">Choose a job</option>' +
-    c.map(x => '<option value="' + esc(x.t.id + "|" + x.l.id) + '"' + (bayHit === x ? " selected" : "") + ">#" + esc(x.t.number) + " " + esc(tkWho(x.t)) + ", " + esc(x.l.area || "No area") + ", needs " + esc(lqty(x.l, lineLeft(x.l))) + "</option>").join("") + '</select><p class="err" id="pfErr" hidden></p>';
+    c.map(x => '<option value="' + esc(x.t.id + "|" + x.l.id) + '"' + (bayHit === x ? " selected" : "") + ">" + esc(jobLabel(x.t)) + " " + esc(tkWho(x.t)) + ", " + esc(x.l.area || "No area") + ", needs " + esc(lqty(x.l, lineLeft(x.l))) + "</option>").join("") + '</select><p class="err" id="pfErr" hidden></p>';
   const w = openModal("Pull for job", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="pickForGo">Continue</button>');
   wireGlow(w);
   w.querySelector("[data-ok]").addEventListener("click", () => {
@@ -6064,9 +6115,9 @@ const BD_PER = 6;
 function boardPages(list) { const out = []; for (let i = 0; i < list.length; i += BD_PER) out.push(list.slice(i, i + BD_PER)); return out; }
 function boardCardHTML(t, extra) {
   const s = tkSummary(t), n = s.lines || 0, w = x => (n ? x / n * 100 : 0).toFixed(1) + "%";
-  return '<section class="bdc" aria-label="Job ' + esc(t.number) + '"><div class="bdc-band" aria-hidden="true"></div><div class="bdc-in">' +
+  return '<section class="bdc" aria-label="' + esc(jobLabel(t)) + '"><div class="bdc-band" aria-hidden="true"></div><div class="bdc-in">' +
     '<div class="bdc-head"><div class="bdc-client">' + esc(t.clientName || "No client") + '</div><div class="bdc-bay">' + esc(tkBay(t) || "No staging area") + "</div></div>" +
-    '<div class="bdc-sub">' + esc(t.jobName || "") + ' <span class="mono">#' + esc(t.number) + "</span></div>" +
+    '<div class="bdc-sub">' + esc(t.jobName || "") + ' <span class="mono">' + esc(jobLabel(t)) + "</span></div>" +
     '<div class="bdc-bar" aria-hidden="true"><i class="bd" style="width:' + w(s.delivered || 0) + '"></i><i class="bv" style="width:' + w(s.pickedUp || 0) + '"></i><i class="bs" style="width:' + w(s.inBay || 0) + '"></i></div>' +
     '<div class="bdc-strip">' + esc(progressText(s)) + "</div>" +
     '<div class="bdc-list">' + (S.linesLoaded.has(t.id) ? boardListHTML(t) || '<div class="bd-line picked"><span class="bd-st">Done</span><span class="bd-name">Every line is pulled</span><span></span></div>' : '<div class="bd-line"><span class="bd-name">Loading lines</span></div>') + "</div>" + (extra || "") + "</div></section>";
@@ -6320,7 +6371,7 @@ function nextBtnHTML(nx) {
 }
 function jobCardHTML(t, nx, extra, headHref) {
   if (nx === undefined) nx = jobNext(t);
-  return '<div class="jcard"><a class="jhead" href="' + (headHref || jobHref(t)) + '"><span class="jt"><b>' + esc(t.clientName || "No client") + '</b><span class="jn">Job ' + esc(t.number) + '</span></span><span class="jj">' + esc(jobMeta(t)) + "</span></a>" +
+  return '<div class="jcard"><a class="jhead" href="' + (headHref || jobHref(t)) + '"><span class="jt"><b>' + esc(t.clientName || "No client") + '</b><span class="jn">' + esc(jobLabel(t)) + '</span></span><span class="jj">' + esc(jobMeta(t)) + "</span></a>" +
     jobStripHTML(tkSummary(t)) + (extra || "") + nextBtnHTML(nx) + "</div>";
 }
 const byInstall = (a, b) => (toDate(a.installAt) ? 0 : 1) - (toDate(b.installAt) ? 0 : 1) || (toDate(a.installAt) || 0) - (toDate(b.installAt) || 0) || String(a.number).localeCompare(String(b.number), undefined, { numeric: true });
@@ -6443,7 +6494,7 @@ function pullJobHTML() {
   if (!S.loaded.tickets || (t && !S.linesLoaded.has(t.id))) return h + '</div><div class="empty"><p>Loading the job</p></div></div>';
   if (!t) return h + '</div><div class="empty"><p>That job is not in Loadout. It may have been removed, or has not reached this device yet.</p><a class="btn" href="#pull">Back to the list</a></div></div>';
   const lines = ticketLines(t.id), s = tkSummary(t), closed = tkStatus(t) === "closed";
-  h += " / Job " + esc(t.number) + '</div><h2 class="vt">' + esc(t.clientName || "No client") + '</h2><p class="hint" style="margin:2px 0 var(--s1)">' + esc(jobMeta(t)) + ' <a class="textbtn" href="' + jobHref(t) + '">Open the job</a></p>' + jobStripHTML(s, true);
+  h += " / " + esc(jobLabel(t)) + '</div><h2 class="vt">' + esc(t.clientName || "No client") + '</h2><p class="hint" style="margin:2px 0 var(--s1)">' + esc(jobMeta(t)) + ' <a class="textbtn" href="' + jobHref(t) + '">Open the job</a></p>' + jobStripHTML(s, true);
   if (closed) return h + '<div class="empty"><p>This job is closed. Nothing is pulled for it any more.</p><a class="btn" href="' + jobHref(t) + '">Open the job</a></div></div>';
   if (!lines.length) return h + '<div class="empty"><p>This job has no lines yet. Add them on the job page.</p><a class="btn" href="' + jobHref(t) + '">Open the job</a></div></div>';
   const pl = pullPlan(t), stock = shelfStock(), bay = tkBay(t) || "the staging area";
@@ -6519,7 +6570,7 @@ function renderFlow(kind) {
   if (!S.loaded.tickets || (t && !S.linesLoaded.has(t.id))) { el.innerHTML = h + back + '</div><div class="empty"><p>Loading the job</p></div></div>'; return; }
   if (!t) { el.innerHTML = h + back + '</div><div class="empty"><p>That job is not in Loadout. It may have been closed, or has not reached this device yet.</p><a class="btn" href="#' + kind + '">Back to the list</a></div></div>'; return; }
   const F = flowState(kind, t.id), lines = flowLines(kind, t), s = tkSummary(t), T = isTech();
-  h += back + " / Job " + esc(t.number) + '</div><h2 class="vt">' + esc(t.clientName || "No client") + '</h2><p class="hint" style="margin:2px 0 var(--s1)">' + esc(jobMeta(t)) + ' <a class="textbtn" href="' + jobHref(t) + '">Open the job</a></p>' + jobStripHTML(s, true) + doneBoxHTML(t);
+  h += back + " / " + esc(jobLabel(t)) + '</div><h2 class="vt">' + esc(t.clientName || "No client") + '</h2><p class="hint" style="margin:2px 0 var(--s1)">' + esc(jobMeta(t)) + ' <a class="textbtn" href="' + jobHref(t) + '">Open the job</a></p>' + jobStripHTML(s, true) + doneBoxHTML(t);
   if (F.done) {
     const d = F.done;
     h += '<div class="donebox" role="status"><b>' + (kind === "pickup" ? "Picked up" : "Delivered to site") + "</b><br>" + (kind === "pickup" ? "Taken by " : "Confirmed by ") + esc(d.by) + ", " + esc(fmtWhen(d.at)) + ". " + d.n + " line" + (d.n === 1 ? "" : "s") +
@@ -6551,11 +6602,11 @@ async function flowCommit(kind) {
   if (!on.length) { toast("Tick at least one line.", true); return; }
   if (kind === "pickup") {
     const r = await doPickup(t, on);
-    if (r.ok || DEMO) { F.done = { by: S.user.name, at: new Date(), n: on.length, demo: !r.ok }; render(true); toast((r.ok ? "" : "Demo mode, not saved: ") + "Picked up " + on.length + " line" + (on.length > 1 ? "s" : "") + " from job " + t.number); }
+    if (r.ok || DEMO) { F.done = { by: S.user.name, at: new Date(), n: on.length, demo: !r.ok }; render(true); toast((r.ok ? "" : "Demo mode, not saved: ") + "Picked up " + on.length + " line" + (on.length > 1 ? "s" : "") + " from " + jobLabel(t, 1)); }
   } else {
     const notes = {}; lines.filter(l => F.off.has(l.id)).forEach(l => { if (F.notes[l.id]) notes[l.id] = F.notes[l.id]; });
     const r = await doDeliverLines(t, on, notes);
-    if (r.ok || DEMO) { F.done = { by: S.user.name, at: new Date(), n: on.length, left: lines.length - on.length, demo: !r.ok }; render(true); toast((r.ok ? "" : "Demo mode, not saved: ") + "Delivered " + on.length + " line" + (on.length > 1 ? "s" : "") + " on job " + t.number); }
+    if (r.ok || DEMO) { F.done = { by: S.user.name, at: new Date(), n: on.length, left: lines.length - on.length, demo: !r.ok }; render(true); toast((r.ok ? "" : "Demo mode, not saved: ") + "Delivered " + on.length + " line" + (on.length > 1 ? "s" : "") + " on " + jobLabel(t, 1)); }
   }
 }
 
@@ -6590,14 +6641,14 @@ function bringBackTargets(t) {
    one). What is not ticked or counted stays in the van. */
 function openBringBack(t, mine) {
   const lines = vanLinesOf(t, mine), tg = bringBackTargets(t), W = isWriter();
-  if (!lines.length) { toast("Nothing on job " + t.number + " is in a van.", true); return; }
+  if (!lines.length) { toast("Nothing on " + jobLabel(t, 1) + " is in a van.", true); return; }
   const rows = lines.map(l => { const p = lineProduct(l), units = vanUnits(t, l), q = lineInVan(l); return { l, p, units, rest: Math.max(0, q - units.length), q }; });
   const B = { units: new Set(), counts: new Map() };
   const row = r => '<li class="lrow"><div class="lrn"><b>' + esc(lineName(r.l)) + "</b><small>" + esc(lqty(r.l, r.q)) + " in the van" + (r.l.pickedUpByName ? " with " + esc(r.l.pickedUpByName) : "") + "</small></div>" +
     (r.rest ? '<div class="lrq"><label class="sr" for="bbN-' + esc(r.l.id) + '">How many ' + esc(lineName(r.l)) + ' come back</label><input class="fld n" type="number" min="0" max="' + r.rest + '" step="1" inputmode="numeric" id="bbN-' + esc(r.l.id) + '" data-bbn="' + esc(r.l.id) + '" placeholder="0"><span class="z">of ' + esc(lqty(r.l, r.rest)) + "</span></div>" : "") +
     (r.units.length ? '<div class="pickunits">' + r.units.map(i => '<label class="chk"><input type="checkbox" data-bbu="' + esc(i.id) + '"> <span class="mono">' + esc(itemLabel(i)) + "</span></label>").join("") + "</div>" : "") +
     (rows.length > 1 ? lineReasonHTML("bb", r.l.id, lineName(r.l)) : "") + "</li>";
-  const body = '<p class="hint" style="margin-top:0">Job ' + esc(t.number) + ", " + esc(tkWho(t)) + ". Scan what comes off the van, or tick it below. What is not scanned stays in the van.</p>" +
+  const body = '<p class="hint" style="margin-top:0">' + esc(jobLabel(t)) + ", " + esc(tkWho(t)) + ". Scan what comes off the van, or tick it below. What is not scanned stays in the van.</p>" +
     scanFieldHTML("bb", "Scan or type a code", "A scanner that types, the camera, or the code under a label. A unit's QR ticks that unit, a UPC adds one to that product's count" + (W ? ", and a shelf label sets where it goes." : "."), W ? "Unit, UPC, or shelf" : "Unit or UPC") +
     (tg.opts ? '<label class="lab" for="bbTo" title="The job\'s staging area keeps it with the job for the next pick-up. A shelf puts it back in stock, and the line needs pulling again.">' + "<abbr>Back to</abbr></label><select class=\"fld\" id=\"bbTo\"" + (tg.bay ? "" : " data-decide") + ">" + tg.opts + "</select>" +
       (W ? "" : '<p class="hint">It goes to the job\'s staging area. The warehouse puts it back on a shelf if the job is off.</p>')
@@ -6624,7 +6675,7 @@ function openBringBack(t, mine) {
     const s = scanParse(code);
     if (s.kind === "item") {
       const r = rows.find(x => x.units.some(i => i.id === s.id)), it = S.items.get(s.id);
-      if (!r) return { bad: (it ? "Unit " + itemLabel(it) : "That unit") + " is not in the van on job #" + t.number + ". Nothing changed." };
+      if (!r) return { bad: (it ? "Unit " + itemLabel(it) : "That unit") + " is not in the van on " + jobLabel(t, 1) + ". Nothing changed." };
       if (B.units.has(s.id)) return { ok: "Unit " + itemLabel(it) + " is already ticked." };
       B.units.add(s.id); paint(); return { ok: "Unit " + itemLabel(it) + " ticked." };
     }
@@ -6634,9 +6685,9 @@ function openBringBack(t, mine) {
       if (!sel || !Array.from(sel.options).some(o => o.value === s.id)) return { bad: W ? L.name + " is not a shelf this can go back to." : "A tech brings back only to " + (tg.bay ? locName(tg.bay) : "the job's staging area") + ". The warehouse puts it on a shelf." };
       sel.value = s.id; sel.classList.remove("glow"); paint(); return { ok: "Goes back to " + L.name + "." };
     }
-    if (s.kind === "ctr") return { bad: "That box is not in the van on job #" + t.number + ". Nothing changed." };
+    if (s.kind === "ctr") return { bad: "That box is not in the van on " + jobLabel(t, 1) + ". Nothing changed." };
     const r = rows.find(x => x.rest > 0 && codeIsProduct(s, x.p) && (B.counts.get(x.l.id) || 0) < x.rest) || rows.find(x => x.rest > 0 && codeIsProduct(s, x.p));
-    if (!r) return { bad: rows.some(x => codeIsProduct(s, x.p)) ? "Units of that product have their own QR. Scan the unit's label." : "That code is not in the van on job #" + t.number + ". Nothing changed." };
+    if (!r) return { bad: rows.some(x => codeIsProduct(s, x.p)) ? "Units of that product have their own QR. Scan the unit's label." : "That code is not in the van on " + jobLabel(t, 1) + ". Nothing changed." };
     const c = B.counts.get(r.l.id) || 0;
     if (c >= r.rest) return { ok: "All " + lqty(r.l, r.rest) + " of " + lineName(r.l) + " are counted." };
     B.counts.set(r.l.id, c + 1); paint(); return { ok: fmtN(c + 1) + " of " + lqty(r.l, r.rest) + " " + lineName(r.l) + " counted." };
@@ -6680,12 +6731,12 @@ async function doBringBack(t, picks, dest, note) {
     units.forEach(it => ops.push({ op: "update", coll: "loadout_items", id: it.id, data: Object.assign({ status: shelf ? "in_stock" : "staged", holderUid: null, holderName: null, locationId: dest, locationName: where, checkedInAt: NOW, updatedAt: NOW },
       shelf ? { ticketId: null, ticketNumber: null, ticketLineId: null, jobId: null, jobName: null, clientName: null } : {}) }));
     ops.push(mv("move", Object.assign({ productId: l.productId || null, productName: lineName(l), qty: q, toLocationId: dest, holderName: l.pickedUpByName || null, reason: (x.rs || {}).reason, reasonNote: (x.rs || {}).reasonNote,
-      note: "Brought back from the van, job #" + t.number + (units.length ? ". Units " + units.map(itemLabel).join(", ") + (shelf ? " back in stock" : " staged again") : "") + (note ? ". " + note : "") }, tkBaseFields(t, l))));
+      note: "Brought back from the van, " + jobLabel(t, 1) + (units.length ? ". Units " + units.map(itemLabel).join(", ") + (shelf ? " back in stock" : " staged again") : "") + (note ? ". " + note : "") }, tkBaseFields(t, l))));
     b.bump(l, shelf ? { qtyPickedUp: -q, qtyStaged: -q } : { qtyPickedUp: -q }, { broughtBackAt: NOW, broughtBackBy: me.email, broughtBackByName: me.name }, { shelf: shelf && p ? q : 0 });
     went.push(lqty(l, q) + " " + lineName(l) + (units.length ? " (units " + units.map(itemLabel).join(", ") + ")" : "") + " to " + where);
   });
   if (!n) return { ok: false, n: 0, k: 0 };
-  const ok = await DB.commit(b.finish(), "Bring back on job #" + t.number);
+  const ok = await DB.commit(b.finish(), "Bring back on " + jobLabel(t, 1));
   if (ok || DEMO) { S.doneBox = { tid: t.id, title: "Brought back from the van:", rows: went, demo: !ok }; scheduleRender(); }
   return { ok, n, k };
 }
@@ -6787,7 +6838,7 @@ function renderReturn() {
   if (!isTech()) { el.innerHTML = h + backHomeHTML() + title + '<div class="empty"><p>Returns are for techs, the warehouse, and the admin.</p><a class="btn" href="#home" title="Back to the doors">Back to Home</a></div></div>'; return; }
   if (!S.retJob) {
     const st = jobsStateHTML(), q = String(S.retQ || "").trim().toLowerCase(), all = st ? [] : retJobs();
-    const hits = q ? all.filter(t => [t.number, t.proposalId, t.clientName, t.jobName].filter(Boolean).join(" ").toLowerCase().includes(q)) : all.slice(0, 30);
+    const hits = q ? all.filter(t => [boxTkHay(t), t.number, t.proposalId].filter(Boolean).join(" ").toLowerCase().includes(q)) : all.slice(0, 30);
     h += backHomeHTML() + title + '<p class="hint" style="margin:0 0 var(--s2)">Product delivered to a client that comes back goes back on the shelf. Pick the job it came from, newest delivery first, or scan the job\'s QR.</p>' +
       scanFieldHTML("rj", "Scan the job's QR", "The QR on the job's pull sheet opens that job's return. A typed job or proposal number works too.", "Job QR or job number") +
       '<label class="lab" for="retQ" title="Searches the job number, the proposal number, the client, and the job name">Find a job</label><input class="fld" type="search" id="retQ" value="' + esc(S.retQ || "") + '" placeholder="Job number, proposal number, or client" autocomplete="off">';
@@ -6799,7 +6850,7 @@ function renderReturn() {
     wireScanField(el, "rj", code => {
       const t = retFindJob(code);
       if (!t) return { bad: "No job has that code. Nothing changed." };
-      S.retAuto = t.id; location.hash = retHref(t); return { ok: "Job " + t.number + "." };
+      S.retAuto = t.id; location.hash = retHref(t); return { ok: jobLabel(t) + "." };
     }, "Scan the job's QR");
     return;
   }
@@ -6808,7 +6859,7 @@ function renderReturn() {
   if (!S.loaded.tickets || (t && !S.linesLoaded.has(t.id))) { el.innerHTML = h + back + '</div><div class="empty"><p>Loading the job</p></div></div>'; return; }
   if (!t) { el.innerHTML = h + back + '</div><div class="empty"><p>That job is not in Loadout, or has not reached this device yet.</p><a class="btn" href="#return" title="Back to the jobs with delivered product">Back to the list</a></div></div>'; return; }
   const lines = retLines(t);
-  h += back + " / Job " + esc(t.number) + '</div><h2 class="vt">' + esc(t.clientName || "No client") + '</h2><p class="hint" style="margin:2px 0 var(--s1)">' + esc([t.jobName, t.deliveredAt ? "Delivered " + fmtShort(t.deliveredAt) : "", t.status === "closed" ? "Job closed" : ""].filter(Boolean).join(", ")) +
+  h += back + " / " + esc(jobLabel(t)) + '</div><h2 class="vt">' + esc(t.clientName || "No client") + '</h2><p class="hint" style="margin:2px 0 var(--s1)">' + esc([t.jobName, t.deliveredAt ? "Delivered " + fmtShort(t.deliveredAt) : "", t.status === "closed" ? "Job closed" : ""].filter(Boolean).join(", ")) +
     ' <a class="textbtn" href="' + jobHref(t) + '">Open the job</a></p>' + doneBoxHTML(t);
   if (!lines.length) h += '<div class="empty"><p>Nothing delivered on this job is left to return.</p><a class="btn" href="#return" title="Back to the jobs with delivered product">Pick another job</a></div>';
   else h += '<h3 class="h4" style="margin-top:var(--s3)">Delivered to ' + esc(t.clientName || "the client") + '</h3><ul class="flowlist">' + lines.map(l => {
@@ -6819,7 +6870,7 @@ function renderReturn() {
   if (S.retAuto === t.id) { S.retAuto = null; if (lines.length) setTimeout(() => openReturn(t), 0); }
 }
 function openReturn(t) {
-  const lines = retLines(t); if (!lines.length) { toast("Nothing delivered on job " + t.number + " is left to return.", true); return; }
+  const lines = retLines(t); if (!lines.length) { toast("Nothing delivered on " + jobLabel(t, 1) + " is left to return.", true); return; }
   const rows = lines.map(l => { const p = lineProduct(l), units = retUnits(t, l); return { l, p, units, rest: Math.max(0, retLeft(l) - units.length), usual: retUsual(p, l) }; });
   const B = { units: new Set(), counts: new Map(), dmg: new Set(), to: "" }, multi = rows.length > 1, client = t.clientName || "the client";
   const shelves = Array.from(S.locations.values()).filter(retOk).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
@@ -6828,7 +6879,7 @@ function openReturn(t) {
     (r.rest ? '<div class="rtrow"><div class="lrq"><label class="sr" for="rtN-' + esc(r.l.id) + '">How many ' + esc(lineName(r.l)) + ' came back</label><input class="fld n" type="number" min="0" max="' + r.rest + '" step="1" inputmode="numeric" id="rtN-' + esc(r.l.id) + '" data-rtn="' + esc(r.l.id) + '" placeholder="0"><span class="z">of ' + fmtN(r.rest) + "</span></div>" + dmgBox("n:" + r.l.id) + "</div>" : "") +
     (r.units.length ? '<div class="pickunits">' + r.units.map(i => '<div class="rtrow"><label class="chk"><input type="checkbox" data-rtu="' + esc(i.id) + '"> <span class="mono">' + esc(itemLabel(i)) + "</span></label>" + dmgBox(i.id) + "</div>").join("") + "</div>" : "") +
     (multi ? lineReasonHTML("rt", r.l.id, lineName(r.l)) : "") + "</li>";
-  const body = '<p class="hint" style="margin-top:0">Job ' + esc(t.number) + ", " + esc(tkWho(t)) + ". Scan what came back, tick it, or type how many. It goes back on the shelf, never to a staging area or a van.</p>" +
+  const body = '<p class="hint" style="margin-top:0">' + esc(jobLabel(t)) + ", " + esc(tkWho(t)) + ". Scan what came back, tick it, or type how many. It goes back on the shelf, never to a staging area or a van.</p>" +
     scanFieldHTML("rt", "Scan or type a code", "A scanner that types, the camera, or the code under a label. A unit's QR ticks that unit, a UPC or product QR adds one to that product's count, and a shelf label sends it all to that shelf.", "Unit, UPC, or shelf") +
     '<label class="lab" for="rtTo" title="The usual shelf is the one it was pulled from, else its default shelf, else where most of it sits. A shelf picked here or scanned takes everything.">Back to</label><select class="fld" id="rtTo"><option value="">Each product\'s usual shelf</option><optgroup label="Shelves">' +
     shelves.map(L => '<option value="' + esc(L.id) + '">' + esc(L.name) + "</option>").join("") + "</optgroup></select>" +
@@ -6858,7 +6909,7 @@ function openReturn(t) {
     const s = scanParse(code);
     if (s.kind === "item") {
       const r = rows.find(x => x.units.some(i => i.id === s.id)), it = S.items.get(s.id);
-      if (!r) return { bad: (it ? "Unit " + itemLabel(it) : "That unit") + " was not delivered on job #" + t.number + ". Nothing changed." };
+      if (!r) return { bad: (it ? "Unit " + itemLabel(it) : "That unit") + " was not delivered on " + jobLabel(t, 1) + ". Nothing changed." };
       if (B.units.has(s.id)) return { ok: "Unit " + itemLabel(it) + " is already ticked." };
       B.units.add(s.id); paint(); return { ok: "Unit " + itemLabel(it) + " ticked." };
     }
@@ -6871,7 +6922,7 @@ function openReturn(t) {
     }
     if (s.kind === "ctr") return { bad: "Boxes of wire do not come back here. Nothing changed." };
     const r = rows.find(x => x.rest > 0 && codeIsProduct(s, x.p) && (B.counts.get(x.l.id) || 0) < x.rest) || rows.find(x => x.rest > 0 && codeIsProduct(s, x.p));
-    if (!r) return { bad: rows.some(x => codeIsProduct(s, x.p)) ? "Units of that product have their own QR. Scan the unit's label." : "That code was not delivered on job #" + t.number + ". Nothing changed." };
+    if (!r) return { bad: rows.some(x => codeIsProduct(s, x.p)) ? "Units of that product have their own QR. Scan the unit's label." : "That code was not delivered on " + jobLabel(t, 1) + ". Nothing changed." };
     const c = B.counts.get(r.l.id) || 0;
     if (c >= r.rest) return { ok: "All " + fmtN(r.rest) + " " + lineName(r.l) + " are counted." };
     B.counts.set(r.l.id, c + 1); paint(); return { ok: fmtN(c + 1) + " of " + fmtN(r.rest) + " " + lineName(r.l) + " counted." };
@@ -6924,7 +6975,7 @@ async function doReturn(t, picks, note) {
     went.push(fmtN(q) + " " + lineName(l) + (x.units.length ? " (units " + x.units.map(itemLabel).join(", ") + ")" : "") + " to " + where + ", " + reasonText(rs.reason, rs.reasonNote).toLowerCase());
   });
   if (!k) return { ok: false, k: 0 };
-  const ok = await DB.commit(ops, "Return from " + client + " on job #" + t.number);
+  const ok = await DB.commit(ops, "Return from " + client + " on " + jobLabel(t, 1));
   if (ok || DEMO) { S.doneBox = { tid: t.id, title: "Back on the shelf from " + client + ":", rows: went, demo: !ok }; scheduleRender(); }
   return { ok, k };
 }
@@ -7446,11 +7497,11 @@ function mvSentence(m, verb) {
   if (m.toLocationName) s += sp() + (t === "edit" ? "" : t === "receive" ? "into " : t === "adjust" || t === "reading" || t === "note" || t === "cut" ? "at " : "to ") + m.toLocationName;
   if (m.holderName && t === "checkout") s += sp() + "to " + m.holderName;
   let n = String(m.note || "").trim();
-  if (n && m.ticketNumber) n = n.split(", job #" + m.ticketNumber).join("");
+  if (n && m.ticketNumber) n = n.split(", job #" + m.ticketNumber).join("").split(", " + jobLabelOf(m, 1)).join("");
   /* the job once: a note that still names it ("Job #1042 created") carries it */
-  const noteJob = m.ticketNumber && n.toLowerCase().includes("job #" + String(m.ticketNumber).toLowerCase());
+  const noteJob = m.ticketNumber && (n.toLowerCase().includes("job #" + String(m.ticketNumber).toLowerCase()) || n.toLowerCase().includes(jobLabelOf(m, 1).toLowerCase()));
   if (m.jobName && !noteJob) s += (s ? ", " : "") + "for " + m.jobName;
-  if (m.ticketNumber && !noteJob) s += (s ? ", " : "") + "job #" + m.ticketNumber;
+  if (m.ticketNumber && !noteJob) s += (s ? ", " : "") + jobLabelOf(m, 1);
   if (n && verb) { const v = new RegExp("^" + verb.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "[:,]?\\s+", "i"); if (v.test(n)) { n = n.replace(v, ""); n = n.charAt(0).toUpperCase() + n.slice(1); } }
   if (/^between locations\.?$/i.test(n)) n = "";
   if (n) s += (s ? ". " : "") + n;
@@ -7461,10 +7512,10 @@ function mvSentence(m, verb) {
 }
 /* a unit's open-ended first entry on its history */
 function unitNowText(it) {
-  const t = it.ticketId ? S.tickets.get(it.ticketId) : null, job = t ? "job #" + t.number : it.jobName || "";
+  const t = it.ticketId ? S.tickets.get(it.ticketId) : null, job = t ? jobLabel(t, 1) : it.jobName || "";
   const at = it.locationId ? locName(it.locationId) : "no location", since = d => (toDate(d) ? ", since " + fmtDate(d) : "");
   if (it.status === "checked_out") return "With " + (it.holderName || "someone") + (job ? ", " + job : "") + since(it.checkedOutAt);
-  if (it.status === "installed") return "Installed" + (it.jobName ? " at " + it.jobName : "") + (t ? ", job #" + t.number : "");
+  if (it.status === "installed") return "Installed" + (it.jobName ? " at " + it.jobName : "") + (t ? ", " + jobLabel(t, 1) : "");
   if (it.status === "retired") return "Retired" + since(it.updatedAt);
   if (it.status === "staged") return "Staged in " + at + (job ? " for " + job : "") + since(it.updatedAt || it.createdAt);
   if (it.status === "returned") return "Back from a site at " + at + ", waiting for a look" + since(it.checkedInAt || it.updatedAt);
@@ -7804,7 +7855,7 @@ function orderCols() {
     { k: "vendor", label: "Vendor", sort: o => o.vendor || "", html: o => o.status === "draft" && W
       ? '<label class="sr" for="ov_' + esc(o.id) + '">Vendor for ' + esc(poLabel(o)) + '</label><select class="fld sel" id="ov_' + esc(o.id) + '" data-ovendor="' + esc(o.id) + '" data-decide title="Pick the vendor before marking this ordered. It decides who the PO goes to and fills the vendor filter.">' + vendorOptions(o.vendor) + "</select>"
       : (o.vendor ? esc(o.vendor) : '<span class="z">Not picked</span>') },
-    { k: "for", label: "For", sort: o => ordFor(o), html: o => esc(ordFor(o)) + '<div class="pd">' + (o.ticketId ? "Job #" + esc(o.ticketNumber || o.ticketId) : "From the low-stock list or by hand") + "</div>" },
+    { k: "for", label: "For", sort: o => ordFor(o), html: o => esc(ordFor(o)) + '<div class="pd">' + (o.ticketId ? esc(jobLabelOf(o)) : "From the low-stock list or by hand") + "</div>" },
     { k: "status", label: "Status", sort: o => ordRank(o), html: o => ordPill(o) },
     /* 0.13.0 (PLAN 32.3): who approved a request, and when (off by default) */
     { k: "approved", label: "Approved", def: false, sort: o => toDate(o.approvedAt), text: o => o.approvedAt ? fmtDate(o.approvedAt) + (o.approvedByName ? ", " + o.approvedByName : "") : "" },
@@ -7867,7 +7918,7 @@ function olCols(o) {
       html: ol => ol.unitCost != null && ol.unitCost !== "" ? '<span class="n">' + esc(money(ol.unitCost)) + "</span>" : o.status === "draft" && unitCost(ol.productId) != null ? '<span class="z" title="The product\'s last cost. It is fixed on the line at Mark ordered.">' + esc(money(unitCost(ol.productId))) + "</span>" : '<span class="z">Not set</span>' }] : []),
     { k: "status", label: "Status", sort: ol => olStatus(o, ol), html: ol => { const st = olStatus(o, ol), e = olExpected(o, ol), late = olLate(o, ol);
       return pill("poline", st) + (st === "backordered" ? '<div class="pd">' + (ol.eta ? "Vendor says " + esc(fmtShort(ol.eta)) : "No ETA yet") + "</div>" : e && st !== "received" && st !== "draft" ? '<div class="pd' + (late ? " late" : "") + '">Expected ' + esc(fmtShort(e)) + (late ? ", " + daysLate(e) + " day" + (daysLate(e) === 1 ? "" : "s") + " late" : "") + "</div>" : ""); } },
-    { k: "serves", label: "Serves", sort: ol => ol.ticketNumber || "", html: ol => ol.ticketId ? '<button type="button" class="textbtn" data-act="ticket" data-id="' + esc(ol.ticketId) + '">#' + esc(ol.ticketNumber || ol.ticketId) + "</button> " + esc(ol.ticketArea || "") : '<span class="z">Stock</span>' }
+    { k: "serves", label: "Serves", sort: ol => ol.ticketNumber || "", html: ol => ol.ticketId ? '<button type="button" class="textbtn" data-act="ticket" data-id="' + esc(ol.ticketId) + '">' + esc(jobLabelOf(ol)) + "</button> " + esc(ol.ticketArea || "") : '<span class="z">For stock</span>' }
   ];
 }
 function olActions(o, ol) {
@@ -7882,7 +7933,7 @@ function olActions(o, ol) {
 }
 function shipCardHTML(o, s) {
   const W = isWriter(), open = shipOpen(s), client = shipSide(s, o) === "client", dnr = !client && s.status === "delivered" && open, last = shipLast(s);
-  const goes = (s.lines || []).filter(e => num(e.qty) - num(e.qtyReceived) > 0).map(e => { const ol = orderLines(o.id).find(x => x.id === e.orderLineId); const t = ol && ol.ticketId ? S.tickets.get(ol.ticketId) : null; return t ? (t.stagingLocationId ? tkBay(t) + " for #" + t.number : "the staging area for #" + t.number) : "stock"; });
+  const goes = (s.lines || []).filter(e => num(e.qty) - num(e.qtyReceived) > 0).map(e => { const ol = orderLines(o.id).find(x => x.id === e.orderLineId); const t = olJobId(o, ol) ? S.tickets.get(olJobId(o, ol)) : null; return t ? (t.stagingLocationId ? tkBay(t) + " for " + jobLabel(t, 1) : "the staging area for " + jobLabel(t, 1)) : "stock"; });
   const where = client ? ["the job site" + (shipAddress(s, o) ? " at " + shipAddress(s, o) : "")] : Array.from(new Set(goes));
   const doneTxt = client && s.status === "delivered" ? "Arrived at the job site " + esc(fmtShort(s.deliveredAt)) + (s.deliveredByName ? ", marked by " + esc(s.deliveredByName) : "") + ". Staged on the job, not in stock." : "Received " + esc(fmtShort(s.receivedAt)) + (s.receivedByName ? " by " + esc(s.receivedByName) : "");
   const sk = shipKey(s, o);
@@ -7891,7 +7942,7 @@ function shipCardHTML(o, s) {
     (s.status === "received" ? "<div><dt>Received</dt><dd class=\"n\">" + esc(fmtShort(s.receivedAt)) + "</dd></div>" : s.deliveredAt ? "<div><dt>Arrived</dt><dd class=\"n\">" + esc(fmtShort(s.deliveredAt)) + "</dd></div>" : "<div><dt>Expected</dt><dd class=\"n\">" + (s.expectedAt ? esc(fmtShort(s.expectedAt)) : '<span class="z">Not given</span>') + "</dd></div>") +
     "<div><dt>Ships to</dt><dd>" + (client ? "Job site" : "Office") + "</dd></div>" +
     "<div><dt>Lines</dt><dd class=\"n\">" + (s.lines || []).length + "</dd></div></dl>" +
-    "<ul>" + (s.lines || []).map(e => { const ol = orderLines(o.id).find(x => x.id === e.orderLineId); return "<li>" + esc(ol ? olName(ol) : e.productName || "") + " x" + esc(ol ? olQty(ol, e.qty) : fmtN(e.qty)) + (num(e.qtyReceived) ? ", " + fmtN(e.qtyReceived) + (client ? " arrived at the site" : " received") : "") + "</li>"; }).join("") + "</ul>" +
+    "<ul>" + (s.lines || []).map(e => { const ol = orderLines(o.id).find(x => x.id === e.orderLineId); const tid = olJobId(o, ol); return "<li>" + esc(ol ? olName(ol) : e.productName || "") + " x" + esc(ol ? olQty(ol, e.qty) : fmtN(e.qty)) + (num(e.qtyReceived) ? ", " + fmtN(e.qtyReceived) + (client ? " arrived at the site" : " received") : "") + ", " + (tid ? "for " + jobBtn(tid, o) : "for stock") + "</li>"; }).join("") + "</ul>" +
     (s.note ? '<div class="lnote" style="margin:0 0 10px">' + esc(s.note) + "</div>" : "") +
     '<div class="sf"><div class="sfb">' + (W && open ? (client ? '<button type="button" class="btn acc" data-act="trDeliver" data-id="' + esc(s.id) + '" title="The carrier left the box at the job site. Its lines count as received on this PO and staged on the job; nothing goes into stock.">Mark arrived</button>'
       : '<button type="button" class="btn acc" data-act="shipRecv" data-id="' + esc(s.id) + '" title="Walks each line: tap or scan the UPC, the quantity, then into the staging area or onto the shelf">Receive</button>') +
@@ -7927,7 +7978,7 @@ function renderOrder() {
     (draft && W ? '<div class="grid2" style="max-width:520px"><div><label class="lab" for="odVendor" title="Who the PO goes to. A new vendor typed here joins the list in Settings.">' + '<abbr>Vendor</abbr></label><select class="fld" id="odVendor" data-ovendor="' + esc(o.id) + '" data-decide>' + vendorOptions(o.vendor) + "</select></div></div>" : "") +
     '<dl class="meta"><div><dt>Vendor order</dt><dd class="mono">' + (o.orderNumber ? esc(o.orderNumber) : '<span class="z">Typed at Mark ordered</span>') + "</dd></div>" +
     "<div><dt>Ordered</dt><dd>" + (o.orderedAt ? esc(fmtDate(o.orderedAt)) + "<small>by " + esc(o.orderedByName || o.orderedBy || "") + "</small>" : '<span class="z">Not yet</span>') + "</dd></div>" +
-    "<div><dt>For</dt><dd>" + esc(ordFor(o)) + "<small>" + (o.ticketId ? '<button type="button" class="textbtn" data-act="ticket" data-id="' + esc(o.ticketId) + '">Job #' + esc(o.ticketNumber || o.ticketId) + "</button>" : "Restock") + "</small></dd></div>" +
+    "<div><dt>For</dt><dd>" + esc(ordFor(o)) + "<small>" + (o.ticketId ? '<button type="button" class="textbtn" data-act="ticket" data-id="' + esc(o.ticketId) + '">' + esc(jobLabelOf(o)) + "</button>" : "Restock") + "</small></dd></div>" +
     "<div><dt>Ships to</dt><dd>" + (draft ? '<span class="z">Chosen at Mark ordered</span>' : o.shipTo === "client" ? "Job site<small>" + esc(o.shipToAddress || jobAddress(o) || "No address on the job") + "</small>" : "Office") + "</dd></div>" +
     "<div><dt>Received</dt><dd class=\"n\">" + fmtN(sm.qtyReceived) + " of " + fmtN(sm.qtyOrdered) + " units</dd></div>" +
     "<div><dt>Started</dt><dd>" + esc(fmtDate(o.createdAt)) + "<small>by " + esc(o.createdByName || o.createdBy || "") + "</small></dd></div>" +
@@ -7970,13 +8021,13 @@ function wireDraftWarn(w) {
 /* Order missing (every uncovered line) or Order on one line */
 function openOrderMissing(t, onlyId) {
   const stock = shelfStock(), ls = ticketLines(t.id).filter(l => (!onlyId || l.id === onlyId) && uncoveredFor(l, stock, t) > 0);
-  if (!ls.length) { toast("Every line on job #" + t.number + " is covered by stock or an order request.", true); return; }
+  if (!ls.length) { toast("Every line on " + jobLabel(t, 1) + " is covered by stock or an order request.", true); return; }
   const drafts = Array.from(S.orders.values()).filter(o => o.status === "draft" && o.ticketId === t.id).sort((a, b) => num(b.number) - num(a.number));
-  const body = '<p class="hint" style="margin-top:0">Job #' + esc(t.number) + ", " + esc(tkWho(t)) + ". What the shelves cannot cover and no request carries yet. An admin approves the request before it is ordered.</p>" +
+  const body = '<p class="hint" style="margin-top:0">' + esc(jobLabel(t)) + ", " + esc(tkWho(t)) + ". What the shelves cannot cover and no request carries yet. An admin approves the request before it is ordered.</p>" +
     '<div class="olpick">' + ls.map(l => '<div class="row"><label class="chk"><input type="checkbox" data-om="' + esc(l.id) + '" checked> <span>' + esc(lineName(l)) + ' <span class="z">' + esc(l.area || "") + "</span></span></label>" +
       '<div><label class="sr" for="omq_' + esc(l.id) + '">Quantity for ' + esc(lineName(l)) + '</label><input class="fld n" id="omq_' + esc(l.id) + '" type="number" min="1" step="any" inputmode="decimal" value="' + uncoveredFor(l, stock, t) + '"></div></div>').join("") + "</div>" +
     draftChoice(drafts) + '<p class="err" id="omErr" hidden></p>';
-  const w = openModal(onlyId ? "Request " + lineName(ls[0]) : "Request what is short on #" + t.number, body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="omOk">Add to request</button>', { wide: true });
+  const w = openModal(onlyId ? "Request " + lineName(ls[0]) : "Request what is short on " + jobLabel(t), body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="omOk">Add to request</button>', { wide: true });
   wireDraftWarn(w);
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const err = $("#omErr", w), items = [];
@@ -8096,7 +8147,7 @@ function shipToField(o) {
 }
 function shipToHint(o, v) {
   const j = jobOf(o);
-  return v === "client" ? "Drop-shipped to " + (j && j.name ? j.name : "the job") + (j && j.address ? " at " + j.address : "") + ". Mark it arrived from Tracking when the carrier leaves it there." : v === "office" ? "Comes to the office and is received into the staging area for job #" + (o.ticketNumber || o.ticketId || "") + "." : "Left unpicked, it ships to the office.";
+  return v === "client" ? "Drop-shipped to " + (j && j.name ? j.name : "the job") + (j && j.address ? " at " + j.address : "") + ". Mark it arrived from Tracking when the carrier leaves it there." : v === "office" ? "Comes to the office and is received into the staging area for " + jobLabelOf(o, 1) + "." : "Left unpicked, it ships to the office.";
 }
 /* unit cost per line at Mark ordered, from the product's last cost; editable only with Show costs on */
 function costLinesHTML(o) {
@@ -8209,7 +8260,7 @@ function openReceiveShipment(s, focusLineId) {
   const body = '<p class="hint" style="margin-top:0">' + carrierChip(s.carrier) + " " + esc(s.tracking || "") + ", PO " + esc(o.number) + (o.vendor ? " from " + esc(o.vendor) : "") + ". Lines that serve a job go to its staging area; the rest go on a shelf.</p>" +
     '<label class="lab" for="rsScan" title="A scanner that types, or the barcode on the box. The first scan of a line starts its count at 1; each scan after adds 1.">' + '<abbr>Scan a UPC</abbr></label><form class="manual" id="rsScanForm" style="margin:0" autocomplete="off"><input class="fld mono" id="rsScan" placeholder="Barcode on the box"><button type="submit" class="btn">Count</button></form><p class="hint" id="rsHint"></p>' +
     rows.map((r, i) => '<div class="rcv" id="rcv' + i + '"><div class="rhead"><b>' + esc(olName(r.ol)) + "</b>" + '<span class="z">' + esc(olQty(r.ol, r.open)) + " on this shipment</span>" +
-      (r.t ? '<span class="chip info"><i></i>#' + esc(r.t.number) + " " + esc(r.ol.ticketArea || "") + "</span>" : '<span class="chip"><i></i>Stock</span>') +
+      (r.t ? '<span class="chip info"><i></i>' + esc(jobLabel(r.t)) + " " + esc(r.ol.ticketArea || "") + "</span>" : '<span class="chip"><i></i>Stock</span>') +
       (r.ser ? '<span class="chip warn" title="Its cost on this PO is at or above the QR threshold (' + esc(money(thr)) + '), so each unit gets its own record and a label to print"><i></i>Gets its own QR</span>' : "") + (!r.p ? '<span class="chip warn" title="Not in the catalog, so it is logged and staged without a stock count"><i></i>Not in the catalog</span>' : "") + "</div>" +
       '<div class="rgrid"><div><label class="lab" for="rsLoc' + i + '">' + (r.t ? "Into the staging area" : "Onto") + '</label><select class="fld" id="rsLoc' + i + '" data-decide>' + locOptions(r.dest || (r.t ? onlyStaging() : ""), { blankLabel: r.t ? "Choose the staging area" : "Choose a location" }) + "</select></div>" +
       '<div><label class="lab" for="rsQty' + i + '">Quantity' + (r.p && r.p.unit === "ft" ? " (ft)" : "") + '</label><input class="fld n" id="rsQty' + i + '" type="number" min="0" step="any" inputmode="decimal" value="' + r.open + '"></div>' +
@@ -8279,13 +8330,27 @@ const TR_STATUS = ["delivered", "out_for_delivery", "shipped", "backordered", "o
 const trKind = st => st === "ordered" || st === "backordered" ? "poline" : "ship";
 const trLabel = st => pillLabel(trKind(st), st);
 const TR_RANK = s => ["delivered", "out_for_delivery", "shipped", "backordered", "ordered"].indexOf(s);
-function pkgWho(o) { return o.ticketId ? [o.clientName, o.jobName].filter(Boolean).join(", ") || "Job #" + (o.ticketNumber || o.ticketId) : "Stock"; }
+function pkgWho(o) { return o.ticketId ? [o.clientName, o.jobName].filter(Boolean).join(", ") || jobLabelOf(o) : "Stock"; }
+/* 0.16.0 (PLAN 33.1 item 12): the job a PO line serves: its own job line's
+   ticket, else the PO's job (a PO made for a job's short lines), else stock. */
+function olJobId(o, ol) { return (ol && ol.ticketId) || (o && o.ticketId) || null; }
+function jobBtn(tid, x) { const t = S.tickets.get(tid); return '<button type="button" class="textbtn" data-act="ticket" data-id="' + esc(tid) + '" title="Opens the job">' + esc(t ? jobLabel(t) : jobLabelOf(x || { ticketId: tid })) + "</button>"; }
+function pkgJobIds(p) { return Array.from(new Set(p.lines.map(x => x.tid).filter(Boolean))); }
+function pkgForHTML(p) {
+  const ids = pkgJobIds(p), stock = !p.lines.length ? !p.o.ticketId : p.lines.some(x => !x.tid);
+  const ids2 = ids.length || p.lines.length ? ids : p.o.ticketId ? [p.o.ticketId] : [];
+  return ids2.map(id => jobBtn(id, p.o) + (S.tickets.get(id) && S.tickets.get(id).clientName ? " " + esc(S.tickets.get(id).clientName) : "")).concat(stock ? ["For stock"] : []).join("<br>");
+}
+function pkgForText(p) {
+  const ids = pkgJobIds(p);
+  return ids.map(id => { const t = S.tickets.get(id); return t ? jobLabel(t) + (t.clientName ? " " + t.clientName : "") : jobLabelOf({ ticketId: id }); }).concat(p.lines.some(x => !x.tid) || !p.lines.length && !p.o.ticketId ? ["For stock"] : []).join(", ");
+}
 function trackPkgs() {
   const out = [], today = isoDay(new Date());
   S.shipments.forEach(s => {
     const o = S.orders.get(s.orderId); if (!o || o.status === "cancelled") return;
     const side = shipSide(s, o), last = shipLast(s), st = last.status, done = !shipOpen(s) || st === "received";
-    const lines = (s.lines || []).map(e => { const ol = orderLines(o.id).find(x => x.id === e.orderLineId); return { name: ol ? olName(ol) : e.productName || "Unnamed line", qty: ol ? olQty(ol, e.qty) : fmtN(e.qty) }; });
+    const lines = (s.lines || []).map(e => { const ol = orderLines(o.id).find(x => x.id === e.orderLineId); return { name: ol ? olName(ol) : e.productName || "Unnamed line", qty: ol ? olQty(ol, e.qty) : fmtN(e.qty), tid: olJobId(o, ol) }; });
     const exp = toDate(s.expectedAt);
     out.push({ id: s.id, kind: "ship", s, o, side, st: side === "client" && st === "delivered" ? "site" : done && side === "client" && st !== "received" ? "site" : st, at: last.at, last, lines, exp,
       late: !done && !!exp && st !== "delivered" && st !== "received" && isoDay(exp) < today,
@@ -8302,7 +8367,7 @@ function trackPkgs() {
     const side = o.shipTo === "client" && jobOf(o) ? "client" : "office";
     out.push({ id: "po-" + o.id, kind: "po", s: null, o, side, st: back.length ? "backordered" : "ordered",
       at: back.length ? back.map(ol => toDate(ol.updatedAt)).filter(Boolean).sort((a, b) => b - a)[0] || o.orderedAt : o.orderedAt,
-      lines: ls.map(ol => ({ name: olName(ol), qty: olQty(ol, num(ol.qtyOrdered) - num(ol.qtyShipped)) })), exp, late: !!exp && isoDay(exp) < today, dnr: false, done: false,
+      lines: ls.map(ol => ({ name: olName(ol), qty: olQty(ol, num(ol.qtyOrdered) - num(ol.qtyShipped)), tid: olJobId(o, ol) })), exp, late: !!exp && isoDay(exp) < today, dnr: false, done: false,
       who: pkgWho(o), carrier: "", vendor: o.vendor || "", addr: side === "client" ? o.shipToAddress || jobAddress(o) : "", note: o.notes || "" });
   });
   return out;
@@ -8320,7 +8385,7 @@ function rcvLinesHTML(p) {
   const o = p.o, s = p.s;
   return "<ul>" + (s.lines || []).filter(e => num(e.qty) - num(e.qtyReceived) > 0).map(e => {
     const ol = orderLines(o.id).find(x => x.id === e.orderLineId), pr = ol ? olProduct(ol) : null, t = ol && ol.ticketId ? S.tickets.get(ol.ticketId) : null;
-    const to = t ? (t.stagingLocationId ? tkBay(t) + " for job " + t.number : "the staging area for job " + t.number) : pr && pr.defaultLocationId ? locName(pr.defaultLocationId) : "a shelf you choose";
+    const to = t ? (t.stagingLocationId ? tkBay(t) + " for " + jobLabel(t, 1) : "the staging area for " + jobLabel(t, 1)) : pr && pr.defaultLocationId ? locName(pr.defaultLocationId) : "a shelf you choose";
     const q = num(e.qty) - num(e.qtyReceived);
     return "<li>" + esc(ol ? olName(ol) : e.productName || "Unnamed line") + " x" + esc(ol ? olQty(ol, q) : fmtN(q)) + " <small>to " + esc(to) + "</small></li>";
   }).join("") + "</ul>";
@@ -8330,7 +8395,7 @@ function rcvCardHTML(p) {
   const when = p.dnr ? "Arrived " + fmtStamp(p.at) : p.late ? "Expected " + fmtMD(p.exp) + ", " + plDays(daysLate(p.exp)) + " late" : p.exp ? "Expected " + fmtMD(p.exp) : "No expected date";
   return '<article class="rcard' + (p.dnr ? " arr" : "") + '" aria-label="' + esc((s.carrier || "Other") + " package " + (s.tracking || "") + ", " + trLabel(p.st)) + '"><div class="rh"><b>' + esc(o.vendor || "No vendor") + "</b>" + pill("ship", p.st) + "</div>" +
     '<div class="rh">' + carrierChip(s.carrier) + trackLink(s) + '<button type="button" class="textbtn" data-act="order" data-id="' + esc(o.id) + '" title="Opens the purchase order">' + esc(poLabel(o)) + "</button></div>" +
-    '<p class="' + (p.late && !p.dnr ? "lateA" : "pexp") + '" style="margin:0">' + esc(when) + "</p>" + rcvLinesHTML(p) +
+    '<p class="' + (p.late && !p.dnr ? "lateA" : "pexp") + '" style="margin:0">' + esc(when) + "</p>" + '<p class="pexp" style="margin:0">For ' + pkgForHTML(p).replace(/<br>/g, ", ").replace("For stock", "stock") + "</p>" + rcvLinesHTML(p) +
     (W ? '<button type="button" class="btn' + (p.dnr ? " acc" : "") + '" data-act="trRecv" data-id="' + esc(s.id) + '" title="Walks each line into the job\'s staging area or onto a shelf. A unit worth a QR asks for its serial or MAC.">Receive</button>' : "") + "</article>";
 }
 function renderReceive() {
@@ -8353,15 +8418,20 @@ function trMatches(p) {
   if (f.carrier && p.carrier !== f.carrier) return false;
   if (f.status && p.st !== f.status) return false;
   if (f.late && !p.late) return false;
+  if (f.q) {
+    const hay = [p.s ? p.s.tracking : "", "po " + p.o.number, p.o.number, p.vendor, p.who, p.lines.map(x => x.name).join(" ")].concat(pkgJobIds(p).map(id => { const t = S.tickets.get(id); return t ? boxTkHay(t) : id; })).join(" ").toLowerCase().replace(/\s+/g, " ");
+    if (!String(f.q).toLowerCase().split(/\s+/).filter(Boolean).every(w => hay.includes(w) || hay.replace(/ /g, "").includes(w))) return false;
+  }
   return true;
 }
-const trFiltered = () => { const f = S.trFilter; return !!(f.job || f.vendor || f.carrier || f.status || f.late); };
+const trFiltered = () => { const f = S.trFilter; return !!(f.job || f.vendor || f.carrier || f.status || f.late || f.q); };
 const plDays = n => n + " day" + (n === 1 ? "" : "s");
 /* "3 lines" with the list in a tooltip; one or two lines read in full */
 function pkgWhat(p) {
   if (!p.lines.length) return '<span class="z">No lines</span>';
-  if (p.lines.length > 2) { const all = p.lines.map(x => x.name + " x" + x.qty).join("; "); return '<span class="tipd" title="' + esc(all) + '">' + p.lines.length + ' lines</span><span class="sr">: ' + esc(all) + "</span>"; }
-  return p.lines.map(x => esc(x.name) + ' <span class="z">x' + esc(x.qty) + "</span>").join("<br>");
+  if (p.lines.length > 2) { const all = p.lines.map(x => x.name + " x" + x.qty + (x.tid ? ", " + jobLabelOf({ ticketId: x.tid }) : ", stock")).join("; "); return '<span class="tipd" title="' + esc(all) + '">' + p.lines.length + ' lines</span><span class="sr">: ' + esc(all) + "</span>"; }
+  const many = pkgJobIds(p).length + (p.lines.some(x => !x.tid) ? 1 : 0) > 1, forTxt = x => many ? ", " + (x.tid ? jobLabelOf({ ticketId: x.tid }) : "stock") : "";
+  return p.lines.map(x => esc(x.name) + ' <span class="z">x' + esc(x.qty) + esc(forTxt(x)) + "</span>").join("<br>");
 }
 function pkgCard(p) {
   const W = isWriter(), o = p.o, s = p.s, open = !p.done;
@@ -8374,8 +8444,8 @@ function pkgCard(p) {
   else if (p.kind === "po" && p.st === "backordered") h += '<p class="pexp">No ETA from the vendor yet</p>';
   h += '<div class="what">' + pkgWhat(p) + "</div>" +
     '<dl><div><dt>PO</dt><dd><button type="button" class="textbtn" data-act="order" data-id="' + esc(o.id) + '" title="Opens PO ' + esc(o.number) + '">PO ' + esc(o.number) + "</button>" + (p.vendor ? '<small>' + esc(p.vendor) + "</small>" : "") + "</dd></div>" +
-    "<div><dt>For</dt><dd>" + (p.side === "client" ? (o.ticketId ? '<button type="button" class="textbtn" data-act="ticket" data-id="' + esc(o.ticketId) + '">Job #' + esc(o.ticketNumber || o.ticketId) + "</button>" : esc(p.who)) + (p.addr ? "<small>" + esc(p.addr) + "</small>" : "")
-      : esc(p.who) + (o.ticketId ? '<small>Into the staging area for #' + esc(o.ticketNumber || o.ticketId) + "</small>" : "<small>Onto a shelf</small>")) + "</dd></div></dl>" +
+    "<div><dt>For</dt><dd>" + pkgForHTML(p) + (p.side === "client" ? (p.addr ? "<small>" + esc(p.addr) + "</small>" : "")
+      : pkgJobIds(p).length ? "<small>Job lines go to the job's staging area</small>" : "<small>Onto a shelf</small>") + "</dd></div></dl>" +
     (p.note ? '<div class="lnote">' + esc(p.note) + "</div>" : "");
   if (W && open) {
     let b = "";
@@ -8408,7 +8478,7 @@ function trHistCols() {
     { k: "what", label: "Contents", sort: p => p.lines.length, html: pkgWhat },
     { k: "po", label: "PO", cls: "nw", sort: p => num(p.o.number), html: p => '<button type="button" class="textbtn" data-act="order" data-id="' + esc(p.o.id) + '">PO ' + esc(p.o.number) + "</button>" },
     { k: "vendor", label: "Vendor", text: p => p.vendor },
-    { k: "for", label: "For", text: p => p.who + (p.side === "client" && p.addr ? ", " + p.addr : "") },
+    { k: "for", label: "For", sort: p => pkgForText(p), html: p => pkgForHTML(p) + (p.side === "client" && p.addr ? "<br>" + esc(p.addr) : ""), x: p => pkgForText(p) + (p.side === "client" && p.addr ? ", " + p.addr : "") },
     { k: "by", label: "By", def: false, text: p => p.doneBy },
     { k: "where", label: "Ships to", def: false, text: p => p.side === "client" ? "Job site" : "Office" }
   ];
@@ -8428,6 +8498,7 @@ function renderTracking() {
     '<div><label class="lab" for="trCarrier">Carrier</label><select class="fld" id="trCarrier" data-tr="carrier"><option value="">Every carrier</option>' + CARRIERS.map(c => "<option" + (f.carrier === c ? " selected" : "") + ">" + c + "</option>").join("") + "</select></div>" +
     '<div><label class="lab" for="trStatus">Status</label><select class="fld" id="trStatus" data-tr="status"><option value="">Every status</option>' + TR_STATUS.map(k => '<option value="' + k + '"' + (f.status === k ? " selected" : "") + ">" + esc(trLabel(k)) + "</option>").join("") + "</select></div>" +
     '<label class="chk" title="Past the shipment\'s expected date, or the vendor\'s ETA on a backorder, and not arrived"><input type="checkbox" id="trLate" data-tr="late"' + (f.late ? " checked" : "") + "> Late only</label></div>" +
+    '<div class="toolbar"><label class="sr" for="trQ">Search packages</label><span class="srch"><input class="fld" id="trQ" type="search" data-tr="q" value="' + esc(f.q || "") + '" placeholder="Tracking, PO, proposal or job number, or client" title="Matches the tracking number, the PO, the proposal or job number of every job a package serves, the client, and the product."><button type="button" class="clr" data-act="clearSearch" data-for="trQ" aria-label="Clear the search">&times;</button></span></div>' +
     (trFiltered() ? '<p class="hint" style="margin:-4px 0 12px"><button type="button" class="textbtn" data-act="trClear">Clear filters</button></p>' : "");
   if (!live.length) h += '<div class="empty"><p>Nothing in transit. Lines you order from a job or the low-stock list show here until they are received.</p><button type="button" class="btn" data-act="go" data-view="orders">Open Orders</button></div>';
   else {
@@ -8447,7 +8518,7 @@ function openMarkDelivered(s) {
   const o = S.orders.get(s.orderId); if (!o) return;
   const now = new Date(), v = isoDay(now) + "T" + pad(now.getHours()) + ":" + pad(now.getMinutes()), addr = shipAddress(s, o);
   const body = '<p class="hint" style="margin-top:0">' + carrierChip(s.carrier) + " " + esc(s.tracking || "") + ", PO " + esc(o.number) + " for " + esc(pkgWho(o)) + (addr ? ", " + esc(addr) : "") + ".</p>" +
-    "<p>Its lines count as received on the PO" + (o.ticketId ? " and staged on job #" + esc(o.ticketNumber || o.ticketId) : "") + ". Nothing goes into stock: the box is at the site, not in the building.</p>" +
+    "<p>Its lines count as received on the PO" + (o.ticketId ? " and staged on " + esc(jobLabelOf(o, 1)) : "") + ". Nothing goes into stock: the box is at the site, not in the building.</p>" +
     '<label class="lab" for="mdAt" title="When it reached the site. The card and the shipment\'s status log show this time.">' + '<abbr>Arrived at</abbr></label><input class="fld" id="mdAt" type="datetime-local" value="' + v + '">' +
     '<label class="lab" for="mdNote">Note</label><input class="fld" id="mdNote" placeholder="Optional, for example who signed for it"><p class="err" id="mdErr" hidden></p>';
   const w = openModal("Mark arrived", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="mdOk">Mark arrived</button>');
@@ -8456,7 +8527,7 @@ function openMarkDelivered(s) {
     if (isNaN(at)) { e.textContent = "Type the date and time it arrived."; e.hidden = false; return; }
     if (at.getTime() > Date.now() + 5 * 60000) { e.textContent = "That time is still ahead. Use when it actually arrived."; e.hidden = false; return; }
     closeModal(w);
-    if (await doMarkDelivered(s, at, $("#mdNote", w).value.trim() || null)) toast("Arrived at the job site" + (o.ticketId ? ", staged on job #" + (o.ticketNumber || o.ticketId) : ""));
+    if (await doMarkDelivered(s, at, $("#mdNote", w).value.trim() || null)) toast("Arrived at the job site" + (o.ticketId ? ", staged on " + jobLabelOf(o, 1) : ""));
   });
 }
 function openPkgNote(kind, id) {
@@ -8487,7 +8558,7 @@ function wkCard(t) {
   const loaded = S.linesLoaded.has(t.id), lines = ticketLines(t.id), s = tkSummary(t);
   const lineHTML = l => { const [lab, cls, tip] = wkLineStatus(t, l), qty = lineIsFt(l) ? fmtN(l.qtyNeeded) + " ft" : "x" + fmtN(l.qtyNeeded);
     return '<li><button type="button" data-act="wkLine" data-id="' + esc(t.id) + '" data-line="' + esc(l.id) + '" title="' + esc(lineName(l) + ", " + qty + ". " + tip + ". Opens this line on the job.") + '"><span class="ln">' + esc(lineName(l)) + ' <span class="x">' + esc(qty) + '</span></span><span class="st ' + cls + '">' + esc(lab) + "</span></button></li>"; };
-  return '<div class="tc"><button type="button" class="tch" data-act="ticket" data-id="' + esc(t.id) + '" title="Opens job #' + esc(t.number) + '"><span class="tcn">' + esc(t.clientName || "No client") + '</span><span class="tn n">#' + esc(t.number) + "</span></button>" +
+  return '<div class="tc"><button type="button" class="tch" data-act="ticket" data-id="' + esc(t.id) + '" title="Opens ' + esc(jobLabel(t, 1)) + '"><span class="tcn">' + esc(t.clientName || "No client") + '</span><span class="tn n">' + esc(jobLabel(t)) + "</span></button>" +
     '<div class="pd">' + esc(t.jobName || "") + (t.status === "closed" ? ", closed" : "") + "</div>" +
     '<div class="tcp"><span class="n">' + s.staged + " of " + s.lines + "</span> staged</div>" +
     (loaded ? (lines.length ? '<ul class="lines">' + lines.slice(0, 8).map(lineHTML).join("") + "</ul>" + (lines.length > 8 ? '<button type="button" class="textbtn wmore" data-act="ticket" data-id="' + esc(t.id) + '">and ' + (lines.length - 8) + " more</button>" : "") : '<p class="hint" style="margin:0">No lines yet.</p>') : '<p class="hint" style="margin:0">Lines load when the job opens.</p>') + "</div>";
@@ -8524,7 +8595,7 @@ function renderWeek() {
     }).join("") + (anyPast && shown.some(d => isoDay(d) >= tIso) ? '<p class="earlier">Earlier this week</p>' : "") + "</div>";
     h += '<div class="mcard"><div class="thead"><h4>Unscheduled</h4><span class="sp hint" style="margin:0">No install date yet, so it is not on a day</span></div>' +
       (unsched.length ? unsched.map(t => { const s = tkSummary(t);
-        return '<div class="urow"><div class="uinfo"><button type="button" class="tch" data-act="ticket" data-id="' + esc(t.id) + '"><span class="tcn">' + esc(t.clientName || "No client") + '</span><span class="tn n">#' + esc(t.number) + '</span></button><div class="pd">' + esc(t.jobName || "") + ", " + s.staged + " of " + s.lines + " staged</div></div>" +
+        return '<div class="urow"><div class="uinfo"><button type="button" class="tch" data-act="ticket" data-id="' + esc(t.id) + '"><span class="tcn">' + esc(t.clientName || "No client") + '</span><span class="tn n">' + esc(jobLabel(t)) + '</span></button><div class="pd">' + esc(t.jobName || "") + ", " + s.staged + " of " + s.lines + " staged</div></div>" +
           (W ? '<div class="ud"><label class="lab" for="ud_' + esc(t.id) + '" title="Setting a date puts the job on that day\'s block and in the Jobs list sort. Change it later from the job header.">' + '<abbr>Install date</abbr></label><input class="fld" type="date" id="ud_' + esc(t.id) + '" data-install="' + esc(t.id) + '"></div>' : '<div class="ud"><span class="hint">No date yet</span></div>') + "</div>"; }).join("")
         : '<p class="hint" style="margin:0">Every open job has an install date.</p>') + "</div>";
   }
@@ -8533,7 +8604,7 @@ function renderWeek() {
 async function doSetInstall(t, v) {
   const d = v ? new Date(v + "T12:00:00") : null;
   return DB.commit([{ op: "update", coll: "loadout_tickets", id: t.id, data: { installAt: d, updatedAt: NOW } },
-    mv("edit", Object.assign({ note: d ? "Install date set to " + fmtDate(d) : "Install date cleared" }, tkBaseFields(t, null)))], "the install date on job #" + t.number);
+    mv("edit", Object.assign({ note: d ? "Install date set to " + fmtDate(d) : "Install date cleared" }, tkBaseFields(t, null)))], "the install date on " + jobLabel(t, 1));
 }
 /* Movements: Previous / This / Next week fill the From and To fields */
 function mvWeek(d) {
@@ -8728,7 +8799,7 @@ function itemPanel(it) {
     (!W && it.serial ? '<div><dt>Serial</dt><dd class="mono">' + esc(it.serial) + "</dd></div>" : "") +
     (!W && it.mac ? '<div><dt>MAC address</dt><dd class="mono">' + esc(it.mac) + "</dd></div>" : "") +
     (!W && it.condition ? "<div><dt>Condition</dt><dd>" + esc(CONDITIONS[it.condition] || it.condition) + "</dd></div>" : "") +
-    (t ? '<div><dt>Job</dt><dd><button type="button" class="textbtn" data-act="ticket" data-id="' + esc(t.id) + '">#' + esc(t.number) + "</button></dd></div>" : "") +
+    (t ? '<div><dt>Job</dt><dd><button type="button" class="textbtn" data-act="ticket" data-id="' + esc(t.id) + '">' + esc(jobLabel(t)) + "</button></dd></div>" : "") +
     (it.orderId ? '<div><dt>From PO</dt><dd><button type="button" class="textbtn" data-act="order" data-id="' + esc(it.orderId) + '">' + esc(it.orderNumber || it.orderId) + "</button></dd></div>" : "") +
     (S.general.showCosts && it.cost != null ? "<div><dt>Cost</dt><dd>" + money(it.cost) + "</dd></div>" : "") +
     '<div><dt>ID</dt><dd class="mono">' + esc(shortId(it.id)) + "<small>" + esc(PAYLOAD.item(it.id)) + "</small></dd></div>" + "</dl>" +
@@ -8754,7 +8825,7 @@ function locPanel(l) {
   }
   if (A) h += lsRunHTML(id) + (off ? '<p class="lsoff" role="status">You are offline. Rename needs a connection, so it waits until it is back.</p>' : "");
   h += '<dl class="meta"><div><dt>Label code</dt><dd class="mono">' + esc(PAYLOAD.loc(id)) + "</dd></div>" + (l.jobName ? "<div><dt>Reserved for</dt><dd>" + esc(l.jobName) + "</dd></div>" : "") +
-    (tks.length ? "<div><dt>Staging for</dt><dd>" + tks.map(t => '<button type="button" class="textbtn" data-act="ticket" data-id="' + esc(t.id) + '">#' + esc(t.number) + "</button>").join(" ") + "</dd></div>" : "") + "</dl>" +
+    (tks.length ? "<div><dt>Staging for</dt><dd>" + tks.map(t => '<button type="button" class="textbtn" data-act="ticket" data-id="' + esc(t.id) + '">' + esc(jobLabel(t)) + "</button>").join(" ") + "</dd></div>" : "") + "</dl>" +
     '<div class="sect"><h4 class="h4">What is here</h4>' + (rows.length ? '<ul class="onhand">' + rows.join("") + "</ul>" : '<p class="hint" style="margin-top:0">Nothing is recorded at this location.</p>') + "</div>";
   if (S.x.err) h += '<p class="err" role="alert">' + esc(S.x.err) + "</p>";
   h += '<div class="btnrow">' + (W ? '<button type="button" class="btn acc" data-act="xsave">Save</button>' : "") +
@@ -9318,7 +9389,7 @@ function locArchive(l) {
   if (!l) return;
   const h = locHeld(l.id);
   if (h.n) { toast(l.name + " still holds " + [h.prods ? plural(h.prods, "product") : "", h.units ? plural(h.units, "unit") : "", h.boxes ? plural(h.boxes, "box", "boxes") : ""].filter(Boolean).join(", ") + ". Move or use them up first, then archive it.", true); return; }
-  if (h.tk || h.jb) { toast(l.name + " is the staging area of " + (h.tk ? "job #" + h.tk.number : h.jb.name) + ". Give that job another one first, then archive it.", true); return; }
+  if (h.tk || h.jb) { toast(l.name + " is the staging area of " + (h.tk ? jobLabel(h.tk, 1) : h.jb.name) + ". Give that job another one first, then archive it.", true); return; }
   confirmModal("Archive " + l.name, "<p>" + esc(l.name) + " leaves the pick lists, the audit list, and the Shelf filter. Its history and printed label stay, and Show archived on Shelf, Locations brings it back to unarchive.</p>", "Archive",
     () => DB.commit([{ op: "update", coll: "loadout_locations", id: l.id, data: { archived: true, archivedAt: NOW, archivedBy: S.user.email, updatedAt: NOW } }, mv("edit", { toLocationId: l.id, note: "Location archived" })], "archiving " + l.name)
       .then(ok => { if (!ok) return; if (S.activeLoc === l.id) setActiveLoc(null); toast(l.name + " archived"); }));
@@ -9539,7 +9610,7 @@ function resolveCode(code) {
   return hits.length && !/^\d{6,}$/.test(code) ? { kind: "hits", code, ids: hits.map(h => h.id) } : { kind: "unknown", code };
 }
 function scanMatchText(r) {
-  if (r.kind === "job") { const t = S.tickets.get(r.id); return t ? "Job #" + t.number + (t.clientName ? ", " + t.clientName : "") : "A job, still loading"; }
+  if (r.kind === "job") { const t = S.tickets.get(r.id); return t ? jobLabel(t) + (t.clientName ? ", " + t.clientName : "") : "A job, still loading"; }
   if (r.kind === "prod") { const p = S.products.get(r.id); return p ? "Product: " + productName(p) : "Not found"; }
   if (r.kind === "item") { const i = S.items.get(r.id); return i ? "Unit: " + (i.productName || "") + ", " + unitShort(i) : "Not found"; }
   if (r.kind === "ctr") { const c = S.containers.get(r.id), p = c && S.products.get(c.productId); return c ? "Box " + c.label + (p ? ", " + productName(p) : "") : "Not found"; }
@@ -9622,7 +9693,7 @@ function paintScanResult() {
     const l = S.locations.get(sc.id);
     const tks = l.kind === "bay" ? ticketForBay(l.id) : [], job = l.kind === "bay" ? Array.from(S.jobs.values()).find(j => j.stagingLocationId === l.id && j.status !== "closed") : null;
     el.innerHTML = '<div class="rk"><span>Location</span><span class="st ok">Active</span></div><div class="rt">' + esc(l.name) + '</div><p class="rm">Receive, Count, and Check in start here until you scan another shelf or clear it.' + (l.kind === "bay" ? " This is a staging area" + (tks.length === 1 ? "; Pull for job picks its job for you." : tks.length ? "; the jobs staged here are below." : ".") : "") + "</p>" +
-      (tks.length ? '<h4 class="h4" style="margin-top:12px">Staging for</h4><ul class="onhand">' + tks.map(t => { const s = tkSummary(t); return '<li><span><button type="button" class="textbtn" data-act="ticket" data-id="' + esc(t.id) + '">Job #' + esc(t.number) + "</button> " + esc(tkWho(t)) + " " + tkPill(tkStatus(t)) + "</span><b>" + s.staged + " of " + s.lines + " staged</b></li>"; }).join("") + "</ul>"
+      (tks.length ? '<h4 class="h4" style="margin-top:12px">Staging for</h4><ul class="onhand">' + tks.map(t => { const s = tkSummary(t); return '<li><span><button type="button" class="textbtn" data-act="ticket" data-id="' + esc(t.id) + '">' + esc(jobLabel(t)) + "</button> " + esc(tkWho(t)) + " " + tkPill(tkStatus(t)) + "</span><b>" + s.staged + " of " + s.lines + " staged</b></li>"; }).join("") + "</ul>"
         : job ? '<p class="hint">The staging area of ' + esc(job.clientName) + ", " + esc(job.name) + ". No open job yet.</p>" : "") +
       '<div class="btnrow">' + (tks.length === 1 ? '<button type="button" class="btn acc" data-act="ticket" data-id="' + esc(tks[0].id) + '">Open job #' + esc(tks[0].number) + "</button>" : "") + '<button type="button" class="btn" data-act="location" data-id="' + esc(l.id) + '">What is here</button></div>';
     return;
@@ -9651,7 +9722,7 @@ function paintScanResult() {
    is still to pull. Only a role that pulls on the Pull screen gets Pull. */
 function scanJobsHTML(kind, x) {
   if (!x || !S.loaded.tickets) return "";
-  const head = t => "Job #" + t.number + (t.proposalId ? ", proposal #" + t.proposalId : "");
+  const head = t => jobLabel(t);
   const openBtn = t => '<button type="button" class="btn" data-act="ticket" data-id="' + esc(t.id) + '">Open the job</button>';
   const row = (t, sub, btn) => '<div class="prow"><div class="pw"><b>' + esc(head(t)) + "</b><small>" + esc([t.clientName || "No client", sub].join(", ")) + "</small></div>" + btn + "</div>";
   let rows = [];
@@ -9686,7 +9757,7 @@ function productCard(p) {
 
 /* ---------------- box sheet (PLAN section 7) ---------------- */
 /* inSheet: the modal version keeps the quick buttons and Save for its footer (boxSheetFoot) */
-function boxSheetHTML(c, px, inSheet) {
+function boxSheetHTML(c, px, inSheet, fromTk) {
   if (!c) return '<p class="err">That box is gone.</p>';
   const p = S.products.get(c.productId), last = num(c.lastMark != null ? c.lastMark : c.ftLeft), empty = c.status === "empty";
   const canEdit = isTech() && !empty;
@@ -9700,9 +9771,8 @@ function boxSheetHTML(c, px, inSheet) {
   h += '<label class="lab" for="' + px + 'Mark" title="The footage printed on the cable where it leaves the box. Pull boxes count down, so the mark is the feet left.">' + "<abbr>Mark now</abbr></label>" +
     '<div class="bignum"><input class="fld" id="' + px + 'Mark" type="number" inputmode="numeric" min="0" max="' + num(c.startLength) + '" value="' + last + '" aria-describedby="' + px + 'Hint"><span>ft</span></div>' +
     (inSheet ? "" : BOX_QUICK) +
-    '<div class="grid2"><div><label class="lab" for="' + px + 'Cut" title="Last mark minus mark now. Change it when the box was stopped mid-day and you know the real figure.">' + "<abbr>Cut this time</abbr></label>" +
-    '<input class="fld n" id="' + px + 'Cut" type="number" inputmode="numeric" min="0" value="0"></div>' +
-    '<div><label class="lab" for="' + px + 'Job" title="Optional. The job this footage went to, so it is charged the right amount.">' + '<abbr>For job</abbr></label><input class="fld" id="' + px + 'Job" placeholder="Optional"></div></div>' + boxTicketChip(c, px) +
+    '<label class="lab" for="' + px + 'Cut" title="Last mark minus mark now. Change it when the box was stopped mid-day and you know the real figure.">' + "<abbr>Cut this time</abbr></label>" +
+    '<input class="fld n" id="' + px + 'Cut" type="number" inputmode="numeric" min="0" value="0">' + boxTicketChip(c, px, fromTk) +
     '<label class="chk" title="A recount reads the box again without a cut. It replaces whatever the cuts estimated."><input type="checkbox" id="' + px + 'Recount"> Recount, no cut</label>' +
     '<label class="lab" for="' + px + 'Loc" title="Set it when the box moved, or when it came in from the sheet without a shelf.">' + '<abbr>Location</abbr></label><select class="fld" id="' + px + 'Loc"' + (c.locationId ? "" : " data-decide") + ">" + locOptions(c.locationId || "", { blankLabel: "Choose where the box is" }) + "</select>" +
     '<label class="lab" for="' + px + 'Note">Note</label><input class="fld" id="' + px + 'Note" placeholder="Optional">' +
@@ -9712,15 +9782,30 @@ function boxSheetHTML(c, px, inSheet) {
   return h;
 }
 const BOX_QUICK = '<div class="quick"><button type="button" class="btn" data-q="50">-50</button><button type="button" class="btn" data-q="100">-100</button><button type="button" class="btn" data-q="250">-250</button><button type="button" class="btn danger" data-empty>Empty</button></div>';
-/* For ticket chip (PLAN 7): prefilled with the ticket whose bay the box sits in */
-function boxTicketChip(c, px) {
-  const open = openTickets(); if (!open.length) return "";
-  const pre = (ticketForBay(c.locationId)[0] || ticketForBay(S.activeLoc)[0] || {}).id || "";
-  return '<div class="forticket"><label for="' + px + 'Tk" title="Tags the cut with a job. When the job has a line for this wire, the feet count as staged on it.">For job</label><select class="fld" id="' + px + 'Tk"><option value="">None</option>' +
-    open.map(t => '<option value="' + esc(t.id) + '"' + (t.id === pre ? " selected" : "") + ">#" + esc(t.number) + " " + esc(tkWho(t)) + "</option>").join("") + "</select></div>";
+/* For which job (PLAN 7; required since 0.16.0, PLAN 33.1 item 3): open jobs,
+   found by proposal or job number or client, plus Not for a job. Pre-picked
+   with the job the sheet was opened from, else the job last chosen on this
+   device in this session, else empty with the attention glow. */
+let BOX_LAST_TK = "";
+function boxLastTk() { try { return sessionStorage.getItem("loadout.boxJob") || BOX_LAST_TK; } catch (e) { return BOX_LAST_TK; } }
+function boxSetLastTk(v) { BOX_LAST_TK = v || ""; try { sessionStorage.setItem("loadout.boxJob", BOX_LAST_TK); } catch (e) { /* private mode: memory only */ } }
+function boxTkHay(t) { return [jobLabel(t), "#" + t.number, "job #" + t.number, t.proposalId ? "proposal #" + t.proposalId : "", t.clientName, t.jobName].join(" ").toLowerCase(); }
+function boxTkOptions(sel, q) {
+  const words = String(q || "").toLowerCase().split(/\s+/).filter(Boolean);
+  const list = openTickets().filter(t => t.id === sel || words.every(w => boxTkHay(t).includes(w)));
+  return '<option value="">Choose the job, or Not for a job</option><option value="none"' + (sel === "none" ? " selected" : "") + ">Not for a job (shop use)</option>" +
+    list.map(t => '<option value="' + esc(t.id) + '"' + (t.id === sel ? " selected" : "") + ">" + esc(jobLabel(t)) + " " + esc(tkWho(t)) + "</option>").join("");
+}
+function boxTicketChip(c, px, fromTk) {
+  let pre = fromTk || boxLastTk() || "";
+  if (pre !== "none" && !S.tickets.has(pre)) pre = "";
+  return '<label class="lab" for="' + px + 'Tk" title="Every cut says which job the feet went to, so the Job report counts it. Pick Not for a job for shop use. When the job has a line for this wire, the feet count as staged on it.">' + '<abbr>For which job</abbr> <span class="req">required</span></label>' +
+    '<input class="fld" id="' + px + 'TkQ" type="search" placeholder="Find by proposal or job number, or client" aria-label="Find a job for this cut" autocomplete="off">' +
+    '<select class="fld" id="' + px + 'Tk" data-decide style="margin-top:6px">' + boxTkOptions(pre, "") + "</select>";
 }
 function boxTicketPick(root, c, px) {
-  const s = $("#" + px + "Tk", root), t = s && s.value ? S.tickets.get(s.value) : null; if (!t) return null;
+  const s = $("#" + px + "Tk", root); if (s && s.value === "none") return { none: true };
+  const t = s && s.value ? S.tickets.get(s.value) : null; if (!t) return null;
   const ls = ticketLines(t.id).filter(l => l.productId === c.productId);
   return { ticket: t, line: ls.find(l => lineLeft(l) > 0) || ls[0] || null };
 }
@@ -9735,16 +9820,25 @@ function bindBoxSheet(root, c, px, after) {
     const m = num(mark.value);
     if (rc.checked) { cut.value = 0; cut.disabled = true; save.textContent = "Save reading"; }
     else { cut.disabled = false; if (!cutTouched) cut.value = Math.max(0, last - m); save.textContent = "Save cut"; }
-    hint.textContent = "Last mark " + fmtN(last) + " ft" + (c.lastReadingAt ? " on " + fmtShort(c.lastReadingAt) : "") + (c.lastReadingBy ? " by " + c.lastReadingBy : "") + ". " +
+    hint.textContent = "Last mark " + fmtN(last) + " ft" + (c.lastReadingAt ? " on " + fmtShort(c.lastReadingAt) : "") + (c.lastReadingBy ? " by " + c.lastReadingBy : "") + (c.lastCutJob ? ", last cut for " + c.lastCutJob : "") + ". " +
       (rc.checked ? "Saving records a reading of " + fmtN(m) + " ft (" + (m - num(c.ftLeft) >= 0 ? "+" : "") + fmtN(m - num(c.ftLeft)) + " ft)." : (num(cut.value) > 0 ? "Saving records -" + fmtN(num(cut.value)) + " ft." : "Nothing cut yet. Type the mark where the cable leaves the box.")) +
-      (() => { const tk = boxTicketPick(root, c, px); if (!tk || rc.checked) return ""; return tk.line ? " The cut counts as staged on job #" + tk.ticket.number + ", " + (tk.line.area || "its") + " line (" + fmtN(tk.line.qtyStaged) + " of " + fmtN(tk.line.qtyNeeded) + " ft so far)." : " Job #" + tk.ticket.number + " has no line for this wire; the cut is only tagged with it."; })();
+      (() => { const tk = boxTicketPick(root, c, px); if (!tk || tk.none || rc.checked) return ""; return tk.line ? " The cut counts as staged on " + jobLabel(tk.ticket, 1) + ", " + (tk.line.area || "its") + " line (" + fmtN(tk.line.qtyStaged) + " of " + fmtN(tk.line.qtyNeeded) + " ft so far)." : " " + jobLabel(tk.ticket) + " has no line for this wire; the cut is only tagged with it."; })();
   };
-  mark.addEventListener("input", upd); rc.addEventListener("change", upd); if (tks) tks.addEventListener("change", upd);
+  mark.addEventListener("input", upd); rc.addEventListener("change", upd); if (tks) tks.addEventListener("change", () => { if (tks.value) boxSetLastTk(tks.value); upd(); });
+  const tkq = $("#" + px + "TkQ", root);
+  if (tkq && tks) tkq.addEventListener("input", () => {
+    const v = tks.value; tks.innerHTML = boxTkOptions(v, tkq.value);
+    const hits = $$("option", tks).filter(o => o.value && o.value !== "none");
+    if (!v && tkq.value.trim() && hits.length === 1) { tks.value = hits[0].value; boxSetLastTk(tks.value); }
+    tks.dispatchEvent(new Event("change"));
+  });
+  const needJob = () => { if (tks && !tks.value) { err.textContent = "Pick the job this cut is for, or Not for a job."; err.hidden = false; tks.focus(); return true; } return false; };
   cut.addEventListener("input", () => { cutTouched = true; upd(); });
   $$("[data-q]", root).forEach(b => b.addEventListener("click", () => { mark.value = Math.max(0, num(mark.value) - num(b.dataset.q)); cutTouched = false; upd(); }));
   $("[data-empty]", root).addEventListener("click", () => {
+    err.hidden = true; if (needJob()) return;
     confirmModal("Empty box " + c.label, "<p>Writes a final cut of " + fmtN(last) + " ft to zero and closes the box. It drops out of on hand.</p>", "Empty the box", async () => {
-      if (await doBox(c, 0, last, false, $("#" + px + "Job", root).value.trim() || null, "Emptied", $("#" + px + "Loc", root).value || null, boxTicketPick(root, c, px))) { toast("Box " + c.label + " emptied"); if (after) after(); refreshScan(); }
+      if (await doBox(c, 0, last, false, null, "Emptied", $("#" + px + "Loc", root).value || null, boxTicketPick(root, c, px))) { toast("Box " + c.label + " emptied"); if (after) after(); refreshScan(); }
     }, true);
   });
   save.addEventListener("click", async () => {
@@ -9754,16 +9848,17 @@ function bindBoxSheet(root, c, px, after) {
     if (m > num(c.startLength) && !recount) { err.textContent = "The mark is above the box's start length of " + fmtN(c.startLength) + " ft."; err.hidden = false; return; }
     if (!recount && m > last) { err.textContent = "The mark is higher than the last one. Tick Recount if you measured the box again."; err.hidden = false; return; }
     if (!recount && ct <= 0) { err.textContent = "Nothing was cut. Tick Recount to log a reading instead."; err.hidden = false; return; }
+    if (!recount && needJob()) return;
     if (!loc && !c.locationId) { err.textContent = "Pick where the box is."; err.hidden = false; return; }
-    const ok = await doBox(c, m, ct, recount, $("#" + px + "Job", root).value.trim() || null, $("#" + px + "Note", root).value.trim() || null, loc, boxTicketPick(root, c, px));
+    const ok = await doBox(c, m, ct, recount, null, $("#" + px + "Note", root).value.trim() || null, loc, boxTicketPick(root, c, px));
     if (ok) { toast(recount ? "Reading saved for " + c.label : "Cut of " + fmtN(ct) + " ft saved for " + c.label); if (after) after(); refreshScan(); }
   });
   upd();
 }
-function openBoxSheet(id) {
+function openBoxSheet(id, fromTk) {
   const c = S.containers.get(id); if (!c) return;
   const edit = isTech() && c.status !== "empty";
-  const w = openModal("Box " + c.label, '<div class="res">' + boxSheetHTML(c, "bm", edit) + "</div>",
+  const w = openModal("Box " + c.label, '<div class="res">' + boxSheetHTML(c, "bm", edit, fromTk) + "</div>",
     (edit ? BOX_QUICK : "") + '<button type="button" class="btn" data-close>' + (edit ? "Cancel" : "Close") + "</button>" + (edit ? '<button type="button" class="btn acc" data-save>Save cut</button>' : ""), { noFocus: true });
   bindBoxSheet(w, c, "bm", () => closeModal(w));
 }
@@ -10600,7 +10695,7 @@ const DATA_DICTIONARY = [
   { coll: "loadout_containers", id: "the box label slug, as a1026", about: "Wire boxes and reels for by-the-foot products.", fields: [
     ["productId", "Product"], ["productName", "Its name"], ["locationId", "Where the box sits"], ["locationName", "Its name"], ["upc", "Barcode on the box"],
     ["label", "The shop's box code, printed on the QR sticker"], ["startLength", "Feet when new"], ["ftLeft", "Feet left"], ["lastMark", "Footage mark the box is stopped at"],
-    ["purchasedAt", "When bought"], ["status", "open or empty"], ["pickTicketId", "Job the box travels with"], ["pickTicketNumber", "Its number"], ["confirmLocation", "true when the box has no confirmed shelf yet"],
+    ["purchasedAt", "When bought"], ["status", "open or empty"], ["pickTicketId", "Job the box travels with"], ["lastCutTicketId, lastCutJob", "The job the last cut was for, and its label and client, or Not for a job (0.16.0)"], ["pickTicketNumber", "Its number"], ["confirmLocation", "true when the box has no confirmed shelf yet"],
     ["orderId, orderNumber, shipmentId", "The PO and shipment it came on"], ["qr", "Label payload, loadout:ctr:{id}"], ["lastReadingAt", "Last mark entered"], ["lastReadingBy", "Who entered it"]].concat(DD_WHO) },
   { coll: "loadout_items", id: "random; an imported unit is imp-{productId}-{n}, imp-{productId}-s-{serial slug}, or imp-{productId}-m-{12 hex MAC}", about: "Serialized units, one physical unit per document.", fields: [
     ["productId", "Product"], ["productName", "Its name"], ["label", "Product name #n, or Product name, SN or MAC and the last 6 characters for an imported unit with one"], ["serial", "Serial number as typed or scanned, for warranty claims and returns"],
@@ -10617,7 +10712,7 @@ const DATA_DICTIONARY = [
     ["productId", "Product"], ["productName", "Its name when written"], ["containerId", "Box"], ["containerLabel", "Its label"], ["itemId", "Unit"], ["itemLabel", "Its label or serial"],
     ["qty", "Quantity moved; negative for a cut or a write-off"], ["unit", "each or ft"], ["fromLocationId", "Where it came from"], ["fromLocationName", "Its name"],
     ["toLocationId", "Where it went"], ["toLocationName", "Its name"], ["cut.fromMark, cut.toMark, cut.length", "A box cut: mark before, mark after, feet cut"],
-    ["holderUid", "Who holds a checked-out unit"], ["holderName", "Their name"], ["condition", "Condition at check-in"], ["jobName", "Job it was for"],
+    ["holderUid", "Who holds a checked-out unit"], ["holderName", "Their name"], ["condition", "Condition at check-in"], ["jobName", "Job it was for"], ["jobLabel, proposalId, clientName", "A box cut since 0.16.0: the job's label as shown (Proposal #N or Job #N), its proposal, and the client"], ["noJob", "A box cut since 0.16.0 marked Not for a job"],
     ["ticketId", "Job"], ["ticketNumber", "Its number"], ["ticketLineId", "Job line"], ["orderId", "Purchase order"], ["orderNumber", "Its PO number"], ["shipmentId", "Shipment"],
     ["note", "Free text"], ["by", "Email of the person who did it"], ["byName", "Their name"], ["at", "When it happened (the sheet's count date for imported rows)"],
     ["reason", "Why it came back (0.15.0), on Return from a client, Bring back, and leftovers scanned back at Close job: not_needed, wrong_part, changed_mind, swapped, damaged, or other. Close's write-off keeps its reason in note"], ["reasonNote", "The words typed for Other; empty otherwise"],
@@ -10631,7 +10726,7 @@ const DATA_DICTIONARY = [
     ["number", "Proposal number"], ["name", "Proposal name"], ["jobId", "Job"], ["jobName", "Its name"], ["clientId", "Client"], ["clientName", "Its name"],
     ["status", "Accepted, Completed, and so on"], ["importedAt", "When imported"], ["importSource", "csv, zapier, api, or manual"], ["portalId", "Portal's internal id when known"]] },
   { coll: "loadout_tickets", id: "proposal number, or {number}-co2 for a change order", about: "Jobs. The collection keeps its 0.2.0 name, loadout_tickets; the screens say Job, and its lines print as the Pull sheet. An accepted proposal turned into a list to pull, stage, pick up, and deliver.", fields: [
-    ["number", "Job number (the proposal number)"], ["proposalId", "Proposal"], ["jobId", "Job"], ["jobName", "Its name"], ["clientId", "Client"], ["clientName", "Its name"],
+    ["number", "Job number: the proposal number, or H plus the date and three letters for a job made by hand"], ["proposalId", "Proposal; empty for a job made by hand. When set, the job shows as Proposal #N everywhere (0.16.0), else Job #N with No proposal"], ["jobId", "Job"], ["jobName", "Its name"], ["clientId", "Client"], ["clientName", "Its name"],
     ["status", "open, picking (shown as Pulling), staged, picked_up (Picked up, 0.8.0), delivered, or closed"], ["stagingLocationId", "Staging area it is laid out in"], ["stagingLocationName", "Its name"], ["source", "csv, manual, or zapier (made by loadout-worker from Portal)"],
     ["needsReview", "true while a job Zapier made or changed waits for a person to check it"], ["reviewedAt, reviewedBy, reviewedByName", "Who cleared the review flag, and when"],
     ["installAt", "Install day (the Week view)"], ["summary.lines, .needed, .fromStock, .toOrder, .staged, .delivered, .pulled, .inBay, .pickedUp", "Line counts, rewritten with each line change; the last three (0.8.0) feed the progress strip"],
@@ -10729,7 +10824,7 @@ function clientOfMv(m) {
   const j = m.jobName ? Array.from(S.jobs.values()).find(x => x.name === m.jobName) : null;
   return j ? j.clientName || "" : "";
 }
-function jobOfMv(m) { return m.jobName || (m.ticketNumber ? "Job #" + m.ticketNumber : ""); }
+function jobOfMv(m) { return m.jobName || jobLabelOf(m); }
 const unitTxt = u => u === "ft" ? "ft" : "each";
 const dayCol = (k, label, get) => ({ k, label, cls: "nw", sort: r => toDate(get(r)), text: r => fmtDate(get(r)), x: r => isoDay(get(r)) });
 const numCol = (k, label, get, o) => Object.assign({ k, label, r: true, cls: "n", sort: r => get(r) == null ? null : num(get(r)), text: r => get(r) == null ? "" : fmtN(get(r)), x: r => get(r) == null ? "" : num(get(r)) }, o || {});
@@ -10829,11 +10924,11 @@ const REPORTS = [
     build() {
       const by = rfv("delBy", "each"), C = costOn();
       const poCost = deliverPoCosts();
-      const rows = (S.rep.mvs || []).filter(m => m.type === "deliver").map(m => { const k = m.ticketId && m.ticketLineId ? m.ticketId + "|" + m.ticketLineId : null, c = k && poCost.has(k) ? poCost.get(k) : unitCost(m.productId); return { at: m.at, client: clientOfMv(m) || "No client", job: jobOfMv(m) || "No job", ticket: m.ticketNumber || "", product: m.productName || "", qty: num(m.qty), unit: unitTxt(m.unit), cost: c, total: c == null ? null : c * num(m.qty), by: m.byName || m.by || "", line: m.ticketLineId || m.productName }; });
+      const rows = (S.rep.mvs || []).filter(m => m.type === "deliver").map(m => { const k = m.ticketId && m.ticketLineId ? m.ticketId + "|" + m.ticketLineId : null, c = k && poCost.has(k) ? poCost.get(k) : unitCost(m.productId); return { at: m.at, client: clientOfMv(m) || "No client", job: jobOfMv(m) || "No job", ticket: m.ticketNumber || "", tlabel: jobLabelOf(m), product: m.productName || "", qty: num(m.qty), unit: unitTxt(m.unit), cost: c, total: c == null ? null : c * num(m.qty), by: m.byName || m.by || "", line: m.ticketLineId || m.productName }; });
       const tc = rows.reduce((a, r) => a + num(r.total), 0), miss = rows.filter(r => r.total == null).length, jobs = new Set(rows.map(r => r.client + "|" + r.job)).size;
       const total = plural(rows.length, "delivery", "deliveries") + " to " + plural(jobs, "job") + "." + (C ? " Cost: " + money(tc) + "." + (miss ? ' <span class="z">' + plural(miss, "delivery", "deliveries") + " with no cost " + (miss === 1 ? "counts" : "count") + " as zero.</span>" : "") : "");
       if (by === "each") {
-        const cols = [dayCol("at", "Delivered", r => r.at), txtCol("client", "Client", r => r.client), txtCol("job", "Job", r => r.job), txtCol("ticket", "Job #", r => r.ticket ? "#" + r.ticket : "", { sort: r => r.ticket }),
+        const cols = [dayCol("at", "Delivered", r => r.at), txtCol("client", "Client", r => r.client), txtCol("job", "Job", r => r.job), txtCol("ticket", "Job #", r => r.tlabel || "", { sort: r => r.ticket }),
           txtCol("product", "Product", r => r.product), numCol("qty", "Qty", r => r.qty), txtCol("unit", "Unit", r => r.unit, { def: false })];
         if (C) cols.push(moneyCol("cost", "Unit cost", r => r.cost, { def: false }), moneyCol("total", "Cost", r => r.total));
         cols.push(txtCol("by", "By", r => r.by));
@@ -10924,7 +11019,7 @@ const REPORTS = [
         numCol("qty", "Qty", m => m.qty == null || m.type === "edit" ? null : num(m.qty)), txtCol("unit", "Unit", m => m.unit, { def: false }),
         numCol("cutFrom", "Cut from mark", m => m.cut ? m.cut.fromMark : null, { def: false }), numCol("cutTo", "Cut to mark", m => m.cut ? m.cut.toMark : null, { def: false }), numCol("cutLength", "Cut length", m => m.cut ? m.cut.length : null, { def: false }),
         txtCol("from", "From", m => m.fromLocationName), txtCol("to", "To", m => m.toLocationName), txtCol("by", "By", m => m.byName || m.by), txtCol("byEmail", "By email", m => m.by, { def: false }),
-        txtCol("job", "Job", m => m.jobName), txtCol("ticket", "Job #", m => m.ticketNumber ? "#" + m.ticketNumber : "", { def: false }), txtCol("order", "PO", m => m.orderNumber, { def: false }),
+        txtCol("job", "Job", m => m.jobName), txtCol("ticket", "Job #", m => jobLabelOf(m), { def: false }), txtCol("order", "PO", m => m.orderNumber, { def: false }),
         txtCol("holder", "Holder", m => m.holderName, { def: false }), txtCol("condition", "Condition", m => m.condition, { def: false }),
         txtCol("reason", "Why it came back", m => m.reason ? reasonText(m.reason) : ""), txtCol("reasonNote", "Reason note", m => m.reasonNote, { def: false }), txtCol("note", "Note", m => m.note)];
       return { id: "rep_movements", cols, rows, total: plural(rows.length, "movement") + (rows.length !== (S.rep.mvs || []).length ? " of " + fmtN((S.rep.mvs || []).length) + " in the range." : " in the range."), defaultSort: (a, b) => (toDate(b.at) || 0) - (toDate(a.at) || 0) };
@@ -10937,7 +11032,7 @@ const REPORTS = [
       const to = rrDates().to, which = rfv("aging", "tickets");
       if (which === "tickets") {
         const rows = Array.from(S.tickets.values()).filter(t => t.status !== "closed" && toDate(t.createdAt) && toDate(t.createdAt) <= to).map(t => { const s = tkSummary(t), age = daysSince(t.createdAt); return { t, age, bucket: ageBucket(age), st: tkStatus(t), s }; });
-        const cols = [txtCol("ticket", "Job #", r => "#" + r.t.number, { sort: r => r.t.number }), txtCol("client", "Client", r => r.t.clientName), txtCol("job", "Job", r => r.t.jobName),
+        const cols = [txtCol("ticket", "Job", r => jobLabel(r.t), { sort: r => r.t.number }), txtCol("client", "Client", r => r.t.clientName), txtCol("job", "Job", r => r.t.jobName),
           txtCol("status", "Status", r => TK_LABEL[r.st] || r.st), dayCol("opened", "Opened", r => r.t.createdAt), numCol("age", "Age (days)", r => r.age), txtCol("bucket", "Age band", r => r.bucket, { sort: r => r.age }),
           dayCol("install", "Install", r => r.t.installAt), txtCol("staged", "Staged", r => r.s.staged + " of " + r.s.lines + " lines", { sort: r => r.s.lines ? r.s.staged / r.s.lines : 0 })];
         return { id: "rep_aging_tickets", cols, rows, total: rows.length ? bucketLine(rows, "open job") : "", defaultSort: (a, b) => b.age - a.age, rowClass: r => r.age > 30 ? "need" : "", emptyMsg: "No open jobs opened on or before " + rrDay(to) + "." };
@@ -11042,18 +11137,18 @@ function jobRepBuild() {
 function jrHeadHTML(t) {
   const lines = ticketLines(t.id), pulled = Array.from(new Set(lines.map(l => l.pickedByName).filter(Boolean))), lastPull = lines.map(l => toDate(l.pickedAt)).filter(Boolean).sort((a, b) => b - a)[0];
   const who = (n, at) => n ? esc(n) + (at ? "<small>" + esc(fmtDate(at)) + "</small>" : "") : '<span class="z">Not yet</span>';
-  return '<dl class="meta jrmeta"><div><dt>Client</dt><dd>' + esc(t.clientName || "None") + "</dd></div><div><dt>Job</dt><dd>" + esc(t.jobName || "None") + "<small>Job #" + esc(t.number) + "</small></dd></div>" +
-    "<div><dt>Proposal</dt><dd>" + (t.proposalId ? "#" + esc(t.proposalId) : "None") + "</dd></div><div><dt>Staging</dt><dd>" + esc(tkBay(t) || "None yet") + "</dd></div>" +
+  return '<dl class="meta jrmeta"><div><dt>Client</dt><dd>' + esc(t.clientName || "None") + "</dd></div><div><dt>Job</dt><dd>" + esc(t.jobName || "None") + "<small>" + esc(jobLabel(t)) + "</small></dd></div>" +
+    "<div><dt>Proposal</dt><dd>" + (t.proposalId ? "#" + esc(t.proposalId) : "No proposal") + "</dd></div><div><dt>Staging</dt><dd>" + esc(tkBay(t) || "None yet") + "</dd></div>" +
     "<div><dt>Install</dt><dd>" + (t.installAt ? esc(fmtDate(t.installAt)) : '<span class="z">Not set</span>') + "</dd></div><div><dt>Status</dt><dd>" + esc(TK_LABEL[tkStatus(t)] || "") + "</dd></div>" +
     "<div><dt>Pulled by</dt><dd>" + who(pulled.join(", "), lastPull) + "</dd></div><div><dt>Picked up by</dt><dd>" + who(t.pickedUpByName, t.pickedUpAt) + "</dd></div><div><dt>Delivered by</dt><dd>" + who(t.deliveredByName, t.deliveredAt) + "</dd></div></dl>";
 }
 function jrPickerHTML(t) {
   const q = String(S.repJobQ || "").trim().toLowerCase();
   const all = Array.from(S.tickets.values()).sort((a, b) => (toDate(b.createdAt) || 0) - (toDate(a.createdAt) || 0));
-  const hits = (q ? all.filter(x => [x.clientName, x.jobName, x.number, x.proposalId].filter(Boolean).join(" ").toLowerCase().includes(q)) : all).slice(0, 20);
+  const hits = (q ? all.filter(x => [boxTkHay(x), x.number, x.proposalId].filter(Boolean).join(" ").toLowerCase().includes(q)) : all).slice(0, 20);
   return '<div class="jrpick"' + (t && !S.repJobOpen ? " hidden" : "") + ' id="jrPick"><label class="lab" for="jrQ" title="Searches the client, the job name, the job number, and the proposal number. The latest twenty jobs list under it.">' + "<abbr>Find a job</abbr></label>" +
     '<input class="fld" type="search" id="jrQ" value="' + esc(S.repJobQ || "") + '" placeholder="Client, job name, job number, or proposal number" autocomplete="off">' +
-    (hits.length ? '<ul class="jrlist" aria-label="' + (q ? "Jobs that match" : "The latest jobs") + '">' + hits.map(x => '<li><button type="button" class="hit" data-act="jrPick" data-id="' + esc(x.id) + '"><span class="hn"><b>#' + esc(x.number) + "</b> " + esc(tkWho(x)) + "</span>" + '<span class="hs">' + esc(TK_LABEL[tkStatus(x)] || "") + ", " + esc(fmtDate(x.createdAt)) + "</span></button></li>").join("") + "</ul>"
+    (hits.length ? '<ul class="jrlist" aria-label="' + (q ? "Jobs that match" : "The latest jobs") + '">' + hits.map(x => '<li><button type="button" class="hit" data-act="jrPick" data-id="' + esc(x.id) + '"><span class="hn"><b>' + esc(jobLabel(x)) + "</b> " + esc(tkWho(x)) + "</span>" + '<span class="hs">' + esc(TK_LABEL[tkStatus(x)] || "") + ", " + esc(fmtDate(x.createdAt)) + "</span></button></li>").join("") + "</ul>"
       : '<p class="hint">No job matches "' + esc(S.repJobQ) + '".</p>') + "</div>";
 }
 function jobReportHTML(h) {
@@ -11062,34 +11157,38 @@ function jobReportHTML(h) {
   const t = jrTicket();
   if (S.repJob && !t) { h += '<div class="errbox" role="alert"><p>That job is not in Loadout. It may have been removed, or has not reached this device yet.</p><button type="button" class="btn" data-act="jrPick" data-id="">Pick another job</button></div>'; return h; }
   if (!t) return h + '<div class="empty" style="padding-bottom:8px"><p>Pick a job to see its lines.</p></div>' + jrPickerHTML(null);
-  h += '<div class="thead jrtop"><h3 class="jrh" id="jrHead" tabindex="-1">Job #' + esc(t.number) + ", " + esc(tkWho(t)) + '</h3><span class="sp"><button type="button" class="btn sm" data-act="jrAnother" aria-controls="jrPick" aria-expanded="' + !!S.repJobOpen + '" title="Search the jobs again">Pick another job</button><a class="btn sm" href="' + jobHref(t) + '">Open the job</a></span></div>' + jrPickerHTML(t) + jrHeadHTML(t);
+  h += '<div class="thead jrtop"><h3 class="jrh" id="jrHead" tabindex="-1">' + esc(jobLabel(t)) + ", " + esc(tkWho(t)) + '</h3><span class="sp"><button type="button" class="btn sm" data-act="jrAnother" aria-controls="jrPick" aria-expanded="' + !!S.repJobOpen + '" title="Search the jobs again">Pick another job</button><a class="btn sm" href="' + jobHref(t) + '">Open the job</a></span></div>' + jrPickerHTML(t) + jrHeadHTML(t);
   if (S.errors.lines && !S.linesLoaded.has(t.id)) return h + errorBox("the job's lines", "tickets");
   if (!S.linesLoaded.has(t.id) && DB && DB.syncLines) DB.syncLines();
-  if (!S.linesLoaded.has(t.id) || jrMvs(t) === null) return h + skelTable([{ label: "Room" }, { label: "Product" }, { label: "Needed", r: true }, { label: "Delivered", r: true }], "Reading job #" + t.number);
+  if (!S.linesLoaded.has(t.id) || jrMvs(t) === null) return h + skelTable([{ label: "Room" }, { label: "Product" }, { label: "Needed", r: true }, { label: "Delivered", r: true }], "Reading " + jobLabel(t, 1));
   const R = curReport(), b = jobRepBuild();
   const exp = b.rows.length ? '<span class="rexp"><button type="button" class="btn sm" data-act="columns" data-tbl="' + b.id + '">Edit columns</button><button type="button" class="btn sm" data-act="repCsv">Export CSV</button><button type="button" class="btn sm" data-act="repXlsx">Export XLSX</button><button type="button" class="btn sm" data-act="jrPrint" title="A letter-size sheet of this report with the header block and the totals">Print</button></span>' : "";
   h += '<div class="filters rfil">' + R.views() + "</div>" + '<div class="thead"><h4>Lines</h4><span class="hint" style="margin:0">' + (b.rows.length ? plural(b.rows.length, "line") + (b.rows.length !== b.all.length ? " of " + fmtN(b.all.length) : "") : "") + "</span>" + exp + "</div>";
-  if (!b.rows.length) return h + '<div class="empty"><p>' + esc(b.emptyMsg) + "</p></div>";
-  return h + tableHTML(b.id, b.cols, b.rows, { defaultSort: b.defaultSort, foot: true, subRows: r => r.units.map(i => esc(jrUnitText(i))).concat(r.cuts.map(m => esc(jrCutText(m)))) }) + (b.total ? '<p class="rtot">' + b.total + "</p>" : "");
+  if (!b.rows.length) return h + '<div class="empty"><p>' + esc(b.emptyMsg) + "</p></div>" + jrWireHTML(t);
+  return h + tableHTML(b.id, b.cols, b.rows, { defaultSort: b.defaultSort, foot: true, subRows: r => r.units.map(i => esc(jrUnitText(i))).concat(r.cuts.map(m => esc(jrCutText(m)))) }) + (b.total ? '<p class="rtot">' + b.total + "</p>" : "") + jrWireHTML(t);
 }
 /* CSV and XLSX: the visible columns, then what a unit or box row adds; every row starts with the line's key */
 function jrExport(kind) {
-  const b = jobRepBuild(); if (!b.t || !b.rows.length) { toast("Nothing to export for this job.", true); return; }
+  const b = jobRepBuild(); if (!b.t || (!b.rows.length && !jobWire(b.t).cuts.length)) { toast("Nothing to export for this job.", true); return; }
   const vis = visibleCols(b.id, b.cols), rows = sortRows(b.id, b.cols, b.rows, b.defaultSort);
   const val = (c, x) => { const v = c.x ? c.x(x) : c.text ? c.text(x) : ""; return v == null ? "" : v; };
   const keep = new Set(["room", "product", "bm"]);
-  const head = ["Line key", "Row"].concat(vis.map(c => c.label), ["Unit or box", "Serial", "MAC address", "Where now", "Cut on", "Cut by", "Feet cut"]);
+  const head = ["Line key", "Row"].concat(vis.map(c => c.label), ["Unit or box", "Serial", "MAC address", "Where now", "Cut on", "Cut by", "Feet cut", "Wire"]);
   const out = [];
   rows.forEach(r => {
-    out.push([r.key, "Line"].concat(vis.map(c => val(c, r)), ["", "", "", "", "", "", ""]));
-    r.units.forEach(i => out.push([r.key, "Unit"].concat(vis.map(c => keep.has(c.k) ? val(c, r) : ""), [itemLabel(i), i.serial || "", i.mac || "", (ITEM_STATUS[i.status] || i.status) + ": " + whereItem(i), "", "", ""])));
-    r.cuts.forEach(m => out.push([r.key, "Box"].concat(vis.map(c => keep.has(c.k) ? val(c, r) : ""), [m.containerLabel || "", "", "", "", isoDay(m.at), m.byName || m.by || "", num(m.cut.length)])));
+    out.push([r.key, "Line"].concat(vis.map(c => val(c, r)), ["", "", "", "", "", "", "", ""]));
+    r.units.forEach(i => out.push([r.key, "Unit"].concat(vis.map(c => keep.has(c.k) ? val(c, r) : ""), [itemLabel(i), i.serial || "", i.mac || "", (ITEM_STATUS[i.status] || i.status) + ": " + whereItem(i), "", "", "", ""])));
+    r.cuts.forEach(m => out.push([r.key, "Box"].concat(vis.map(c => keep.has(c.k) ? val(c, r) : ""), [m.containerLabel || "", "", "", "", isoDay(m.at), m.byName || m.by || "", num(m.cut.length), m.productName || ""])));
   });
+  /* 0.16.0: Wire used, every cut stamped with this job, then the feet per wire type */
+  const w = jobWire(b.t), blank = vis.map(() => "");
+  w.cuts.forEach(m => out.push(["", "Wire used"].concat(blank, [m.containerLabel || "", "", "", "", isoDay(m.at), m.byName || m.by || "", num(m.cut.length), m.productName || ""])));
+  w.types.forEach(x => out.push(["", "Wire total"].concat(blank, ["", "", "", "", "", "", x.ft, x.wire])));
   const name = "loadout-job-" + slug(b.t.number) + "-" + rfv("jobBy", "all");
   if (kind === "csv") { downloadBlob(new Blob(["\ufeff" + csvOf(out, head.map((l, k) => ({ label: l, get: x => x[k] })))], { type: "text/csv" }), name + ".csv"); toast("CSV downloaded"); return; }
   ensureXLSX().then(XLSX => {
     const ws = XLSX.utils.aoa_to_sheet([head].concat(out));
-    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, ("Job " + b.t.number).slice(0, 31));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, (jobLabel(b.t)).slice(0, 31));
     XLSX.writeFile(wb, name + ".xlsx"); toast("XLSX downloaded");
   }).catch(e => toast(e.message || String(e), true));
 }
@@ -11099,10 +11198,10 @@ function jrPrint() {
   const body = rows.map(r => "<tr>" + vis.map(c => '<td class="' + (c.r ? "r" : "") + '">' + esc(c.text ? c.text(r) : "") + "</td>").join("") + "</tr>" +
     r.units.map(i => '<tr class="sub"><td colspan="' + span + '">' + esc(jrUnitText(i)) + "</td></tr>").join("") + r.cuts.map(m => '<tr class="sub"><td colspan="' + span + '">' + esc(jrCutText(m)) + "</td></tr>").join("")).join("");
   const tot = '<tr class="tot">' + vis.map((c, ci) => '<td class="' + (c.r ? "r" : "") + '">' + esc(c.tot ? c.tot(rows) : ci === 0 ? "Total" : "") + "</td>").join("") + "</tr>";
-  $("#printSheet").innerHTML = '<div class="pvbar"><button type="button" class="btn acc" id="pvPrint">Print</button><button type="button" class="btn" id="pvClose">Close preview</button><span>Job report for job #' + esc(t.number) + ", letter paper.</span></div>" +
-    '<div class="picksheet jrsheet"><div class="phead"><div><h1>Job report, job #' + esc(t.number) + "</h1>" + jrHeadHTML(t) + '<div class="pmeta"><span><b>Showing:</b> ' + esc({ all: "Every line", open: "Only what is not delivered yet", ordered: "Only what was ordered" }[rfv("jobBy", "all")]) + "</span><span><b>Printed:</b> " + esc(fmtWhen(new Date())) + " by " + esc(S.user.name) + "</span></div></div></div>" +
+  $("#printSheet").innerHTML = '<div class="pvbar"><button type="button" class="btn acc" id="pvPrint">Print</button><button type="button" class="btn" id="pvClose">Close preview</button><span>Job report for ' + esc(jobLabel(t, 1)) + ", letter paper.</span></div>" +
+    '<div class="picksheet jrsheet"><div class="phead"><div><h1>Job report, ' + esc(jobLabel(t, 1)) + "</h1>" + jrHeadHTML(t) + '<div class="pmeta"><span><b>Showing:</b> ' + esc({ all: "Every line", open: "Only what is not delivered yet", ordered: "Only what was ordered" }[rfv("jobBy", "all")]) + "</span><span><b>Printed:</b> " + esc(fmtWhen(new Date())) + " by " + esc(S.user.name) + "</span></div></div></div>" +
     (rows.length ? "<table><thead><tr>" + vis.map(c => '<th class="' + (c.r ? "r" : "") + '">' + esc(c.label) + "</th>").join("") + "</tr></thead><tbody>" + body + tot + "</tbody></table>" : "<p>" + esc(b.emptyMsg) + "</p>") +
-    (b.total ? '<p class="ptot">' + b.total + "</p>" : "") + "</div>";
+    (b.total ? '<p class="ptot">' + b.total + "</p>" : "") + jrWireHTML(t, true) + "</div>";
   $("#printSheet").setAttribute("aria-hidden", "false");
   document.body.classList.add("preview");
   $("#pvPrint").addEventListener("click", () => window.print());
@@ -11761,7 +11860,7 @@ document.addEventListener("click", e => {
     case "locUnarchive": if (isAdmin()) locUnarchive(S.locations.get(id)); break;
     case "editLocation": case "location": navLoc(id); break;
     case "newBox": openNewBox(P()); break;
-    case "boxSheet": closeAllModals(); if (S.view === "scan") { S.scan = { kind: "ctr", id }; paintScanResult(); } else openBoxSheet(id); break;
+    case "boxSheet": closeAllModals(); if (S.view === "scan" && !b.dataset.tk) { S.scan = { kind: "ctr", id }; paintScanResult(); } else openBoxSheet(id, b.dataset.tk || null); break;
     case "receive": openReceive(P()); break;
     case "moveStock": openMoveStock(P()); break;
     case "count": openCount(P()); break;
@@ -11796,7 +11895,7 @@ document.addEventListener("click", e => {
     case "tfClear": S.tkFilter = { status: "active", client: "", toOrder: false, backorders: false, install: "", q: "" }; render(true); break;
     case "tkCopy": { const t = curTicket(); if (t) copyText(portalBlock(t), "Copy for Portal"); break; }
     case "tkPrint": { const t = curTicket(); if (t) printTicket(t); break; }
-    case "tkBoard": { const t = curTicket(); if (!t) break; const on = !(S.board.ticketIds || []).includes(t.id); doBoardPin(t, on).then(ok => ok && toast(on ? "Job #" + t.number + " is on the board" : "Job #" + t.number + " is off the board")); break; }
+    case "tkBoard": { const t = curTicket(); if (!t) break; const on = !(S.board.ticketIds || []).includes(t.id); doBoardPin(t, on).then(ok => ok && toast(on ? jobLabel(t) + " is on the board" : jobLabel(t) + " is off the board")); break; }
     case "tkClose": { const t = curTicket(); if (t) openClose(t); break; }
     case "tkPullAll": { const t = curTicket(); if (t) openPullAll(t); break; }
     case "tkAddLines": { const t = curTicket(); if (t) openNewTicket({ ticket: t, tab: "hand" }); break; }
@@ -11862,7 +11961,7 @@ document.addEventListener("click", e => {
     case "order": closeAllModals(); go("order", id); break;
     case "newPo": newPo(); break;
     case "ofClear": S.ordFilter = { status: "open", vendor: "" }; render(true); break;
-    case "trClear": S.trFilter = { job: "", vendor: "", carrier: "", status: "", late: false }; render(true); break;
+    case "trClear": S.trFilter = { job: "", vendor: "", carrier: "", status: "", late: false, q: "" }; render(true); break;
     case "tkOrder": { const t = curTicket(); if (t) openOrderMissing(t); break; }
     case "lnOrder": { const t = curTicket(); if (t) openOrderMissing(t, id); break; }
     case "reorder": openReorder(P()); break;
@@ -11881,7 +11980,7 @@ document.addEventListener("click", e => {
     case "trNote": openPkgNote(b.dataset.kind, id); break;
     case "trDeliver": { const s = S.shipments.get(id); if (s) openMarkDelivered(s); break; }
     case "trShip": { const o = S.orders.get(id); if (o) openAddShipment(o); break; }
-    case "tkReviewed": { const t = curTicket(); if (t) doReviewed(t).then(ok => ok && toast("Job #" + t.number + " marked reviewed")); break; }
+    case "tkReviewed": { const t = curTicket(); if (t) doReviewed(t).then(ok => ok && toast(jobLabel(t) + " marked reviewed")); break; }
     /* 0.3.0: week */
     case "wkGo": { const d = +b.dataset.d; S.weekOff = d === 0 ? 0 : S.weekOff + d; setHash(); render(true); break; }
     case "wkWork": S.prefs = Object.assign({}, S.prefs, { workWeek: !wwOn() }); savePrefs(); render(true); { const t = $(".wwt"); if (t) t.focus(); } break;
@@ -11904,6 +12003,7 @@ document.addEventListener("input", e => {
   else if (t.dataset && t.dataset.flownote && S.flow) { S.flow.notes[t.dataset.flownote] = t.value; }
   else if (t.id === "unitSearch") { S.unitQ = t.value; scheduleRender(); }
   else if (t.id === "tfQ") { S.tkFilter.q = t.value; scheduleRender(); }
+  else if (t.id === "trQ") { S.trFilter.q = t.value; scheduleRender(); }
   else if (t.dataset && t.dataset.mf) { S.mvFilter[t.dataset.mf] = t.value; scheduleRender(); }
   else if (t.id === "lblQ") { S.labelQ = t.value; scheduleRender(); }
   else if (t.id === "lsQ") { S.ls.q = t.value; scheduleRender(); }
@@ -11926,7 +12026,7 @@ document.addEventListener("change", e => {
   else if (t.id === "lblEmpty") { S.labelEmpty = t.checked; render(true); }
   else if (t.dataset && t.dataset.xf && S.x) { if (!S.x.draft) S.x.draft = {}; S.x.draft[t.dataset.xf] = t.type === "checkbox" ? t.checked : t.value; }
   else if (t.dataset && t.dataset.of) { S.ordFilter[t.dataset.of] = t.value; render(true); }
-  else if (t.dataset && t.dataset.tr) { S.trFilter[t.dataset.tr] = t.type === "checkbox" ? t.checked : t.value; render(true); }
+  else if (t.dataset && t.dataset.tr && t.id !== "trQ") { S.trFilter[t.dataset.tr] = t.type === "checkbox" ? t.checked : t.value; render(true); }
   else if (t.dataset && t.dataset.install) { const tk = S.tickets.get(t.dataset.install); if (tk && t.value !== installDay(tk)) doSetInstall(tk, t.value).then(ok => { if (ok) toast(t.value ? "Install date set" : "Install date cleared"); else render(true); }); }
   else if (t.dataset && t.dataset.ovendor) {
     const o = S.orders.get(t.dataset.ovendor); if (!o) return;

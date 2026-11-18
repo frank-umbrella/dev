@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.15.0**.
+Current version: **0.16.0**.
 
 ## Files
 
@@ -375,7 +375,7 @@ its address, and on Home already it scrolls back to the top.
   Shelf labels set the active location; box labels open the box sheet (mark
   now, cut this time, quick -50 / -100 / -250, Empty, recount); unit labels
   show who has it with Check out and Check in. Product and unit cards have
-  Pull for job, the box sheet a For job chip, and a staging area's label
+  Pull for job, the box sheet a required For which job (0.16.0), and a staging area's label
   shows the jobs staged there. The QR on a printed pull sheet (0.9.0,
   `loadout:job:<id>`; a link to the app since 0.13.1) opens that job's Pull screen, or the job page for a
   role that does not pull. Since 0.14.0 the camera stops on the first good
@@ -598,7 +598,7 @@ already arrived at the site), order request 7739 with its vendor picked for
 trying Approve and Mark ordered, unit costs on the ordered lines, status logs with clock
 times on the newer shipments (the older ones read through the migration), and
 job #1056, made by Zapier from Portal and still flagged for review. 0.8.0 adds job #1058, picked up by Tech (two lines in the van, one still in
-Tech area, Job shelf 3), job #1061 with lines to pull, seven open jobs pinned to the board so
+Tech area, Job shelf 3), job #1061 with lines to pull (0.16.0: built by hand, so it shows Job #1061 and No proposal while the rest show Proposal #), seven open jobs pinned to the board so
 it turns to a second page, and two locations with an audit date (Warehouse
 over 60 days ago, so it reads amber) while the rest were never audited.
 0.9.0 pulls job #1056's keystones, so it sits under Waiting on orders on
@@ -1046,7 +1046,9 @@ function loadoutContainerUpdate() {
   let r = loadoutRole();
   return (r in ['admin', 'warehouse'] && loadoutKeepsCreated())
     || (r == 'tech' && loadoutOnly(['ftLeft', 'lastMark', 'status', 'pickTicketId', 'pickTicketNumber',
-         'lastReadingAt', 'lastReadingBy', 'locationId', 'locationName', 'confirmLocation']));
+         'lastReadingAt', 'lastReadingBy', 'locationId', 'locationName', 'confirmLocation',
+         // 0.16.0 (PLAN 33.1 item 3): a cut stamps the box with the job it was for
+         'lastCutTicketId', 'lastCutJob']));
 }
 // a tech's cut or check-out moves the product's denormalized on-hand total
 function loadoutProductUpdate() {
@@ -1115,7 +1117,10 @@ match /loadout_tickets/{tid} {
       'qtyPickedUp', 'pickedUpAt', 'pickedUpBy', 'pickedUpByName', 'deliveryNote',
       'broughtBackAt', 'broughtBackBy', 'broughtBackByName',
       // 0.15.0 (PLAN 33.1 item 1): Return from a client raises qtyReturned and stamps who and when.
-      'qtyReturned', 'returnedAt', 'returnedBy', 'returnedByName']);
+      'qtyReturned', 'returnedAt', 'returnedBy', 'returnedByName'])
+      // 0.16.0: a tech may not raise qtyReturned above what was delivered on the line.
+      && (request.resource.data.get('qtyReturned', 0) <= resource.data.get('qtyReturned', 0)
+        || request.resource.data.get('qtyReturned', 0) <= request.resource.data.get('qtyDelivered', 0));
   }
 }
 // Pick up (0.8.0) and Deliver to site take counted units out of the bay: a tech may
@@ -1384,6 +1389,33 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.16.0 (2026-11-18)
+
+Wire cut from a box on the Shelf tab did not show on the job it went to,
+two names for one number (job number and proposal number) confused people,
+and shipments did not say which job they were for (PLAN 33.1 items 3, 4
+and 12).
+
+- The box sheet asks For which job on every cut: an open job, found by
+  proposal or job number or client, or Not for a job for shop use. It is
+  required, glows amber until picked, and remembers the last choice on this
+  phone until the tab closes. Opened from Pull everything on a job, it starts
+  on that job. The free-text For job field is gone.
+- A cut carries the job's id, its label, and the client on its movement, and
+  the box keeps the last cut's job. The Job report has a Wire used block
+  (box, wire, feet, who, when, and feet per wire type) on screen, in CSV and
+  XLSX, and in print; the job page shows Wire used with the same numbers.
+  Older cuts with no job stay as they were.
+- One label for a job's number: a job made from a proposal file or Portal
+  reads "Proposal #1042" everywhere; a hand-made job reads "Job #H1118ABC"
+  and shows No proposal on the job page and the Jobs list. Search finds a job
+  by either number.
+- Tracking, Receive, and the order page name the job each line is for (a
+  link), or For stock; a package for several jobs lists each. Tracking has a
+  search by tracking number, PO, proposal or job number, or client.
+- Rules: a tech may not raise a line's returned count above what was
+  delivered on it, and may stamp a box with its last cut's job.
 
 ### 0.15.0 (2026-11-18)
 
