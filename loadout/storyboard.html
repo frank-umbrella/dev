@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP, Tech spec and History v0.17.0</title>
+<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP, Tech spec and History v0.18.0</title>
 <meta name="description" content="Storyboard and functional SOP for Loadout, the internal inventory, job, and order tracking tool, matching the built app. The shop's reference document.">
 <meta name="robots" content="noindex, nofollow">
-<meta name="version" content="0.17.0">
+<meta name="version" content="0.18.0">
 <script>
   // ?print=1 strips the chrome for a PDF. ?tab=pictures|overview|drive|story|sop|tech|history picks the tab
   // (In pictures when none is given); ?sheet=warehouse|tech|office|accounting|all lays out the role sheets;
@@ -674,7 +674,7 @@
     Loadout
   </h1>
   <p class="subtitle">How product moves through the shop, from approved proposal to installed, and what gets recorded at each step</p>
-  <p class="meta">Version 0.17.0, updated Nov 19, 2026 <a href="#history" id="whatChanged">What changed</a></p>
+  <p class="meta">Version 0.18.0, updated Nov 19, 2026 <a href="#history" id="whatChanged">What changed</a></p>
 
   <div class="tabs" role="tablist" aria-label="Sections of this document">
     <button type="button" role="tab" id="tabbtn-pictures" aria-controls="tab-pictures" aria-selected="true" data-tab="pictures">In pictures<span class="hint">nine panels and one chart</span></button>
@@ -1051,7 +1051,7 @@
   </div>
   <div class="sheets">
     <article class="sheet" id="role-warehouse" data-role="warehouse">
-      <div class="phead"><b>Your job in Loadout: Warehouse</b><span>Loadout v0.17.0</span></div>
+      <div class="phead"><b>Your job in Loadout: Warehouse</b><span>Loadout v0.18.0</span></div>
       <h4>Warehouse</h4>
       <p class="who">Shelves, the Tech area, the dock door. Phone in hand most of the day.</p>
       <ol>
@@ -1069,7 +1069,7 @@
       </ol>
     </article>
     <article class="sheet" id="role-tech" data-role="tech">
-      <div class="phead"><b>Your job in Loadout: Tech</b><span>Loadout v0.17.0</span></div>
+      <div class="phead"><b>Your job in Loadout: Tech</b><span>Loadout v0.18.0</span></div>
       <h4>Tech</h4>
       <p class="who">The Tech area, the van, the client's site. The last tab reads More instead of Office.</p>
       <ol>
@@ -1084,7 +1084,7 @@
       </ol>
     </article>
     <article class="sheet" id="role-office" data-role="office">
-      <div class="phead"><b>Your job in Loadout: Office</b><span>Loadout v0.13.0</span></div>
+      <div class="phead"><b>Your job in Loadout: Office</b><span>Loadout v0.18.0</span></div>
       <h4>Office</h4>
       <p class="who">The desk at the front: proposals, orders, and closing jobs. In the app this is the admin or warehouse role.</p>
       <ol>
@@ -1098,6 +1098,7 @@
         <li><b>Close job:</b> once every line is delivered; leftovers are scanned back onto their shelf or written off.</li>
         <li><b>Office, Reports, Job report:</b> every line of one job, with its units, boxes, PO, and costs.</li>
         <li><b>Office, People and Settings:</b> roles, the QR threshold, and the wall board (admin only).</li>
+        <li><b>Office, QR codes (admin only):</b> every label code, where each thing is, and when its label was last printed. A torn, lost, or misplaced label: Retire label with the reason, then Reprint. Every copy printed before stops working.</li>
       </ol>
     </article>
     <article class="sheet" id="role-accounting" data-role="accounting">
@@ -1170,7 +1171,7 @@
     <li><b>Jobs</b>: every job by status, with filters, an Install column, a progress strip, and one next-step button; open one to see its pull sheet by area.</li>
     <li><b>Scan</b>: the camera and whatever the scan found: a product card, a unit card, a wire box's box sheet, or a shelf.</li>
     <li><b>Shelf</b>: the catalog with All, Low, Out with people (who has which unit), and Locations. Filters for Category, Type, Brand, and Location, plus Consumables only, narrow All and Low; each option shows its count, the active ones show as chips under the search, and on a phone they sit behind one Filter button. A product with serialized units lists them in place, and Show history on any product, unit, or location reads as a timeline, newest first. A product opens in place under its row; its Brand and Category are picked from a list that narrows as you type and shows how many products carry each, so one brand is never saved three ways. Only an admin adds a new one, after a confirm that shows the name with its capitals fixed; anyone else is told to ask an admin.</li>
-    <li><b>Office</b>: Orders and tracking (with Week), Clients, Reports, People, Settings, Audit, Labels, Movements, Import inventory sheet, Backups, Export everything, and About. Each person sees the sections their role can use.</li>
+    <li><b>Office</b>: Orders and tracking (with Week), Clients, Reports, People, Settings, Audit, Labels, QR codes (admin), Movements, Import inventory sheet, Backups, Export everything, and About. Each person sees the sections their role can use.</li>
   </ul>
   <p>The wall board has no menu: the TV in the shop, read-only and live, a grid of up to six jobs. Opened on a phone it becomes one scrolling column of the same jobs.</p>
 
@@ -1188,6 +1189,7 @@
     <li><b>0.6.0 to 0.7.0, 2026-11-02 to 11-05.</b> One-handed phone layout, the nightly backup listed in the app, serials and MAC addresses, and the inventory sheet's pulled units.</li>
     <li><b>0.8.0, 2026-11-05.</b> Home with the doors, the words Job and Pull sheet, Shelf and Office, Pick up as its own step, Audit a shelf, and the board as a grid of six jobs.</li>
     <li><b>0.9.0, 2026-11-11.</b> Pull has its own screen, shelf by shelf, opened from the Pull list or the QR on the printed pull sheet. Bring back takes product from a van to the bay or a shelf, and Close job waits for it. Receive a shipment is a door, and a costly unit asks for its serial or MAC there. A carrier's box has Arrived, not Delivered. The progress line names only what has happened. The wall board reads on a phone.</li>
+    <li><b>0.18.0, 2026-11-19.</b> Office, QR codes: every label code in one table, with when it was last printed and by whom. Retire label stops a damaged, lost, or misplaced label from working; the reprint carries a new number after a dot, and labels never retired still scan as before.</li>
     <li><b>0.17.0, 2026-11-19.</b> Find it by UPC: Scan looks an unknown box up and shows the closest products, a search list replaces the long dropdown, techs can use the lookup, and products can carry an Amazon ASIN.</li>
     <li><b>0.16.0, 2026-11-18.</b> Which job: every wire cut says which job it was for (or Not for a job), and the Job report and job page show Wire used. A job from a proposal shows Proposal #, a hand-made one Job # with No proposal. Tracking names the job each package is for.</li>
     <li><b>0.15.0, 2026-11-18.</b> Return from a client: product delivered to a client goes back on the shelf, with its condition and why it came back. Bring back and Close job's scan-back ask why too, and every door says where product moves.</li>
@@ -2214,8 +2216,9 @@
       <li>Stick the staging area's label at eye height where pulled product waits, shelf labels on the shelf edge, wire box labels on the side next to the cable exit, and unit labels on the unit itself, not only the carton, so the label goes into the rack with it.</li>
       <li>Scan each new label once on Scan to check it reads.</li>
       <li>To re-label one thing, open it (its row on Shelf, or its box sheet) and press Print label. If the old label is torn, type the readable line under the QR into Scan's code field and press Look up to find the record.</li>
+      <li>A label that is damaged, lost, or stuck on the wrong thing (admin): open Office, QR codes, find the thing, press Retire label and pick the reason (Other needs a few words), then Reprint and stick the new label on. Every copy printed before stops working; scanning one says when and why it was retired. A label on the wrong thing: retire the label on each thing involved, then reprint both.</li>
     </ol>
-    <p class="recorded"><b>Recorded:</b> no movement. The label carries the record's code and a readable line, so a torn label can always be typed in.</p>
+    <p class="recorded"><b>Recorded:</b> printing stamps who printed each label and when on the record (0.18.0); a retire writes a Label retired movement on the thing's history. Otherwise no movement. The label carries the record's code and a readable line, so a torn label can always be typed in.</p>
   </section>
 
   <section class="sop" id="sop-3">
@@ -2559,6 +2562,12 @@ Staged 9/12 lines in Tech area. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
   <p class="lede">What changed in this document, newest first. The app's own releases are in the Overview, under What is built.</p>
   <ol class="hist">
     <li>
+      <h3>0.18.0 <span class="when">Nov 19, 2026</span></h3>
+      <ul>
+        <li>The Office role sheet gains Office, QR codes (admin only), and SOP-2 Labeling gains the step for retiring a damaged, lost, or misplaced label and reprinting it; its Recorded line says printing stamps who printed and a retire is on the thing's history. The Office list in the Overview names QR codes, and What is built has 0.18.0. Not redrawn: the comic, the flow chart, the deck, and the Labels storyboard frame; they do not show the QR codes page or a retired label yet.</li>
+      </ul>
+    </li>
+    <li>
       <h3>0.17.0 <span class="when">Nov 19, 2026</span></h3>
       <ul>
         <li>SOP-1's step for a box Loadout does not know now says the lookup shows what it probably is, tap the product (or search for it) and Save UPC, or None of these: make a new product. The Test drive's UPC step and the Warehouse and Tech role sheets say the same, and SOP-1 mentions the Amazon ASIN link. The Photo for this UPC sketch's caption says Save UPC. Not redrawn: none of the comic, the flow chart, the deck, or the sketches shows the old dropdown, but none shows the lookup answer, the closest matches, the search list, or the ASIN field either.</li>
@@ -2700,7 +2709,7 @@ Staged 9/12 lines in Tech area. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
 </article>
 
 <footer class="pagefoot">
-  <p>Version 0.17.0, updated Nov 19, 2026</p>
+  <p>Version 0.18.0, updated Nov 19, 2026</p>
   <button type="button" class="btn-print" id="printTab">Print this tab as PDF</button>
   <button type="button" class="btn-print" id="printAll">Print everything as PDF</button>
 </footer>

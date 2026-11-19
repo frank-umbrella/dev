@@ -2551,3 +2551,76 @@ worker/src/auth.js), so item 5 needs a worker change and a worker deploy, and
 the app must stop hiding the lookup from techs. The free UPCitemdb plan allows
 100 lookups a day shared by everyone, so more callers means hitting "busy"
 sooner.
+
+## 34. QR codes page and Who sees what (user, 2026-11-19; build as 0.18.0 then 0.19.0)
+
+The user asked whether an admin can see every QR code and change one, and
+said there should be an admin console for admins and managers that controls
+what everyone else sees. Today: Office is already that console, but the split
+is fixed in code (OFFICE list, about index.html line 7102: admin sees every
+card; warehouse Orders, Audit, Labels, Movements; tech Labels, Movements;
+accounting Reports, Backups, Export). Office > Labels lists every shelf, box
+and unit for printing (admin, warehouse, tech). There is no page to manage
+codes: every QR is the record's id (`?c=<kind>:<id>`, PAYLOAD / labelLink), so
+a code cannot be changed, only reprinted. The user picked both builds below.
+
+### 34.1 Office > QR codes (0.18.0, admin; manager too once 34.2 adds it)
+**Built in 0.18.0 (2026-11-19).** Choices made in the build:
+- The generation separator is a dot (`?c=loc:<id>.2`, `loadout:loc:<id>.2`):
+  every id comes from slug() or rid(), letters, digits, and dashes only, so
+  no id can hold one. A code with no dot is generation 1.
+- Label shows Retired while the label was retired and nothing has been
+  printed since; a reprint after the retire turns it back to In use.
+- A wire box has no Rename (its name is the box code on the sticker, and
+  there is no box edit); the button is shown disabled with that reason. A
+  unit's and a product's Rename opens its panel, where the name is edited;
+  a location's opens the existing Rename.
+- The kind filter has four groups: Locations, Wire boxes, Units, Products.
+  A product's Where is its usual shelf, else the shelf holding the most.
+  Archived locations, empty boxes, and retired or installed units are
+  listed too (every code that exists).
+- A label can be retired again (labelGen goes up again). A scan of any
+  older generation shows the latest retire date and reason.
+- The printed stamp is its own write when Print is pressed (no updatedAt),
+  so the rules can let a tech send exactly those three keys.
+- Demo applies a retire in memory too, so a reprint and a scan of the old
+  code can be tried; its retired labels are on Storage room, RCA A/V Video
+  and the UDM-SE unit F09FC2A1B3C4.
+- One list of every code: shelves and staging areas, vans, wire boxes,
+  serialized units, products. Each row: what it points to, kind, where it is,
+  the code text, label status (In use / Retired), last printed (date, who).
+  Search, filter by kind and status, sortable, Columns manager, card stack on
+  a phone.
+- Row actions: Open (the thing itself), Rename (its existing edit), Reprint
+  (straight to the print preview for that one), Retire label.
+- Retire label: a reason is required (Damaged, Lost, On the wrong thing,
+  Other + note). Each record gets `labelGen` (missing = 1); printing encodes
+  the generation (`?c=<kind>:<id>.<gen>` when gen > 1; gen 1 keeps today's
+  form so every label already printed still works). Retire bumps labelGen and
+  stamps labelRetiredAt / By / ByName / Reason. Scanning an older generation
+  says "This label was retired on <date>: <reason>" with Open and, for
+  admin/manager, Reprint. Nothing else about the record changes.
+- "Move a label to another thing" is NOT a separate action: a printed code
+  is the thing's id, so pointing it elsewhere would leave the first thing with
+  no code. The fix for a label on the wrong box is Retire both labels, then
+  Reprint both; the page says so in the reason chip "On the wrong thing".
+- Printing (Labels and here) stamps labelPrintedAt / labelPrintedBy on each
+  record printed, so the list can show it.
+- Rules: labelGen, labelRetired*, labelPrinted* on locations, containers,
+  items, products: admin and warehouse (writers) today; techs only the
+  labelPrinted* pair while they can still print. Emulator-proven.
+
+### 34.2 Who sees what + a Manager role (0.19.0)
+- New role "manager": everything admin does except People and Who sees what.
+  In rules it is a writer like warehouse, plus the reads accounting has.
+- Office > Settings > Who sees what (admin only): a grid of roles (manager,
+  warehouse, tech, accounting) against every Home door and Office card, with
+  ticks. Defaults are today's split. The admin can only take things away
+  from a role or give back what the role may have; a box the rules would
+  refuse for that role is shown but cannot be ticked, with a tooltip saying
+  why. Admin always sees everything (no lock-out). Stored in the general
+  settings doc as `access: { <role>: { <key>: true|false } }`.
+- Hiding is not security: rules still decide every write. The grid says this
+  in one line.
+- The People screen gains Manager in its role list; About and the role sheets
+  in storyboard describe it.

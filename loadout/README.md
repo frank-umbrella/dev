@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.17.0**.
+Current version: **0.18.0**.
 
 ## Files
 
@@ -395,7 +395,7 @@ its address, and on Home already it scrolls back to the top.
 - **Office** (More and the Console, one screen since 0.8.0): a card per
   section, each with a one-line why: Orders and tracking (Orders, Tracking,
   and Week as tabs), Clients (clients and the job names under them), Reports,
-  People, Settings, Audit, Labels, Movements, Import inventory sheet,
+  People, Settings, Audit, Labels, QR codes (0.18.0), Movements, Import inventory sheet,
   Backups, Export everything, and About. Admins see them all; warehouse sees
   Orders and tracking, Audit, Labels, Movements, and About; techs see Labels,
   Movements, and About, under a tab that reads More for them (0.10.0); accounting sees Reports, Backups, Export everything,
@@ -474,7 +474,20 @@ its address, and on Home already it scrolls back to the top.
   Previous / This / Next week buttons, and CSV. **Clients**: clients and job
   names (add, edit, archive; a job name names its staging area, which jobs
   share).
-  **Labels**: label sheets (Avery 5160 or 2 x 4). Settings, at the end of
+  **Labels**: label sheets (Avery 5160 or 2 x 4); Print in the preview
+  stamps who printed each label and when (0.18.0).
+  **QR codes** (0.18.0, admin): one table of every code (locations, wire
+  boxes, units, products) with what it points to, where it is, the code
+  printed under the QR, In use or Retired, and when it was last printed and
+  by whom; search, kind and label filters, sortable, Columns manager. Open,
+  Rename, Reprint (that one label, straight to the preview), and Retire
+  label (reason required: Damaged, Lost, On the wrong thing, Other with a
+  note). A code is the thing's own id, so it is never moved to another
+  thing: retire raises `labelGen` and every label printed before stops
+  working; a label printed at generation 2 or more ends its code with
+  `.2`, `.3`, and so on, and generation 1 keeps the old form. Scanning a
+  retired label (Scan, a task scanner, or a `?c=` link) says "This label
+  was retired on <date>: <reason>" and does nothing else. Settings, at the end of
   the wall board part, also has **Open the demo board** (`?demo=1&board=1`),
   to show the TV screen without signing a TV in. Office also carries the Add
   to home screen card until it is dismissed on that device. **This phone**
@@ -1023,6 +1036,19 @@ block ran in the local Firestore emulator with the app's own write sets:
 return to a shelf, a new shelf row, and refusals for raising more than was
 returned, naming a line that did not change, another product, a van, a
 staging area, accounting, and a tech touching another line field).
+0.18.0 (PLAN 34.1) lets a tech's update of a location, box, unit, or product
+write `labelPrintedAt`, `labelPrintedBy`, and `labelPrintedByName` and
+nothing else, with `labelPrintedBy` equal to their own sign-in id, so
+printing a label can say who printed it. Locations had no tech update path,
+so they get one limited to those three keys. Admin and warehouse already
+write any field on these four collections (a box keeps its `createdAt`), so
+`labelGen` and the `labelRetired*` fields need no new rule, and a
+`label_retired` movement passes the movements rule. On 2026-11-19 the block
+ran in the local emulator: 96 of 96 cases passed (the 72 earlier cases, a
+tech stamping printed on each of the four collections, warehouse and admin
+retiring labels, and refusals for a tech writing `labelGen` or
+`labelRetired*`, stamping in someone else's name, adding another key, a
+tech retiring a label, and accounting stamping).
 **Not deployed.**
 The owner of the Firebase project deploys it from `work/watchtower` with:
 
@@ -1063,9 +1089,18 @@ function loadoutOnly(keys) {
 // check-in may write those two as well.
 // 0.7.0: also clientId and holderNote, which a check-out or check-in clears
 // on a unit that came in pulled on the inventory sheet.
+// 0.18.0 (PLAN 34.1): printing a label stamps who printed it and when on
+// the record. Techs print labels (Office, Labels), so a tech may write these
+// three keys on their own, in their own name, and nothing about labelGen or
+// a retired label. Admin and warehouse already write any field.
+function loadoutPrintStamp() {
+  return loadoutOnly(['labelPrintedAt', 'labelPrintedBy', 'labelPrintedByName'])
+    && request.resource.data.get('labelPrintedBy', '') == request.auth.uid;
+}
 function loadoutItemUpdate() {
   let r = loadoutRole();
   return r in ['admin', 'warehouse']
+    || (r == 'tech' && loadoutPrintStamp())
     || (r == 'tech' && loadoutOnly(['status', 'holderUid', 'holderName', 'jobId', 'jobName',
          'clientName', 'clientId', 'holderNote', 'ticketId', 'ticketNumber', 'ticketLineId', 'locationId', 'locationName',
          'checkedOutAt', 'checkedInAt', 'condition', 'updatedAt']));
@@ -1080,6 +1115,7 @@ function loadoutKeepsCreated() {
 function loadoutContainerUpdate() {
   let r = loadoutRole();
   return (r in ['admin', 'warehouse'] && loadoutKeepsCreated())
+    || (r == 'tech' && loadoutPrintStamp())
     || (r == 'tech' && loadoutOnly(['ftLeft', 'lastMark', 'status', 'pickTicketId', 'pickTicketNumber',
          'lastReadingAt', 'lastReadingBy', 'locationId', 'locationName', 'confirmLocation',
          // 0.16.0 (PLAN 33.1 item 3): a cut stamps the box with the job it was for
@@ -1088,7 +1124,8 @@ function loadoutContainerUpdate() {
 // a tech's cut or check-out moves the product's denormalized on-hand total
 function loadoutProductUpdate() {
   let r = loadoutRole();
-  return r in ['admin', 'warehouse'] || (r == 'tech' && loadoutOnly(['onHand', 'updatedAt']));
+  return r in ['admin', 'warehouse'] || (r == 'tech' && loadoutPrintStamp())
+    || (r == 'tech' && loadoutOnly(['onHand', 'updatedAt']));
 }
 
 // Roster. A person's first sign-in writes their own doc as tech; the
@@ -1130,6 +1167,11 @@ match /loadout_products/{id} {
   allow read: if isMSPAdmin();
   allow create, delete: if loadoutWriter();
   allow update: if isMSPAdmin() && loadoutProductUpdate();
+}
+// 0.18.0 (PLAN 34.1): locations are written by warehouse and admin through
+// the wildcard below; this adds only a tech's label-printed stamp.
+match /loadout_locations/{id} {
+  allow update: if isMSPAdmin() && loadoutRole() == 'tech' && loadoutPrintStamp();
 }
 // Pick tickets (0.2.0; the screens say Job since 0.8.0, the collection
 // keeps its name). Tickets, their lines, clients, jobs, and proposals
@@ -1424,6 +1466,29 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.18.0 (2026-11-19)
+
+The owner asked to see every QR code in one place, and to stop a damaged,
+lost, or misplaced label from working (PLAN 34.1). A code cannot be pointed
+at another thing, because it is that thing's id: the first thing would be
+left with no code. So the fix is retire the bad label, then print a new one.
+
+- Office, QR codes (admin): every code, what it points to, where it is,
+  In use or Retired, and when it was last printed and by whom. Search by
+  name, code, serial, MAC, or box; filter by kind and label; sort; choose
+  columns. Each row has Open, Rename, Reprint, and Retire label.
+- Retire label asks why (Damaged, Lost, On the wrong thing, Other with a
+  note). Every label printed for that thing so far stops working; scanning
+  one says when and why it was retired and offers Open (and Reprint for the
+  admin). The retire is on the thing's history.
+- A label printed after a retire ends its code with the new number (`.2`).
+  Labels that were never retired print exactly as before, so every label
+  already stuck on a shelf keeps working.
+- Printing from Labels or QR codes now records who printed each label and
+  when, when Print is pressed (not on the preview).
+- Rules: techs may write those three printed fields, in their own name and
+  nothing else. Proven in the emulator, not deployed.
 
 ### 0.17.0 (2026-11-19)
 

@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.17.0</title>
+<title>Loadout v0.18.0</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.17.0">
+<meta name="loadout-version" content="0.18.0">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -1534,7 +1534,7 @@ a.textbtn{display:inline-flex;align-items:center}
     <!-- 0.10.0: the mark and name are one link to the person's Home; a relative hash keeps the demo's query string -->
     <a class="brand" href="#home" id="brandHome" aria-label="Loadout, go to Home">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.17.0</span>
+      Loadout <span class="v" id="verBadge">v0.18.0</span>
     </a>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
@@ -1574,7 +1574,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.17.0</span>
+    <span id="footVer">Loadout v0.18.0</span>
   </footer>
 
   <nav class="tabbar" aria-label="Views">
@@ -1600,7 +1600,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.17.0";
+const VERSION = "0.18.0";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -1647,7 +1647,7 @@ const ITEM_STATUS = { in_stock: "In stock", staged: "Staged", checked_out: "Chec
    for a ticket; move = shelf to shelf, no ticket; return = a unit back from a
    site; writeoff = out of on hand with a reason. Older pick, transfer, and
    leftover-return rows are read as these (normMv). */
-const MV_LABEL = { receive: "Receive", pull: "Pull", move: "Move", stage: "Stage", deliver: "Deliver", cut: "Cut", reading: "Reading", adjust: "Adjust", checkout: "Check out", checkin: "Check in", return: "Return", writeoff: "Write off", edit: "Edit", pickup: "Pick up", note: "Note" };
+const MV_LABEL = { receive: "Receive", pull: "Pull", move: "Move", stage: "Stage", deliver: "Deliver", cut: "Cut", reading: "Reading", adjust: "Adjust", checkout: "Check out", checkin: "Check in", return: "Return", writeoff: "Write off", edit: "Edit", pickup: "Pick up", note: "Note", label_retired: "Label retired" };
 /* migrate on read: movements written before 0.5.2 keep their stored type in
    the database; the screens and reports read the 0.5.2 word */
 function normMv(m) {
@@ -2672,15 +2672,31 @@ const PAYLOAD = { loc: id => "loadout:loc:" + id, ctr: id => "loadout:ctr:" + id
    from demo or localhost still points at the real site. PAYLOAD stays the stored
    label code and the line printed under the QR. */
 const APP_URL = "https://devriz.umbrellaautomation.com/loadout/";
-function labelLink(kind, id) { return APP_URL + "?c=" + kind + ":" + encodeURIComponent(id); }
+function labelLink(kind, id, gen) { return APP_URL + "?c=" + kind + ":" + encodeURIComponent(id) + genSuffix(gen); }
+/* 0.18.0 (PLAN 34.1): label generations. A code is the record's id, so it cannot
+   be pointed at another thing; a damaged, lost, or misplaced label is retired
+   instead. Retire raises labelGen (missing = 1), and every label printed before
+   stops working. A label printed at generation 2 or more carries it after a dot
+   (?c=loc:<id>.2, loadout:loc:<id>.2); generation 1 keeps the old form, so every
+   label already on a shelf still scans. No id can hold a dot: ids come from
+   slug() and rid(), letters, digits, and dashes only, so the dot is safe. */
+const LBL = { loc: ["loadout_locations", id => S.locations.get(id)], ctr: ["loadout_containers", id => S.containers.get(id)], item: ["loadout_items", id => S.items.get(id)], prod: ["loadout_products", id => S.products.get(id)] };
+function labelGen(rec) { const g = rec ? Number(rec.labelGen) : 1; return Number.isInteger(g) && g > 1 ? g : 1; }
+function genSuffix(g) { return g > 1 ? "." + g : ""; }
+function lblRec(kind, id) { return LBL[kind] ? LBL[kind][1](id) || null : null; }
+/* the text printed under the QR, at the record's current generation */
+function labelCode(kind, id) { return PAYLOAD[kind](id) + genSuffix(labelGen(lblRec(kind, id))); }
 /* every scan path reads a label through this: loadout:<kind>:<id>, a link with
    ?c=<kind>:<id> (any host, so the old address and localhost parse too), or a bare
-   <kind>:<id>. Anything else is null and goes on to the UPC / serial / MAC lookup. */
+   <kind>:<id>. Anything else is null and goes on to the UPC / serial / MAC lookup.
+   0.18.0: a label's generation follows its id after a dot; none means 1. */
 function parseLabel(code) {
   let s = String(code || "").trim(); if (!s) return null;
   if (/^https?:\/\//i.test(s)) { let c = null; try { c = new URL(s).searchParams.get("c"); } catch (e) {} if (!c) return null; s = c.trim(); }
   const m = /^(?:loadout:)?(loc|ctr|item|prod|job):(.+)$/i.exec(s);
-  return m ? { kind: m[1].toLowerCase(), id: m[2] } : null;
+  if (!m) return null;
+  const kind = m[1].toLowerCase(), g = kind !== "job" && /^(.+)\.(\d{1,6})$/.exec(m[2]);
+  return g ? { kind, id: g[1], gen: Math.max(1, +g[2]) } : { kind, id: m[2], gen: 1 };
 }
 
 /* ==============================================================
@@ -4130,6 +4146,14 @@ function loadDemo() {
     S.movements.push({ id: "di" + i, type: "adjust", productId: pid, productName: pr.name, itemId: iid, itemLabel: it ? it.label : null, qty, unit: pr.unit, toLocationId: lid, toLocationName: locName(lid),
       by: "warehouse@example.com", byName: "Import", at: new Date(Date.now() - d * day), importedAt, importTab: tab, importRow: row, importKey: importKeyOf(tab, row, target, it ? 1 : qty), note: "inventory.xlsx, tab " + tab + " row " + row + extra });
   });
+  /* 0.18.0 (PLAN 34.1): every label state for Office, QR codes: a retired shelf
+     label and a retired unit label (each with its movement), and a few printed stamps */
+  const lp = (rec, d) => Object.assign(rec, { labelPrintedAt: t(d), labelPrintedBy: "demo-warehouse", labelPrintedByName: "Warehouse" });
+  lp(S.locations.get("warehouse"), 40); lp(S.locations.get("storage-room--rca-av-video"), 30); lp(S.containers.get("a1026"), 22); lp(S.items.get("p8r2w5t1z9"), 25); lp(S.items.get("k3m9q2x7a2"), 25);
+  const lr = (rec, d, reason, note) => Object.assign(rec, { labelGen: 2, labelRetiredAt: t(d), labelRetiredBy: "demo-warehouse", labelRetiredByName: "Warehouse", labelRetiredReason: reason, labelRetiredNote: note });
+  lr(S.locations.get("storage-room--rca-av-video"), 6, "damaged", ""); lr(S.items.get("p8r2w5t1z9"), 2, "wrong", "");
+  S.movements.push({ id: "dl1", type: "label_retired", productId: null, productName: null, toLocationId: "storage-room--rca-av-video", toLocationName: locName("storage-room--rca-av-video"), note: "Label retired (" + locName("storage-room--rca-av-video") + "): Damaged", reason: "damaged", reasonNote: "", by: "warehouse@example.com", byName: "Warehouse", at: t(6) },
+    { id: "dl2", type: "label_retired", productId: "ubiquiti-udm-se", productName: S.products.get("ubiquiti-udm-se").name, itemId: "p8r2w5t1z9", itemLabel: "F09FC2A1B3C4", note: "Label retired (Ubiquiti UDM-SE, F09FC2A1B3C4): On the wrong thing", reason: "wrong", reasonNote: "", by: "warehouse@example.com", byName: "Warehouse", at: t(2) });
   S.movements.sort((a, b) => b.at - a.at);
   loadDemoTickets(t, ST);
   if (!DEMO_EMPTY) { loadDemoOrders(t); loadDemoConsole(); }
@@ -5035,7 +5059,9 @@ function scanFieldHTML(id, label, tip, ph) {
 function wireScanField(w, id, onCode, camTitle) {
   const hint = $("#" + id + "Hint", w), err = $("#" + id + "ScanErr", w);
   const run = code => {
-    const r = onCode(code) || {};
+    /* 0.18.0: a retired label is not acted on */
+    const rt = retiredScan(code);
+    const r = rt ? { bad: retiredLine(rt.rec) + ". Nothing changed." } : onCode(code) || {};
     if (r.bad) { err.textContent = r.bad; err.hidden = false; hint.textContent = ""; } else { err.hidden = true; hint.textContent = r.ok || ""; }
     return r;
   };
@@ -5043,7 +5069,12 @@ function wireScanField(w, id, onCode, camTitle) {
   w.querySelector('[data-camfor="' + id + '"]').addEventListener("click", () => openCamScan({ title: camTitle || "Scan labels", aim: "Point at a shelf label, a unit's QR, or a UPC", onCode: run }));
 }
 /* what a scanned code is: {kind: loc|ctr|item|prod|code, id} */
-function scanParse(code) { const m = parseLabel(code); return m && m.kind !== "job" ? m : { kind: "code", id: String(code || "").trim() }; }
+function scanParse(code) {
+  const m = parseLabel(code);
+  /* 0.18.0: a label newer than its record's generation matches nothing */
+  if (m && m.kind !== "job" && m.gen > labelGen(lblRec(m.kind, m.id))) return { kind: "code", id: String(code || "").trim() };
+  return m && m.kind !== "job" ? m : { kind: "code", id: String(code || "").trim() };
+}
 /* a product's own code: its QR, UPC, or model */
 const codeIsProduct = (s, p) => !!p && ((s.kind === "prod" && s.id === p.id) || (s.kind === "code" && ((p.upc && p.upc === s.id) || (p.model && p.model.toLowerCase() === s.id.toLowerCase()))));
 
@@ -5496,6 +5527,7 @@ function productByCode(code) {
 /* a small scanner sheet over New job: the camera when there is one, a typed code always */
 function openMiniScan(onProduct) {
   openCamScan({ title: "Scan a product", aim: "Point at the UPC on the box", once: true, typeLabel: "Or type the UPC, model, or label code", onCode: code => {
+    const rt = retiredScan(code); if (rt) return { bad: retiredLine(rt.rec) + ". Nothing changed." };
     const p = productByCode(code);
     if (!p) return { bad: "Nothing on the shelf list has the code " + String(code || "").trim() + ". Search by name, or type it as a line." };
     onProduct(p); return { ok: "" };
@@ -7109,6 +7141,8 @@ const OFFICE = [
   ["lists", "Brands and categories", "The pick lists on every product: rename, merge, and the likely duplicates.", r => r === "admin", true],
   ["audit", "Audit", "Every shelf by the date it was last audited.", r => r === "admin" || r === "warehouse"],
   ["labels", "Labels", "Print labels for shelves, wire boxes, and serialized units.", r => r === "admin" || r === "warehouse" || r === "tech"],
+  /* 0.18.0 (PLAN 34.1): admin only for now; the manager role joins in 0.19.0 (PLAN 34.2) */
+  ["qrcodes", "QR codes", "Every label code, what it points to, when it was last printed, and retiring a label.", r => r === "admin"],
   ["movements", "Movements", "Every pull, audit, pick-up, and check-out, with who and when.", r => r === "admin" || r === "warehouse" || r === "tech"],
   ["import", "Import inventory sheet", "Bring the shop's inventory spreadsheet in.", r => r === "admin"],
   ["backups", "Backups", "The nightly copies of the data, to download by day.", r => r === "admin" || r === "accounting"],
@@ -7146,6 +7180,7 @@ function renderOffice(force) {
   if (sec === "movements") h += movementsHTML();
   else if (sec === "clients") h += clientsHTML() + jobsHTML();
   else if (sec === "labels") h += labelsHTML();
+  else if (sec === "qrcodes") h += qrcodesHTML();
   else if (sec === "import") h += importHTML();
   else if (sec === "reports") h += reportsHTML();
   else if (sec === "people") h += peopleHTML();
@@ -7430,7 +7465,7 @@ function locationsTable(q) {
     { k: "units", label: "Units", r: true, sort: l => cnt(l, "units"), text: l => fmtN(cnt(l, "units")) },
     { k: "boxes", label: "Boxes", r: true, sort: l => cnt(l, "boxes"), text: l => fmtN(cnt(l, "boxes")) },
     { k: "items", label: "Serialized", r: true, sort: l => cnt(l, "items"), text: l => fmtN(cnt(l, "items")) },
-    { k: "id", label: "Label code", def: false, html: l => '<span class="mono">' + esc(PAYLOAD.loc(l.id)) + "</span>" }
+    { k: "id", label: "Label code", def: false, html: l => '<span class="mono">' + esc(labelCode("loc", l.id)) + "</span>" }
   ];
   return (archN ? '<label class="chk" title="Archived locations hold nothing and are off the pick lists. Show them to open one and Unarchive it."><input type="checkbox" id="showArchLocs"' + (S.showArchLocs ? " checked" : "") + "> Show archived (" + fmtN(archN) + ")</label>" : "") + tableHTML("locations", cols, list, {
     defaultSort: (a, b) => LOC_KINDS.indexOf(a.kind) - LOC_KINDS.indexOf(b.kind) || a.name.localeCompare(b.name),
@@ -8825,7 +8860,7 @@ function itemPanel(it) {
     (t ? '<div><dt>Job</dt><dd><button type="button" class="textbtn" data-act="ticket" data-id="' + esc(t.id) + '">' + esc(jobLabel(t)) + "</button></dd></div>" : "") +
     (it.orderId ? '<div><dt>From PO</dt><dd><button type="button" class="textbtn" data-act="order" data-id="' + esc(it.orderId) + '">' + esc(it.orderNumber || it.orderId) + "</button></dd></div>" : "") +
     (S.general.showCosts && it.cost != null ? "<div><dt>Cost</dt><dd>" + money(it.cost) + "</dd></div>" : "") +
-    '<div><dt>ID</dt><dd class="mono">' + esc(shortId(it.id)) + "<small>" + esc(PAYLOAD.item(it.id)) + "</small></dd></div>" + "</dl>" +
+    '<div><dt>ID</dt><dd class="mono">' + esc(shortId(it.id)) + "<small>" + esc(labelCode("item", it.id)) + "</small></dd></div>" + "</dl>" +
     (it.importNote ? '<p class="hint">' + esc(it.importNote) + "</p>" : "");
   if (S.x.err) h += '<p class="err" role="alert">' + esc(S.x.err) + "</p>";
   h += '<div class="btnrow">' + (W ? '<button type="button" class="btn acc" data-act="xsave">Save</button>' : "") + unitActions(it, "panel") + "</div>" + xHistHTML();
@@ -8847,7 +8882,7 @@ function locPanel(l) {
       '<p class="hint">' + (A ? "Rename changes the area and shelf everywhere they show. The label code stays, so a printed label still scans." : "Area and shelf make the label code, so they stay as they are. An admin can rename the location.") + "</p>";
   }
   if (A) h += lsRunHTML(id) + (off ? '<p class="lsoff" role="status">You are offline. Rename needs a connection, so it waits until it is back.</p>' : "");
-  h += '<dl class="meta"><div><dt>Label code</dt><dd class="mono">' + esc(PAYLOAD.loc(id)) + "</dd></div>" + (l.jobName ? "<div><dt>Reserved for</dt><dd>" + esc(l.jobName) + "</dd></div>" : "") +
+  h += '<dl class="meta"><div><dt>Label code</dt><dd class="mono">' + esc(labelCode("loc", id)) + "</dd></div>" + (l.jobName ? "<div><dt>Reserved for</dt><dd>" + esc(l.jobName) + "</dd></div>" : "") +
     (tks.length ? "<div><dt>Staging for</dt><dd>" + tks.map(t => '<button type="button" class="textbtn" data-act="ticket" data-id="' + esc(t.id) + '">' + esc(jobLabel(t)) + "</button>").join(" ") + "</dd></div>" : "") + "</dl>" +
     '<div class="sect"><h4 class="h4">What is here</h4>' + (rows.length ? '<ul class="onhand">' + rows.join("") + "</ul>" : '<p class="hint" style="margin-top:0">Nothing is recorded at this location.</p>') + "</div>";
   if (S.x.err) h += '<p class="err" role="alert">' + esc(S.x.err) + "</p>";
@@ -9425,7 +9460,7 @@ function openLocRename(l) {
   lsSheet("Rename " + l.name,
     '<div class="grid2"><div><label class="lab" for="lrArea" title="The room or zone, for example Storage room or Warehouse">' + '<abbr>Area</abbr> <span class="req">required</span></label><input class="fld" id="lrArea" autocomplete="off" value="' + esc(l.area || "") + '"></div>' +
     '<div><label class="lab" for="lrShelf" title="Blank for a bare area, a staging area, or a van">' + '<abbr>Shelf</abbr></label><input class="fld" id="lrShelf" autocomplete="off" value="' + esc(l.shelf || "") + '"></div></div>' +
-    '<p class="hint">The label code stays <span class="mono">' + esc(PAYLOAD.loc(l.id)) + "</span>, so the printed label still scans. Past movements keep the old name.</p>", "Rename", w => {
+    '<p class="hint">The label code stays <span class="mono">' + esc(labelCode("loc", l.id)) + "</span>, so the printed label still scans. Past movements keep the old name.</p>", "Rename", w => {
     const area = clean($("#lrArea", w).value), shelf = clean($("#lrShelf", w).value), to = composeLocName(area, shelf);
     if (!area) return { go: false, say: "Type the area." };
     if (Array.from(S.locations.values()).some(x => x.id !== l.id && normKey(x.name) === normKey(to))) return { go: false, say: "Prints as " + to + ". Another location already has that name." };
@@ -9601,7 +9636,7 @@ function sameRead(st, code, now) {
   return held;
 }
 /* a label read as a link shows as its short printed line */
-function codeText(code) { const l = parseLabel(code); return l ? "loadout:" + l.kind + ":" + l.id : String(code || ""); }
+function codeText(code) { const l = parseLabel(code); return l ? "loadout:" + l.kind + ":" + l.id + genSuffix(l.gen) : String(code || ""); }
 /* 0.14.0 (PLAN 33.1 item 8): the first good read freezes the picture and stops
    reading, so the result cannot change while the phone moves. Use this code
    acts on it; Scan again drops it. Typed codes never lock (route directly). */
@@ -9644,11 +9679,11 @@ function resolveCode(code) {
   if (m && m.kind === "job") return S.tickets.has(m.id) || !S.loaded.tickets ? { kind: "job", id: m.id } : { kind: "unknown", code };
   if (!S.loaded.products || S.errors.products) return { kind: "retry", code };
   if (m) {
-    const kind = m.kind, id = m.id;
-    if (kind === "loc") return S.locations.get(id) ? { kind: "loc", id } : { kind: "unknown", code };
-    if (kind === "ctr") return S.containers.get(id) ? { kind: "ctr", id } : { kind: "unknown", code };
-    if (kind === "item") return S.items.get(id) ? { kind: "item", id } : { kind: "unknown", code };
-    return S.products.get(id) ? { kind: "prod", id } : { kind: "unknown", code };
+    const kind = m.kind, id = m.id, rec = lblRec(kind, id);
+    /* 0.18.0: an older generation than the record's is a retired label; a newer one (should not happen) is unknown */
+    if (!rec || m.gen > labelGen(rec)) return { kind: "unknown", code };
+    if (m.gen < labelGen(rec)) return { kind: "retired", rk: kind, id, code };
+    return { kind, id };
   }
   const q = code.toLowerCase().replace(/\s+/g, " ");
   const prods = Array.from(S.products.values());
@@ -9672,6 +9707,7 @@ function scanMatchText(r) {
   if (r.kind === "item") { const i = S.items.get(r.id); return i ? "Unit: " + (i.productName || "") + ", " + unitShort(i) : "Not found"; }
   if (r.kind === "ctr") { const c = S.containers.get(r.id), p = c && S.products.get(c.productId); return c ? "Box " + c.label + (p ? ", " + productName(p) : "") : "Not found"; }
   if (r.kind === "loc") { const l = S.locations.get(r.id); return l ? (l.kind === "bay" ? "Staging area: " : l.kind === "van" ? "Van: " : "Shelf: ") + l.name : "Not found"; }
+  if (r.kind === "retired") { const x = lblRec(r.rk, r.id); return x ? "Retired label: " + lblThing(r.rk, x) : "Not found"; }
   if (r.kind === "hits") return r.ids.length + " product" + (r.ids.length > 1 ? "s" : "") + " with that in the name";
   if (r.kind === "retry") return "Not looked up yet (offline)";
   return "Not found";
@@ -9744,6 +9780,7 @@ function paintScanResult() {
   const sc = S.scan;
   if (!sc) { el.innerHTML = '<div class="rk"><span>Result</span></div><p class="hint">Nothing scanned yet. A shelf label sets the location; a box UPC opens the product; a box QR opens its sheet; a unit QR shows who has it.</p>'; return; }
   if (sc.kind === "retry") { el.innerHTML = '<div class="rk"><span>Lookup</span></div><p class="err">Could not look that up. It is saved to retry when you are back online.</p><p class="mono">' + esc(sc.code) + "</p>"; S.retryCode = sc.code; return; }
+  if (sc.kind === "retired") { el.innerHTML = retiredCardHTML(sc.rk, sc.id); return; }
   if (sc.kind === "prod") { el.innerHTML = productCard(S.products.get(sc.id)) + scanJobsHTML("prod", S.products.get(sc.id)); return; }
   if (sc.kind === "ctr") { const c = S.containers.get(sc.id); el.innerHTML = boxSheetHTML(c, "bs"); bindBoxSheet(el, c, "bs"); return; }
   if (sc.kind === "item") { el.innerHTML = itemCard(S.items.get(sc.id)) + scanJobsHTML("item", S.items.get(sc.id)); return; }
@@ -10238,10 +10275,10 @@ function printLabels(list, size) {
   size = size || S.labelSize || S.general.labelSize || "5160";
   const per = size === "5163" ? 10 : 30;
   const labels = list.map(({ kind, id }) => {
-    if (kind === "loc") { const l = S.locations.get(id); return l && { pay: PAYLOAD.loc(id), link: labelLink("loc", id), b: l.name, s: l.kind === "bay" ? "Staging area" : l.kind === "van" ? "Van" : l.kind === "vehicle" ? "Vehicle" : "" }; }
-    if (kind === "ctr") { const c = S.containers.get(id); return c && { pay: PAYLOAD.ctr(id), link: labelLink("ctr", id), b: c.label, s: (c.productName || "") + ", " + fmtN(c.startLength) + " ft box", mono: true }; }
-    if (kind === "item") { const i = S.items.get(id); return i && { pay: PAYLOAD.item(id), link: labelLink("item", id), b: i.label || i.productName, s: i.serial ? "S/N " + i.serial : i.mac ? "MAC " + i.mac : "ID " + shortId(i.id) }; }
-    if (kind === "prod") { const p = S.products.get(id); return p && { pay: PAYLOAD.prod(id), link: labelLink("prod", id), b: productName(p), s: p.upc ? "UPC " + p.upc : "" }; }
+    if (kind === "loc") { const l = S.locations.get(id); return l && { pay: labelCode("loc", id), link: labelLink("loc", id, labelGen(l)), b: l.name, s: l.kind === "bay" ? "Staging area" : l.kind === "van" ? "Van" : l.kind === "vehicle" ? "Vehicle" : "" }; }
+    if (kind === "ctr") { const c = S.containers.get(id); return c && { pay: labelCode("ctr", id), link: labelLink("ctr", id, labelGen(c)), b: c.label, s: (c.productName || "") + ", " + fmtN(c.startLength) + " ft box", mono: true }; }
+    if (kind === "item") { const i = S.items.get(id); return i && { pay: labelCode("item", id), link: labelLink("item", id, labelGen(i)), b: i.label || i.productName, s: i.serial ? "S/N " + i.serial : i.mac ? "MAC " + i.mac : "ID " + shortId(i.id) }; }
+    if (kind === "prod") { const p = S.products.get(id); return p && { pay: labelCode("prod", id), link: labelLink("prod", id, labelGen(p)), b: productName(p), s: p.upc ? "UPC " + p.upc : "" }; }
   }).filter(Boolean);
   if (!labels.length) { toast("Nothing to print.", true); return; }
   let sheets = "";
@@ -10252,13 +10289,146 @@ function printLabels(list, size) {
   $("#printSheet").innerHTML = '<div class="pvbar"><button type="button" class="btn acc" id="pvPrint">Print</button><button type="button" class="btn" id="pvClose">Close preview</button><span>' + labels.length + " label" + (labels.length > 1 ? "s" : "") + " on " + pages + " sheet" + (pages > 1 ? "s" : "") + " of " + (size === "5163" ? "2 x 4 in" : "Avery 5160") + ". Print at 100% scale, margins none.</span></div>" + sheets;
   $("#printSheet").setAttribute("aria-hidden", "false");
   document.body.classList.add("preview");
-  $("#pvPrint").addEventListener("click", () => window.print());
+  /* 0.18.0: Print (not the preview) stamps who printed each label and when */
+  $("#pvPrint").addEventListener("click", () => { stampPrinted(list); window.print(); });
   $("#pvClose").addEventListener("click", closePreview);
   $("#pvPrint").focus();
+}
+/* 0.18.0 (PLAN 34.1): labelPrintedAt / By / ByName on each record printed, so
+   Office, QR codes can show it. Its own write, so the rules can let a tech send
+   exactly these three keys. Demo keeps it in memory only. */
+function stampPrinted(list) {
+  const by = S.user && S.user.uid, byName = S.user ? S.user.name || "" : "";
+  const recs = (list || []).map(x => ({ kind: x.kind, id: x.id, rec: lblRec(x.kind, x.id) })).filter(x => x.rec);
+  if (!by || !recs.length) return;
+  const ops = recs.map(x => ({ op: "update", coll: LBL[x.kind][0], id: x.id, data: { labelPrintedAt: NOW, labelPrintedBy: by, labelPrintedByName: byName } }));
+  if (DEMO) {
+    const now = new Date();
+    recs.forEach(x => Object.assign(x.rec, { labelPrintedAt: now, labelPrintedBy: by, labelPrintedByName: byName }));
+    S.lastOps = ops; S.lastWhat = "Labels printed"; (S.demoLog = S.demoLog || []).push({ what: S.lastWhat, ops }); if (S.demoLog.length > 50) S.demoLog.shift();
+    scheduleRender(); return;
+  }
+  for (let i = 0; i < ops.length; i += 400) DB.commit(ops.slice(i, i + 400), "Labels printed");
 }
 function closePreview() {
   document.body.classList.remove("preview");
   $("#printSheet").innerHTML = ""; $("#printSheet").setAttribute("aria-hidden", "true");
+}
+
+/* ---------------- QR codes (0.18.0, PLAN 34.1) ----------------
+   Every code Loadout prints, one row per record. A code is the record's id, so
+   it is never moved to another thing: a bad label is retired (labelGen + 1,
+   every printed copy stops working) and reprinted. */
+S.qrQ = ""; S.qrKind = ""; S.qrStat = "";
+const QR_KIND = { loc: "Locations", ctr: "Wire boxes", item: "Units", prod: "Products" }, QR_ORDER = { loc: 0, ctr: 1, item: 2, prod: 3 };
+const LBL_REASONS = [["damaged", "Damaged", "The label is torn, faded, or will not scan"], ["lost", "Lost", "The label fell off or cannot be found"],
+  ["wrong", "On the wrong thing", "The label is stuck on a different shelf, box, or unit than the one it names"], ["other", "Other", "Something else: say what in a few words"]];
+function lblReasonText(r, note) { const x = LBL_REASONS.find(y => y[0] === r); return (x ? x[1] : r || "no reason given") + (note ? ": " + note : ""); }
+function retiredLine(rec) { return "This label was retired on " + (fmtDate(rec.labelRetiredAt) || "an earlier date") + ": " + lblReasonText(rec.labelRetiredReason, rec.labelRetiredNote); }
+/* a retired label is one whose generation went up after its last print */
+function lblRetired(rec) { const r = toDate(rec.labelRetiredAt), pr = toDate(rec.labelPrintedAt); return !!r && (!pr || pr < r); }
+function lblThing(kind, rec) {
+  if (kind === "loc") return rec.name || rec.id;
+  if (kind === "ctr") return "Box " + rec.label;
+  if (kind === "item") return (rec.productName || "Unit") + ", " + itemLabel(rec);
+  return productName(rec);
+}
+/* a scanned label older than its record's generation; every scan path asks first */
+function retiredScan(code) {
+  const m = parseLabel(code); if (!m || m.kind === "job") return null;
+  const rec = lblRec(m.kind, m.id); if (!rec) return null;
+  return m.gen < labelGen(rec) ? { kind: m.kind, id: m.id, rec } : null;
+}
+function qrRows() {
+  const out = [], add = (kind, rec, name, sub, where, more) => { const code = labelCode(kind, rec.id); out.push({ kind, id: rec.id, rec, name, sub, where, code, hay: [name, sub, code, more || ""].join(" ").toLowerCase() }); };
+  S.locations.forEach(l => add("loc", l, l.name || l.id, locKindLabel(l.kind) || "Location", l.archived ? "Archived" : l.shelf ? l.area || "" : ""));
+  S.containers.forEach(c => add("ctr", c, "Box " + c.label, "Wire box", c.locationId ? locName(c.locationId) : c.status === "empty" ? "Empty" : "No location yet", (c.productName || "") + " " + c.label));
+  S.items.forEach(i => add("item", i, (i.productName || "Unit") + ", " + itemLabel(i), "Unit", whereItem(i), [i.serial, i.mac, i.label].filter(Boolean).join(" ")));
+  S.products.forEach(pr => { const home = pr.defaultLocationId || (byLocation(pr)[0] || {}).locationId; add("prod", pr, productName(pr), "Product", home ? locName(home) : "No usual shelf", [pr.upc, pr.brand, pr.model].filter(Boolean).join(" ")); });
+  return out;
+}
+const QR_COLS = [
+  { k: "what", label: "What", title: "The shelf, box, unit, or product the code points to. Opens it.", sort: r => r.name.toLowerCase(), html: r => '<button type="button" class="linkbtn" data-act="qrOpen" data-kind="' + r.kind + '" data-id="' + esc(r.id) + '" title="Opens ' + esc(r.name) + '">' + esc(r.name) + "</button>" },
+  { k: "kind", label: "Kind", title: "Shelf, staging area, van, vehicle, wire box, unit, or product", text: r => r.sub },
+  { k: "where", label: "Where", title: "Where it is now, or who has it. For a product, its usual shelf.", text: r => r.where },
+  { k: "code", label: "Code", title: "The text printed under the QR. A number after the dot is the label's generation: it goes up by one each time the label is retired.", sort: r => r.code, html: r => '<span class="mono">' + esc(r.code) + "</span>" },
+  { k: "label", label: "Label", title: "In use: the printed label works. Retired: every label printed so far stops working; print a new one.", sort: r => lblRetired(r.rec) ? 0 : 1,
+    html: r => lblRetired(r.rec) ? '<span class="st bad">Retired</span> <small>' + esc(fmtDate(r.rec.labelRetiredAt) + ", " + lblReasonText(r.rec.labelRetiredReason, r.rec.labelRetiredNote)) + "</small>" : '<span class="st ok">In use</span>' },
+  { k: "printed", label: "Last printed", title: "When a label for it was last printed from Loadout, and by whom. Never: no print recorded (prints before 0.18.0 were not).", sort: r => toDate(r.rec.labelPrintedAt),
+    html: r => r.rec.labelPrintedAt ? esc(fmtDate(r.rec.labelPrintedAt) + (r.rec.labelPrintedByName ? ", " + r.rec.labelPrintedByName : "")) : '<span class="z">Never</span>' }
+];
+function qrActs(r) {
+  const d = ' data-kind="' + r.kind + '" data-id="' + esc(r.id) + '"';
+  return '<button type="button" class="btn sm" data-act="qrOpen"' + d + ' title="Opens ' + esc(r.name) + ' on its own screen">Open</button>' +
+    (r.kind === "ctr" ? '<button type="button" class="btn sm" disabled title="A box has no rename: its name is the box code on the sticker. If that is wrong, retire the label and print a new one.">Rename</button>'
+      : '<button type="button" class="btn sm" data-act="qrRename"' + d + ' title="' + (r.kind === "loc" ? "Renames the location. The code stays the same, so its label still scans." : "Opens its panel, where the name is edited. The code stays the same.") + '">Rename</button>') +
+    '<button type="button" class="btn sm" data-act="qrReprint"' + d + ' title="Opens the print preview for this one label, with its current code">Reprint</button>' +
+    '<button type="button" class="btn sm danger" data-act="qrRetire"' + d + ' title="Stops every label printed for it so far from working. Asks for a reason first.">Retire label</button>';
+}
+function qrcodesHTML() {
+  const all = qrRows(), q = S.qrQ.trim().toLowerCase(), size = S.labelSize || S.general.labelSize || "5160";
+  const list = all.filter(r => (!S.qrKind || r.kind === S.qrKind) && (!S.qrStat || (S.qrStat === "retired") === lblRetired(r.rec)) && (!q || q.split(/\s+/).every(w => r.hay.includes(w))));
+  const nRet = all.filter(r => lblRetired(r.rec)).length;
+  let h = '<p class="hint" style="margin-top:0">Every QR code Loadout prints. A code is the thing\'s own id, so it cannot be moved to another thing. Retire a damaged, lost, or misplaced label, which stops every printed copy from working, then reprint it.</p>' +
+    '<div class="grid3 filters"><div><label class="lab" for="qrQ" title="Matches the name, the code, a unit\'s serial or MAC, a box label, and a product\'s UPC">Search</label><span class="srch"><input class="fld" id="qrQ" type="search" value="' + esc(S.qrQ) + '" placeholder="Name, code, serial, MAC, or box"><button type="button" class="clr" data-act="clearSearch" data-for="qrQ" aria-label="Clear the search">&times;</button></span></div>' +
+    '<div><label class="lab" for="qrKind">Kind</label><select class="fld" id="qrKind"><option value="">All kinds</option>' + Object.entries(QR_KIND).map(([k, l]) => '<option value="' + k + '"' + (S.qrKind === k ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>" +
+    '<div><label class="lab" for="qrStat" title="In use: the printed label works. Retired: the label was retired and no new one has been printed since.">Label</label><select class="fld" id="qrStat"><option value="">In use and retired</option><option value="in"' + (S.qrStat === "in" ? " selected" : "") + '>In use</option><option value="retired"' + (S.qrStat === "retired" ? " selected" : "") + ">Retired (" + fmtN(nRet) + ")</option></select></div></div>" +
+    '<div class="thead"><span class="hint" style="margin:0">' + fmtN(list.length) + " of " + fmtN(all.length) + " codes. Reprint uses the " + (size === "5163" ? "2 x 4 in" : "Avery 5160") + ' sheet, as chosen on Labels.</span><span class="sp"><button type="button" class="btn sm" data-act="columns" data-tbl="qrcodes" title="Choose which columns show, and their order. The layout is saved.">Edit columns</button></span></div>';
+  return h + tableHTML("qrcodes", QR_COLS, list, { defaultSort: (a, b) => QR_ORDER[a.kind] - QR_ORDER[b.kind] || a.name.localeCompare(b.name), actions: qrActs,
+    empty: '<p>No code matches.</p><button type="button" class="btn" data-act="qrClear" title="Clears the search and both filters">Clear filters</button>' });
+}
+function qrOpen(kind, id) {
+  if (kind === "loc") navLoc(id); else if (kind === "item") navItem(id); else if (kind === "prod") navProduct(id); else if (kind === "ctr") openBoxSheet(id);
+}
+function qrRename(kind, id) {
+  if (kind === "loc") { const l = S.locations.get(id); if (l && isAdmin()) openLocRename(l); } else qrOpen(kind, id);
+}
+function openRetireLabel(kind, id) {
+  const rec = lblRec(kind, id); if (!rec || !isAdmin()) return;
+  const name = lblThing(kind, rec);
+  const body = '<p class="hint" style="margin-top:0"><b>' + esc(name) + '</b>, code <span class="mono">' + esc(labelCode(kind, id)) + "</span></p>" +
+    '<span class="lab" id="rlWhyL" title="Kept on the record, so this page and a scan of the old label can say why">Why retire it <span class="req">required</span></span>' +
+    '<div class="seg" role="group" aria-labelledby="rlWhyL">' + LBL_REASONS.map(x => '<button type="button" data-rl="' + x[0] + '" aria-pressed="false" title="' + esc(x[2]) + '">' + esc(x[1]) + "</button>").join("") + "</div>" +
+    '<p class="hint" id="rlWrong" hidden>Retire the label on each thing involved, then reprint both.</p>' +
+    '<div id="rlNoteW" hidden><label class="lab" for="rlNote">What happened <span class="req">required</span></label><input class="fld" id="rlNote" maxlength="120" placeholder="A few words"></div>' +
+    '<p class="hint warn" id="rlSay">Retiring the label of ' + esc(name) + " makes every label already printed for it stop working. Print a new one after.</p>" + '<p class="err" id="rlErr" hidden></p>';
+  const w = openModal("Retire label", body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn danger" data-ok title="Retires this label: every label printed for it so far stops working">Retire the label</button>', { noFocus: true });
+  let reason = "";
+  w.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("[data-rl]"); if (!b || !w.contains(b)) return;
+    reason = b.dataset.rl;
+    $$("[data-rl]", w).forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    $("#rlWrong", w).hidden = reason !== "wrong"; $("#rlNoteW", w).hidden = reason !== "other"; $("#rlErr", w).hidden = true;
+    if (reason === "other") $("#rlNote", w).focus();
+  });
+  w.querySelector("[data-ok]").addEventListener("click", async () => {
+    const note = $("#rlNote", w).value.trim(), err = $("#rlErr", w);
+    if (!reason) { err.textContent = "Pick why the label is retired."; err.hidden = false; return; }
+    if (reason === "other" && !note) { err.textContent = "Say what happened in a few words."; err.hidden = false; $("#rlNote", w).focus(); return; }
+    closeModal(w); if (await doRetireLabel(kind, id, reason, reason === "other" ? note : "")) toast("Label retired. Print a new one.");
+  });
+}
+/* labelGen + 1 and who, when, why on the record, and a label_retired movement on its history */
+async function doRetireLabel(kind, id, reason, note) {
+  const rec = lblRec(kind, id); if (!rec) return false;
+  const name = lblThing(kind, rec);
+  const data = { labelGen: labelGen(rec) + 1, labelRetiredAt: NOW, labelRetiredBy: S.user.uid || null, labelRetiredByName: S.user.name || "", labelRetiredReason: reason, labelRetiredNote: note || "" };
+  const f = { note: "Label retired (" + name + "): " + lblReasonText(reason, note), reason, reasonNote: note || "" };
+  if (kind === "loc") f.toLocationId = id;
+  else if (kind === "ctr") Object.assign(f, { productId: rec.productId, containerId: id, containerLabel: rec.label });
+  else if (kind === "item") Object.assign(f, { productId: rec.productId, itemId: id, itemLabel: itemLabel(rec) });
+  else f.productId = id;
+  const m = mv("label_retired", f), ops = [{ op: "update", coll: LBL[kind][0], id, data }, m];
+  const ok = await DB.commit(ops, "Label retired on " + name);
+  /* demo keeps the retire in memory, so the page, a reprint, and a scan of the old code all show it */
+  if (DEMO) { Object.assign(rec, data, { labelRetiredAt: new Date() }); S.movements.unshift(Object.assign({ id: "dl" + rid() }, m.data, { at: new Date() })); render(true); return true; }
+  return ok;
+}
+function retiredCardHTML(kind, id) {
+  const rec = lblRec(kind, id); if (!rec) return "";
+  return '<div class="rk"><span>Retired label</span><span class="st bad">Retired</span></div><div class="rt">' + esc(lblThing(kind, rec)) + '</div><p class="rm" role="status">' + esc(retiredLine(rec)) + ". Nothing was changed.</p>" +
+    '<div class="btnrow"><button type="button" class="btn" data-act="qrOpen" data-kind="' + kind + '" data-id="' + esc(id) + '" title="Opens it on its own screen">Open</button>' +
+    (isAdmin() ? '<button type="button" class="btn acc" data-act="qrReprint" data-kind="' + kind + '" data-id="' + esc(id) + '" title="Opens the print preview for a new label with the current code">Reprint</button>' : "") + "</div>";
 }
 
 /* ---------------- settings (admin, Console) ---------------- */
@@ -10797,6 +10967,11 @@ function backupsHTML() {
    and one per settings document.
    ============================================================== */
 const DD_WHO = [["createdAt", "When the record was made"], ["updatedAt", "When it last changed"]];
+/* 0.18.0 (PLAN 34.1): on locations, boxes, units, and products */
+const DD_LABEL = [["labelGen", "Which label is the live one (0.18.0). Missing means 1. Retire label on Office, QR codes adds 1, and every label printed before stops working. A label printed at 2 or more ends its code with a dot and the number"],
+  ["labelRetiredAt, labelRetiredBy, labelRetiredByName", "When the last label was retired, and the admin who did it (their sign-in id and name)"],
+  ["labelRetiredReason, labelRetiredNote", "Why: damaged, lost, wrong (On the wrong thing), or other, and the words typed for Other"],
+  ["labelPrintedAt, labelPrintedBy, labelPrintedByName", "When a label for it was last printed, and who (sign-in id and name). Written when Print is pressed in the preview, not on the preview. Techs may write only these three"]];
 const DATA_DICTIONARY = [
   { coll: "loadout_users", id: "Firebase sign-in uid", about: "The roster: one person per document, with their role.", fields: [
     ["email", "Sign-in address, lower case"], ["name", "Display name from the Google account"], ["role", "admin, warehouse, tech, accounting, or board"],
@@ -10838,12 +11013,12 @@ const DATA_DICTIONARY = [
     ["upcLookupAt", "When someone last answered Photo for this UPC for this product (0.10.0)"], ["upcLookupResult", "That answer: used (a lookup photo was saved), none (None of these), kept (Keep the current photo), or not_found (the lookup knew nothing) (0.10.0)"],
     ["upcLookupUpc", "The UPC that answer was about. The sheet does not open on its own again for the same UPC; Find a photo always asks (0.10.0)"],
     ["onHand", "Total on hand, recomputed with each movement"], ["lastCost", "Last unit cost; values in reports use it"], ["portalItemId", "Portal item id when imported"],
-    ["lastCountAt", "Count date from the inventory sheet"]].concat(DD_WHO) },
+    ["lastCountAt", "Count date from the inventory sheet"]].concat(DD_WHO, DD_LABEL) },
   { coll: "loadout_locations", id: "area--shelf slug, as storage-room--rca-av-video; it never changes, so after a rename (0.11.1) it keeps the first name's slug and the printed label still scans", about: "Shelves, staging areas, vans, and bare areas.", fields: [
     ["area", "Room or zone"], ["shelf", "Shelf within it, blank for a bare area"], ["name", "Area and shelf, as printed on the label"], ["kind", "shelf, bay (the stored value; the screens say Staging area since 0.13.0), van, vehicle (a person's car or truck that carries stock, 0.7.0), or other"],
     ["jobId", "The job a staging area was kept for before 0.13.0. Jobs share a staging area now, so it is no longer written or read"], ["jobName", "Its name, as above"], ["qr", "Label payload, loadout:loc:{id}"],
     ["lastAuditedAt", "When the last Audit a shelf finished here (0.8.0); empty means never audited"], ["lastAuditedBy", "Email of whoever finished it"], ["lastAuditedByName", "Their name"],
-    ["archived", "True once an admin archives an empty location (0.11.1): it leaves the pick lists, the audit list, and the Shelf filter, and still names itself everywhere history shows it"], ["archivedAt", "When it was archived; empty once unarchived"], ["archivedBy", "Email of the admin who archived it"]].concat(DD_WHO) },
+    ["archived", "True once an admin archives an empty location (0.11.1): it leaves the pick lists, the audit list, and the Shelf filter, and still names itself everywhere history shows it"], ["archivedAt", "When it was archived; empty once unarchived"], ["archivedBy", "Email of the admin who archived it"]].concat(DD_WHO, DD_LABEL) },
   { coll: "loadout_stock", id: "{productId}__{locationId}", about: "Counted quantity of one product on one shelf.", fields: [
     ["productId", "Product"], ["productName", "Its name when written"], ["locationId", "Location"], ["locationName", "Its name when written"], ["qty", "Count in the product's unit"], ["updatedAt", "When it last changed"],
     ["returnTicketId, returnLineId", "The job and line of the latest Return from a client onto this shelf (0.15.0); the rules let a tech raise a shelf count only by what that line's qtyReturned goes up in the same write"]] },
@@ -10851,7 +11026,7 @@ const DATA_DICTIONARY = [
     ["productId", "Product"], ["productName", "Its name"], ["locationId", "Where the box sits"], ["locationName", "Its name"], ["upc", "Barcode on the box"],
     ["label", "The shop's box code, printed on the QR sticker"], ["startLength", "Feet when new"], ["ftLeft", "Feet left"], ["lastMark", "Footage mark the box is stopped at"],
     ["purchasedAt", "When bought"], ["status", "open or empty"], ["pickTicketId", "Job the box travels with"], ["lastCutTicketId, lastCutJob", "The job the last cut was for, and its label and client, or Not for a job (0.16.0)"], ["pickTicketNumber", "Its number"], ["confirmLocation", "true when the box has no confirmed shelf yet"],
-    ["orderId, orderNumber, shipmentId", "The PO and shipment it came on"], ["qr", "Label payload, loadout:ctr:{id}"], ["lastReadingAt", "Last mark entered"], ["lastReadingBy", "Who entered it"]].concat(DD_WHO) },
+    ["orderId, orderNumber, shipmentId", "The PO and shipment it came on"], ["qr", "Label payload, loadout:ctr:{id}"], ["lastReadingAt", "Last mark entered"], ["lastReadingBy", "Who entered it"]].concat(DD_WHO, DD_LABEL) },
   { coll: "loadout_items", id: "random; an imported unit is imp-{productId}-{n}, imp-{productId}-s-{serial slug}, or imp-{productId}-m-{12 hex MAC}", about: "Serialized units, one physical unit per document.", fields: [
     ["productId", "Product"], ["productName", "Its name"], ["label", "Product name #n, or Product name, SN or MAC and the last 6 characters for an imported unit with one"], ["serial", "Serial number as typed or scanned, for warranty claims and returns"],
     ["mac", "MAC address, stored as AA:BB:CC:DD:EE:FF, so a networked device can be found on the client's network (0.7.0)"], ["cost", "Unit cost: the PO line's unit cost when it came on a PO (0.5.2), else the product's last cost"],
@@ -10861,7 +11036,7 @@ const DATA_DICTIONARY = [
     ["jobId", "Job it is out for or installed at"], ["jobName", "Its name"], ["clientId", "Client it was pulled for on the inventory sheet (0.7.0)"], ["clientName", "The client of that job, when it serves a job (0.5.2), or the sheet's Client Pulled For"],
     ["ticketId", "Job it is out for"], ["ticketNumber", "Its number (0.5.2)"], ["ticketLineId", "The line on that job"],
     ["checkedOutAt", "When it went out"], ["checkedInAt", "When it came back"], ["condition", "good, damaged, or missing"], ["retiredReason", "Why it was retired"],
-    ["importNote", "Condition text from the inventory sheet, and the Serial/MAC cell as typed when it was read as a MAC"], ["orderId, orderNumber, shipmentId", "The PO and shipment it came on"]].concat(DD_WHO) },
+    ["importNote", "Condition text from the inventory sheet, and the Serial/MAC cell as typed when it was read as a MAC"], ["orderId, orderNumber, shipmentId", "The PO and shipment it came on"]].concat(DD_WHO, DD_LABEL) },
   { coll: "loadout_movements", id: "random", about: "The audit trail. Append-only: nothing here is ever edited or deleted.", fields: [
     ["type", "receive, pull (shelf to a staging area for a job), move (shelf to shelf, no job; also leftovers scanned back at Close job), stage, pickup (out of the staging area into a person's van, 0.8.0), deliver (confirmed on site), cut, reading, adjust (note Audit: a correction from Audit a shelf), checkout, checkin, return (a unit back from a site at Check in; since 0.15.0 also Return from a client: product delivered to a client back on a shelf, from = the client's name, to = the shelf), writeoff, note (0.8.0: a line not delivered, or a unit not found at an audit), or edit. Rows from before 0.5.2 may say pick, transfer, or return for leftovers; the app reads those as pull, move, and move"],
     ["productId", "Product"], ["productName", "Its name when written"], ["containerId", "Box"], ["containerLabel", "Its label"], ["itemId", "Unit"], ["itemLabel", "Its label or serial"],
@@ -10871,6 +11046,7 @@ const DATA_DICTIONARY = [
     ["ticketId", "Job"], ["ticketNumber", "Its number"], ["ticketLineId", "Job line"], ["orderId", "Purchase order"], ["orderNumber", "Its PO number"], ["shipmentId", "Shipment"],
     ["note", "Free text"], ["by", "Email of the person who did it"], ["byName", "Their name"], ["at", "When it happened (the sheet's count date for imported rows)"],
     ["reason", "Why it came back (0.15.0), on Return from a client, Bring back, and leftovers scanned back at Close job: not_needed, wrong_part, changed_mind, swapped, damaged, or other. Close's write-off keeps its reason in note"], ["reasonNote", "The words typed for Other; empty otherwise"],
+    ["type label_retired", "A label retired on Office, QR codes (0.18.0): the shelf (toLocationId), box, unit, or product it was on, its reason and reasonNote, and the reason in words in note"],
     ["importTab, importRow, importKey", "Inventory sheet tab, row, and the key that stops a re-import repeating it"], ["importedAt", "When the import ran"]] },
   { coll: "loadout_clients", id: "client name slug", about: "Clients, mostly arriving with an imported proposal.", fields: [
     ["name", "Client name"], ["notes", "Gate codes, who to call"], ["archived", "Dropped from the New job list"], ["portalContactId", "Portal contact id when known"]].concat(DD_WHO) },
@@ -11982,6 +12158,11 @@ document.addEventListener("click", e => {
     /* 0.9.1 (PLAN 21.1): Shelf filters, a chip's remove control, and Clear filters */
     case "sfRm": sfRemove(id); break;
     case "sfClear": sfClear(true); break;
+    case "qrOpen": qrOpen(b.dataset.kind, id); break;
+    case "qrRename": qrRename(b.dataset.kind, id); break;
+    case "qrReprint": closeAllModals(); printLabels([{ kind: b.dataset.kind, id }]); break;
+    case "qrRetire": openRetireLabel(b.dataset.kind, id); break;
+    case "qrClear": S.qrQ = ""; S.qrKind = ""; S.qrStat = ""; render(true); break;
     case "clearSearch": { const f = document.getElementById(b.dataset.for); if (f) { f.value = ""; f.dispatchEvent(new Event("input", { bubbles: true })); f.focus(); } break; }
     case "retry": if (DB && DB.retry) DB.retry(b.dataset.coll); render(true); break;
     case "go": closeAllModals(); go(b.dataset.view, b.dataset.sub); break;
@@ -12170,6 +12351,7 @@ document.addEventListener("input", e => {
   else if (t.id === "trQ") { S.trFilter.q = t.value; scheduleRender(); }
   else if (t.dataset && t.dataset.mf) { S.mvFilter[t.dataset.mf] = t.value; scheduleRender(); }
   else if (t.id === "lblQ") { S.labelQ = t.value; scheduleRender(); }
+  else if (t.id === "qrQ") { S.qrQ = t.value; scheduleRender(); }
   else if (t.id === "lsQ") { S.ls.q = t.value; scheduleRender(); }
   /* expand-in-place fields keep what is typed through live redraws */
   else if (t.dataset && t.dataset.xf && S.x) { if (!S.x.draft) S.x.draft = {}; S.x.draft[t.dataset.xf] = t.type === "checkbox" ? t.checked : t.value; }
@@ -12184,6 +12366,8 @@ document.addEventListener("change", e => {
   else if (t.dataset && t.dataset.mf && t.tagName === "SELECT") { S.mvFilter[t.dataset.mf] = t.value; scheduleRender(); }
   else if (t.dataset && t.dataset.lbl) { t.checked ? S.labelSel.add(t.dataset.lbl) : S.labelSel.delete(t.dataset.lbl); render(true); }
   else if (t.id === "lblSize") { S.labelSize = t.value; }
+  else if (t.id === "qrKind") { S.qrKind = t.value; render(true); }
+  else if (t.id === "qrStat") { S.qrStat = t.value; render(true); }
   else if (t.dataset && t.dataset.tf && t.id !== "tfQ") { S.tkFilter[t.dataset.tf] = t.type === "checkbox" ? t.checked : t.value; render(true); }
   else if (t.id === "showArch") { S.showArchived = t.checked; render(true); }
   else if (t.id === "showArchLocs") { S.showArchLocs = t.checked; render(true); const c = $("#showArchLocs"); if (c) c.focus(); }
