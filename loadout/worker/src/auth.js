@@ -3,14 +3,18 @@
 // The app sends the person's Firebase ID token as `Authorization: Bearer
 // <jwt>`. The worker checks it with WebCrypto against Google's published
 // keys (no library), then reads the person's roster document with the
-// service account and lets through only admin and warehouse, the same roles
-// that loadoutWriter() in watchtower/firestore.rules allows to change the
-// catalog.
+// service account and lets through only the roles a route allows: by
+// default admin and warehouse (STAFF_ROLES), the same roles that
+// loadoutWriter() in watchtower/firestore.rules allows to change the catalog.
+// The UPC routes pass UPC_ROLES, which adds tech (0.4.0): a lookup only reads,
+// and saving the answer onto a product still needs a catalog write.
 
 import { getAccessToken, getDoc, SCOPE_DATASTORE } from './firestore.js';
 
 export const JWKS_URL = 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
 export const STAFF_ROLES = ['admin', 'warehouse'];
+// /upc/lookup and /upc/photo only. Do not use for any route that writes.
+export const UPC_ROLES = ['admin', 'warehouse', 'tech'];
 // Same test as isMSPAdmin() in the rules: a verified address on the domain.
 const STAFF_EMAIL = /@umbrellaautomation\.com$/i;
 const LEEWAY_S = 60;
@@ -154,10 +158,10 @@ function withDefaults(deps = {}) {
   };
 }
 
-// { uid, email, role } for an active admin or warehouse person on the
-// roster; otherwise throws an HttpError (401 token, 403 roster, 502/503
+// { uid, email, role } for an active person on the roster whose role is in
+// `roles` (STAFF_ROLES unless the route passes its own list); otherwise throws an HttpError (401 token, 403 roster, 502/503
 // when the worker itself cannot check).
-export async function requireStaff(request, env, deps) {
+export async function requireStaff(request, env, deps, roles = STAFF_ROLES) {
   const d = withDefaults(deps);
   if (!env.FIREBASE_PROJECT_ID) throw new HttpError(503, 'not_configured', 'FIREBASE_PROJECT_ID is not set');
   const m = /^Bearer\s+(\S+)\s*$/i.exec(request.headers.get('Authorization') || '');
@@ -180,6 +184,8 @@ export async function requireStaff(request, env, deps) {
   }
   const role = rosterRole(doc);
   if (!role) throw new HttpError(403, 'forbidden', 'Not on the roster');
-  if (!STAFF_ROLES.includes(role)) throw new HttpError(403, 'forbidden', 'Role ' + role + ' cannot look up photos');
+  if (!roles.includes(role)) {
+    throw new HttpError(403, 'forbidden', 'Role ' + role + (roles === UPC_ROLES ? ' cannot use the UPC lookup' : ' cannot use this route'));
+  }
   return { uid: claims.sub, email, role };
 }

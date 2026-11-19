@@ -18,7 +18,7 @@ Cloudflare Worker for Loadout (`work/loadout`). It does three jobs:
 The Portal API intake (T2) is a stub until PLAN D1 is answered; see
 "T2 boundary" below.
 
-Version: **0.3.0**. Worker URL once deployed:
+Version: **0.4.0**. Worker URL once deployed:
 `https://loadout-worker.umbrelladev.workers.dev`.
 
 ## Endpoints
@@ -248,13 +248,17 @@ lookup answer is the service's own count of what is left.
 **Who can call it.** Only the app's own address (`APP_ORIGINS`, exact
 match; anything else, and a request with no `Origin`, gets 403 before any
 lookup), and only a person signed in to the app whose roster document
-(`loadout_users/{uid}`) is active with role admin or warehouse, from a
+(`loadout_users/{uid}`) is active with role admin, warehouse, or tech
+(`UPC_ROLES` in `src/auth.js`; tech since 0.4.0), from a
 verified `@umbrellaautomation.com` address, the same test the Firestore
 rules use. The app sends the Firebase ID token as `Authorization: Bearer`;
 the worker checks its signature against Google's published keys, its
 project, issuer, and times, then reads the roster doc with the service
-account. Signed out or a bad token is 401; tech, accounting, board, a
-paused person, or nobody on the roster is 403. Because the photo needs that
+account. Signed out or a bad token is 401; accounting, board, a paused
+person, or nobody on the roster is 403. The shared check
+(`requireStaff`) still defaults to admin and warehouse (`STAFF_ROLES`);
+only the two UPC routes pass the wider list, so any later route that
+writes keeps the narrow one. Because the photo needs that
 header, the app fetches it with `fetch()` and shows it from a blob, not
 with a plain `<img src>`.
 
@@ -346,11 +350,23 @@ names, day parsing, prune selection, name encoding, and the batch delete
 request and response (`test/storage.test.js`), the routes that answer
 before touching Firestore, the sign-in check against a key made in the
 test (`test/auth.test.js`: audience, issuer, expiry, signature, key id,
-roster role and pause), and the UPC routes with a fake network
+roster role and pause, and which roles each list lets through), and the UPC routes with a fake network
 (`test/upc.test.js`: UPC parsing, the answer's shape, busy and unreachable,
 photo address filtering, image type and size limits, and CORS).
 
 ## Changelog
+
+### 0.4.0 (2026-11-19)
+
+Techs are the ones standing in front of an unknown box, and Loadout 0.17.0
+now looks a new UPC up on Scan so they can tell what it is without the
+office. The two UPC routes therefore let an active tech through as well as
+admin and warehouse. The lookup only reads; saving a UPC or making a
+product is still a catalog write the Firestore rules keep to admin and
+warehouse. Every other use of the sign-in check keeps admin and warehouse.
+More callers share the same free 100-a-day limit, so "busy" will come
+sooner; the app now remembers each answer on the phone for 30 days to
+spend fewer. Not deployed.
 
 ### 0.3.0 (2026-11-11)
 

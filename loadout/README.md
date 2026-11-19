@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.16.0**.
+Current version: **0.17.0**.
 
 ## Files
 
@@ -521,8 +521,8 @@ its address, and on Home already it scrolls back to the top.
   product card and in an optional Photo column (off by default; turn it on in
   Columns). Adding or removing a photo needs a connection. **Photo from a
   UPC** (0.10.0, PLAN 21.4): the moment a UPC goes onto a product (Scan's
-  Set UPC and Link to a product without a UPC, the UPC field on the panel,
-  New product), the UPC is saved and then one sheet, **Photo for this UPC**,
+  Set UPC, a product picked on Scan for an unknown UPC (0.17.0), the UPC
+  field on the panel, New product), the UPC is saved and then one sheet, **Photo for this UPC**,
   asks loadout-worker what the free public lookup knows. It shows the name
   and brand the lookup found beside the product's own name, a plain warning
   when they share no brand or model word of four letters or more ("The
@@ -544,6 +544,36 @@ its address, and on Home already it scrolls back to the top.
   sheet says the photos come from a public product lookup and are for use
   inside Loadout. The photo is fetched with the person's sign-in and shown
   from a blob, so nothing else can load it.
+- **Find it by UPC** (0.17.0, PLAN 33.1 item 5): when Scan reads a UPC no
+  product carries, it asks the same lookup first ("Looking it up", the rest
+  of the screen stays usable). Found: "This looks like: brand model", the
+  library's title cut short, and up to five closest products already in
+  Loadout (model first, case-blind, spaces and dashes ignored; then shared
+  model words; then brand), each with its photo, name, brand and model, on
+  hand, and usual shelf; then **None of these: make a new product**, which
+  opens New product with the name, brand, model, and UPC filled in. Not
+  found, busy ("the free lookup's shared daily limit is used up"), offline,
+  unreachable, or a role that may not look up: one line, then the list.
+  Under it a search list replaces the old dropdown: name, brand, model,
+  category, type, ASIN, or UPC, spaces and dashes optional, 44 px rows;
+  empty, it shows the products with no UPC yet, newest first. Tapping a
+  product asks once, "Save UPC code on product?", then saves only the UPC,
+  and the photo offer follows as before. Techs see the lookup, the matches,
+  and the list, and a tap opens the product; the save and new-product
+  buttons are replaced by "The office or warehouse can link this UPC to a
+  product." Each answer (found or not) is kept on the phone for 30 days per
+  UPC (`localStorage` `loadout.upcLookup`, 300 newest), so the same box does
+  not spend the shared 100-a-day limit twice; busy and errors are not kept.
+  Demo: 810010071231 (found, two matches), 640177007702 (found, no match),
+  012345678905 (not found), 036000291452 (busy).
+- **Amazon ASIN** (0.17.0, PLAN 33.1 item 9): an optional field on the
+  product panel and New product, 10 letters or digits, trimmed and upper
+  cased; anything else is refused with a plain line. Where set, the panel
+  shows it with **Open on Amazon** (`https://www.amazon.com/dp/<ASIN>`, new
+  tab). Shelf search and the Scan list find a product by it; Shelf has an
+  Amazon ASIN column (off by default); the export carries an `asin` column
+  and the inventory import reads an optional ASIN column (a bad one is
+  listed and left out).
 
 Roles: the account named in the rules as the project owner becomes admin on
 its first sign-in; everyone else lands as Tech until an admin changes the role
@@ -551,8 +581,9 @@ under Office, People. Warehouse and admin change stock, audit shelves, and build
 pull, and close jobs; techs scan, check out, check in, record box readings,
 and stage, pick up, and deliver job lines; accounting and board only read.
 The role shows under the name in the header (0.10.0), and the Account sheet
-says in one sentence what it can do. Only admin and warehouse can look a
-photo up from a UPC; the worker checks the role on the roster itself.
+says in one sentence what it can do. Admin, warehouse, and (since 0.17.0)
+tech can use the UPC lookup; only admin and warehouse save a UPC or a photo
+on a product. The worker checks the role on the roster itself.
 
 ### Demo mode
 
@@ -757,6 +788,10 @@ the **Pull sheet**. Nothing was renamed in the database. 0.8.0 adds:
   apart from a UPC that changed after the answer.
 - Nothing else changes: New job writes the same ids and fields as 0.9.1 for
   the same input, and the Job report only reads.
+
+0.17.0 adds, on `loadout_products`: `asin`, the optional Amazon ASIN (10
+letters or digits, upper case). Admin and warehouse already write any
+product field, so the rules do not change.
 
 Firestore project `watchtower-6fbe1`, collections `loadout_users`,
 `loadout_settings`, `loadout_products`, `loadout_locations`, `loadout_stock`,
@@ -1389,6 +1424,28 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.17.0 (2026-11-19)
+
+Tying a new box's UPC to a product meant picking it out of one long
+dropdown, which was slow on a phone; techs, who are usually the ones holding
+the box, could not use the lookup at all; and people wanted to keep the
+Amazon listing next to the product (PLAN 33.1 items 5 and 9).
+
+- Scan looks an unknown UPC up first and shows what it probably is, with
+  the closest products already in Loadout as cards and None of these: make
+  a new product, which fills New product in from the lookup.
+- A search list replaces the dropdown: type a name, brand, model, or ASIN.
+  Saving the UPC still asks once.
+- Techs can use the lookup and see the matches (a tap opens the product);
+  saving a UPC or making a product stays with the office and warehouse.
+  This needs loadout-worker 0.4.0 deployed; until then a tech's lookup says
+  their role cannot use it and goes to the list.
+- The free lookup allows 100 a day, shared, so each answer is remembered on
+  the phone for 30 days and the same box is never looked up twice there.
+  When the limit is used up, Scan says so and goes to the list.
+- Products can carry an Amazon ASIN with an Open on Amazon link; search,
+  the export, and the inventory import know it.
 
 ### 0.16.0 (2026-11-18)
 

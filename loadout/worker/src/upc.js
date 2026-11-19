@@ -4,7 +4,7 @@
 //   GET /upc/photo?upc=&i=   the bytes of photo i from that UPC's own lookup
 //
 // Both answer only to the app's origins (APP_ORIGINS) and only to a signed-in
-// admin or warehouse person (src/auth.js). A browser cannot call the lookup
+// admin, warehouse or tech person (UPC_ROLES in src/auth.js; tech since 0.4.0). A browser cannot call the lookup
 // service itself (it allows only its own site), so the app asks here.
 //
 // The photo route never takes a URL from the request: it re-reads the
@@ -12,7 +12,7 @@
 // be used to fetch arbitrary addresses. Nothing is stored except the Cache
 // API copy of each lookup (24 h), which saves the shared 100-a-day quota.
 
-import { requireStaff, HttpError } from './auth.js';
+import { requireStaff, UPC_ROLES, HttpError } from './auth.js';
 
 export const LOOKUP_URL = 'https://api.upcitemdb.com/prod/trial/lookup?upc=';
 export const MAX_PHOTOS = 4;
@@ -262,7 +262,7 @@ export async function handleUpc(request, env, ctx, deps) {
 
   const url = new URL(request.url);
   try {
-    await requireStaff(request, env, d);
+    await requireStaff(request, env, d, UPC_ROLES);
     const upc = normalizeUpc(url.searchParams.get('upc'));
 
     if (url.pathname === '/upc/lookup') {

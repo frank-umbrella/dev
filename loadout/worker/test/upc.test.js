@@ -25,7 +25,10 @@ async function sign(uid = 'uid-w') {
   return head + '.' + body + '.' + b64url(new Uint8Array(sig));
 }
 const TOKEN = await sign();
-const ROSTER = { 'uid-w': { role: 'warehouse', active: true }, 'uid-t': { role: 'tech', active: true } };
+const ROSTER = {
+  'uid-w': { role: 'warehouse', active: true }, 'uid-t': { role: 'tech', active: true },
+  'uid-a': { role: 'accounting', active: true }, 'uid-p': { role: 'tech', active: false },
+};
 
 const env = { FIREBASE_PROJECT_ID: PROJECT, APP_ORIGINS: ORIGIN + ', https://other.example' };
 
@@ -177,11 +180,32 @@ test('upc: signed-out and wrong-role callers are refused before any lookup', asy
   let r = await handleUpc(get('/upc/lookup?upc=' + UPC, { token: null }), env, {}, d);
   assert.equal(r.status, 401);
   assert.deepEqual(await r.json(), { ok: false, error: 'unauthorized' });
-  r = await handleUpc(get('/upc/photo?upc=' + UPC + '&i=0', { token: await sign('uid-t') }), env, {}, d);
+  r = await handleUpc(get('/upc/photo?upc=' + UPC + '&i=0', { token: await sign('uid-a') }), env, {}, d);
   assert.equal(r.status, 403);
   assert.deepEqual(await r.json(), { ok: false, error: 'forbidden' });
   assert.equal(r.headers.get('Access-Control-Allow-Origin'), ORIGIN);
+  for (const uid of ['uid-a', 'uid-p', 'uid-nobody']) {
+    for (const path of ['/upc/lookup?upc=' + UPC, '/upc/photo?upc=' + UPC + '&i=0']) {
+      r = await handleUpc(get(path, { token: await sign(uid) }), env, {}, d);
+      assert.equal(r.status, 403, uid + ' ' + path);
+    }
+  }
   assert.equal(d.fetch.calls.length, 0);
+});
+
+test('upc: an active tech may call both the lookup and the photo route (0.4.0)', async () => {
+  _resetUpcCache();
+  const bytes = new Uint8Array([0xff, 0xd8, 0xff, 9]);
+  const d = deps(Object.assign(lookupRoute(lookupBody([IMG1])), { [IMG1]: () => imageResp(bytes) }));
+  const tech = await sign('uid-t');
+  let r = await handleUpc(get('/upc/lookup?upc=' + UPC, { token: tech }), env, {}, d);
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.equal(j.ok, true);
+  assert.equal(j.found, true);
+  r = await handleUpc(get('/upc/photo?upc=' + UPC + '&i=0', { token: tech }), env, {}, d);
+  assert.equal(r.status, 200);
+  assert.equal(r.headers.get('Content-Type'), 'image/jpeg');
 });
 
 test('upc: photo returns the bytes of entry i from the lookup list', async () => {

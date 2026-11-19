@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP, Tech spec and History v0.16.0</title>
+<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP, Tech spec and History v0.17.0</title>
 <meta name="description" content="Storyboard and functional SOP for Loadout, the internal inventory, job, and order tracking tool, matching the built app. The shop's reference document.">
 <meta name="robots" content="noindex, nofollow">
-<meta name="version" content="0.16.0">
+<meta name="version" content="0.17.0">
 <script>
   // ?print=1 strips the chrome for a PDF. ?tab=pictures|overview|drive|story|sop|tech|history picks the tab
   // (In pictures when none is given); ?sheet=warehouse|tech|office|accounting|all lays out the role sheets;
@@ -674,7 +674,7 @@
     Loadout
   </h1>
   <p class="subtitle">How product moves through the shop, from approved proposal to installed, and what gets recorded at each step</p>
-  <p class="meta">Version 0.16.0, updated Nov 18, 2026 <a href="#history" id="whatChanged">What changed</a></p>
+  <p class="meta">Version 0.17.0, updated Nov 19, 2026 <a href="#history" id="whatChanged">What changed</a></p>
 
   <div class="tabs" role="tablist" aria-label="Sections of this document">
     <button type="button" role="tab" id="tabbtn-pictures" aria-controls="tab-pictures" aria-selected="true" data-tab="pictures">In pictures<span class="hint">nine panels and one chart</span></button>
@@ -1051,13 +1051,13 @@
   </div>
   <div class="sheets">
     <article class="sheet" id="role-warehouse" data-role="warehouse">
-      <div class="phead"><b>Your job in Loadout: Warehouse</b><span>Loadout v0.16.0</span></div>
+      <div class="phead"><b>Your job in Loadout: Warehouse</b><span>Loadout v0.17.0</span></div>
       <h4>Warehouse</h4>
       <p class="who">Shelves, the Tech area, the dock door. Phone in hand most of the day.</p>
       <ol>
         <li><b>Home, Pull for a job:</b> the jobs the shelves can feed; Start pulling opens one.</li>
         <li><b>The Pull screen:</b> shelf by shelf in walking order, one button per line, such as Pull 4.</li>
-        <li><b>Scan:</b> a shelf label, then the product, to pull or count right at the shelf.</li>
+        <li><b>Scan:</b> a shelf label, then the product, to pull or count right at the shelf. A new box's UPC is looked up; tap the product it is.</li>
         <li><b>Request what is short:</b> on the Pull screen or the job, for lines no shelf covers. It makes an order request, and the admin approves it.</li>
         <li><b>Receive a shipment:</b> arrived boxes first; Receive puts each line in the staging area with its job, or on its shelf.</li>
         <li><b>Return from a client:</b> pick the job, scan what came back, say why, and it goes back on its shelf.</li>
@@ -1069,7 +1069,7 @@
       </ol>
     </article>
     <article class="sheet" id="role-tech" data-role="tech">
-      <div class="phead"><b>Your job in Loadout: Tech</b><span>Loadout v0.16.0</span></div>
+      <div class="phead"><b>Your job in Loadout: Tech</b><span>Loadout v0.17.0</span></div>
       <h4>Tech</h4>
       <p class="who">The Tech area, the van, the client's site. The last tab reads More instead of Office.</p>
       <ol>
@@ -1078,7 +1078,7 @@
         <li><b>Confirm a delivery:</b> untick what did not arrive, note why, press Delivered to site.</li>
         <li><b>Bring back:</b> scan each unit the install did not need, or type the count, say why, and it goes from the van back to the staging area.</li>
         <li><b>Return from a client:</b> product the client had comes back; pick the job, scan it, say why, and it goes back on its shelf.</li>
-        <li><b>Scan:</b> a wire box to save its mark and say which job the cut is for (or Not for a job); a unit to check it out or in.</li>
+        <li><b>Scan:</b> a wire box to save its mark and say which job the cut is for (or Not for a job); a unit to check it out or in; a new box's UPC to see what it probably is.</li>
         <li><b>Shelf, Out with people:</b> who has which unit, and since when.</li>
         <li><b>More:</b> Labels, Movements, This phone (Loadout on the home screen), and About.</li>
       </ol>
@@ -1188,6 +1188,7 @@
     <li><b>0.6.0 to 0.7.0, 2026-11-02 to 11-05.</b> One-handed phone layout, the nightly backup listed in the app, serials and MAC addresses, and the inventory sheet's pulled units.</li>
     <li><b>0.8.0, 2026-11-05.</b> Home with the doors, the words Job and Pull sheet, Shelf and Office, Pick up as its own step, Audit a shelf, and the board as a grid of six jobs.</li>
     <li><b>0.9.0, 2026-11-11.</b> Pull has its own screen, shelf by shelf, opened from the Pull list or the QR on the printed pull sheet. Bring back takes product from a van to the bay or a shelf, and Close job waits for it. Receive a shipment is a door, and a costly unit asks for its serial or MAC there. A carrier's box has Arrived, not Delivered. The progress line names only what has happened. The wall board reads on a phone.</li>
+    <li><b>0.17.0, 2026-11-19.</b> Find it by UPC: Scan looks an unknown box up and shows the closest products, a search list replaces the long dropdown, techs can use the lookup, and products can carry an Amazon ASIN.</li>
     <li><b>0.16.0, 2026-11-18.</b> Which job: every wire cut says which job it was for (or Not for a job), and the Job report and job page show Wire used. A job from a proposal shows Proposal #, a hand-made one Job # with No proposal. Tracking names the job each package is for.</li>
     <li><b>0.15.0, 2026-11-18.</b> Return from a client: product delivered to a client goes back on the shelf, with its condition and why it came back. Bring back and Close job's scan-back ask why too, and every door says where product moves.</li>
     <li><b>0.13.0, 2026-11-13.</b> Words and steps that match the shop. Pulled product waits in the staging area, the shop's Tech area, shared by every job; the old word for it is gone from every screen. A short line becomes an order request that an admin approves (or sends back with a note) before anyone marks it ordered, and the Pull door counts lines as Not requested yet, Waiting for approval, or On order. Close job and Bring back scan the leftovers back: the shelf label, then each unit's QR, with a count for anything without one.</li>
@@ -1239,7 +1240,7 @@
       <li><b>Receive a shipment.</b><span class="do"><i>Do</i>On Home press Receive a shipment. Open a box that has arrived and press Receive. If a line is worth its own QR, type the serial numbers or MAC addresses, one per line.</span><span class="see"><i>You should see</i>A slate grey band, arrived boxes first ("Arrived, not received"), then the ones on the way with their expected date. Each card names the vendor, the PO, the carrier and tracking link, and where each line goes: the job's staging area, or the product's shelf. A unit worth a QR has a Serial numbers and a MAC addresses field; a MAC with a typo is caught before anything saves.</span><span class="ref"><a href="#panel-10">Panels 10 and 11, SOP-1</a></span></li>
       <li><b>Audit a shelf.</b><span class="do"><i>Do</i>On Home press Audit a shelf (the last door) and pick a shelf; the ones audited longest ago are at the top. Press Matches on each product that is right, type the real count on one that is not, press Here or Not here on each unit, and type the mark on a wire box if there is one. Press Finish audit.</span><span class="see"><i>You should see</i>A blue band along the top, then a message like "1 corrected, 5 matched", and the shelf now reads Last audited today. A unit marked Not here shows "Not found at last audit" on Shelf.</span><span class="ref"><a href="#sop-9">SOP-9</a></span></li>
       <li><b>Find a product on Shelf.</b><span class="do"><i>Do</i>Open Shelf and type a model number you know is on a shelf, such as a camera or an access point. On a product with serialized units, press the units link under its name. Then clear the search and pick Patch cables under Category and a storage shelf under Location (on the phone, press Filter beside the search first).</span><span class="see"><i>You should see</i>One row, with the count and the shelf it sits on, and its units listed in place: the last six of each serial or MAC, where it is or who has it, and since when. With the filters, only the patch cables on that shelf, as many as the number beside the choice; a chip for each filter under the search (the phone button reads Filter, 2), and Clear filters brings every product back. A reload clears them too. As the admin, on Shelf, Locations, open a location: Rename changes its name everywhere and keeps the label code, and Archive takes an empty one off the lists (Show archived brings it back).</span><span class="ref"><a href="#sop-9">SOP-9</a></span></li>
-      <li><b>Give a product its UPC and a photo.</b><span class="do"><i>Do</i>On Scan, scan the UPC on a boxed device whose product has no UPC yet, such as an access point or a switch. Under Link to a product without a UPC, pick the product and press Link, then Set UPC.</span><span class="see"><i>You should see</i>The UPC saves first, then a sheet, Photo for this UPC: the name the lookup has beside Loadout's name, up to four photos with the first one picked, and Use this photo and None of these (Keep the current photo and Replace it with this one when the product has a photo). A warning when the two names share no brand or model word; one line instead when the lookup is busy, finds nothing, or there is no signal. A product that already has a UPC has Find a photo on its panel on Shelf.</span><span class="ref"><a href="#sop-1">SOP-1</a></span></li>
+      <li><b>Give a product its UPC and a photo.</b><span class="do"><i>Do</i>On Scan, scan the UPC on a boxed device whose product has no UPC yet, such as an access point or a switch. Loadout looks it up and shows what it probably is with the closest products; tap the right one (or find it in the search list under it), then Save UPC.</span><span class="see"><i>You should see</i>The UPC saves first, then a sheet, Photo for this UPC: the name the lookup has beside Loadout's name, up to four photos with the first one picked, and Use this photo and None of these (Keep the current photo and Replace it with this one when the product has a photo). A warning when the two names share no brand or model word; one line instead when the lookup is busy, finds nothing, or there is no signal. A product that already has a UPC has Find a photo on its panel on Shelf.</span><span class="ref"><a href="#sop-1">SOP-1</a></span></li>
       <li><b>Add a product with a new brand as an admin, then find it in the Shelf filter.</b><span class="do"><i>Do</i>As the admin, open Shelf and press New product. In Brand type, all in lower case, a maker the shop has never stocked, such as <code>bang and olufsen</code>. Press Add 'bang and olufsen' as a new brand at the bottom of the list, check the capitals in Save as, and press Add. Pick a Category from its list (type a few letters in any case), give it a model, and press Create product. Then clear the search and open the Brand filter.</span><span class="see"><i>You should see</i>The list under Brand narrows as you type, each name with how many products carry it; the confirm reads Bang and Olufsen, ready to correct. In the Brand filter the new brand shows once, spelled as saved. Typing an existing brand in another case, such as SONOS, turns into Sonos when you leave the field. Signed in as warehouse, a new brand reads Not on the list. Ask an admin to add it, and Create product refuses it until the field is cleared.</span><span class="ref"><a href="#sop-1">SOP-1</a></span></li>
       <li><b>Find a unit by serial or MAC.</b><span class="do"><i>Do</i>On Shelf, type the last four or more characters of a serial or MAC from a box on the shelf. A MAC works with colons, dashes, or none.</span><span class="see"><i>You should see</i>Only the product that unit belongs to is left, with the unit listed under it.</span><span class="ref"><a href="#sop-7">SOP-7</a></span></li>
       <li><b>Check a unit in from Out with people.</b><span class="do"><i>Do</i>On Shelf, open Out with people, press Check in on a unit you have, pick the shelf and the condition, and confirm.</span><span class="see"><i>You should see</i>It leaves the Out with people list and shows In stock on the shelf you picked. A unit the sheet marks as pulled shows the name from the sheet as its holder.</span><span class="ref"><a href="#panel-17">Panel 17, SOP-7</a></span></li>
@@ -2029,7 +2030,7 @@
         <text class="xs m" x="172" y="118">A product with a UPC already</text><text class="xs m" x="172" y="127">has Find a photo on its panel.</text>
         <text class="s m" x="166" y="154">With a photo already, the<tspan x="166" dy="10">sheet offers Keep the current</tspan><tspan x="166" dy="10">photo and Replace it with</tspan><tspan x="166" dy="10">this one.</tspan></text>
       </svg>
-      <p class="cap"><strong>What you do</strong>The moment a UPC goes onto a product (Set UPC on Scan, or Link), the sheet opens: the name the lookup has beside Loadout's name, and up to four photos with the first one picked. Pick the right one and press Use this photo, or None of these. A warning shows when the two names share no brand or model word; one line instead when the lookup is busy, finds nothing, or there is no signal.</p>
+      <p class="cap"><strong>What you do</strong>The moment a UPC goes onto a product (Save UPC on Scan, for a product picked by hand or from the lookup's closest matches), the sheet opens: the name the lookup has beside Loadout's name, and up to four photos with the first one picked. Pick the right one and press Use this photo, or None of these. A warning shows when the two names share no brand or model word; one line instead when the lookup is busy, finds nothing, or there is no signal.</p>
       <p class="cap"><strong>What Loadout records</strong>The UPC first, then the chosen photo on the product, saved like any other product photo. None of these saves nothing and Find a photo can ask again later.</p>
       <p class="cap sopref">Step by step: <a href="#sop-1">SOP-1, Receiving product</a></p>
     </article>
@@ -2193,7 +2194,7 @@
     </ol>
     <p class="sub">Without a PO</p>
     <ol start="8">
-      <li>Open Scan and scan the box's UPC. The picture stops on the first good read and shows what it found: press Use this code, or Scan again if it read the wrong label. If Loadout does not know it, pick the product under Link to a product without a UPC, or press New product.</li>
+      <li>Open Scan and scan the box's UPC. The picture stops on the first good read and shows what it found: press Use this code, or Scan again if it read the wrong label. If Loadout does not know it, it looks the UPC up and shows "This looks like" with the closest products: tap the one this box is and press Save UPC, or type in the search list under it, or press None of these: make a new product, which fills in what the lookup found. A tech sees the same answer but leaves the linking to the office or warehouse. When the lookup's shared daily limit is used up, go straight to the search list. An optional Amazon ASIN on the product panel gives an Open on Amazon link.</li>
       <li>On the product card press Receive (Receive a box for wire), type the quantity, and pick where it goes.</li>
       <li>To follow a cheaper product unit by unit anyway (for example every AP), open it on Shelf and press Serialize; from then on every unit gets its own QR at receive.</li>
     </ol>
@@ -2558,6 +2559,12 @@ Staged 9/12 lines in Tech area. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
   <p class="lede">What changed in this document, newest first. The app's own releases are in the Overview, under What is built.</p>
   <ol class="hist">
     <li>
+      <h3>0.17.0 <span class="when">Nov 19, 2026</span></h3>
+      <ul>
+        <li>SOP-1's step for a box Loadout does not know now says the lookup shows what it probably is, tap the product (or search for it) and Save UPC, or None of these: make a new product. The Test drive's UPC step and the Warehouse and Tech role sheets say the same, and SOP-1 mentions the Amazon ASIN link. The Photo for this UPC sketch's caption says Save UPC. Not redrawn: none of the comic, the flow chart, the deck, or the sketches shows the old dropdown, but none shows the lookup answer, the closest matches, the search list, or the ASIN field either.</li>
+      </ul>
+    </li>
+    <li>
       <h3>0.16.0 <span class="when">Nov 18, 2026</span></h3>
       <ul>
         <li>SOP-6's cut step now picks For which job (required, or Not for a job) instead of the optional free text, and the box sheet opens from Shelf too. SOP-5's Tracking step names the job on each package and the search. SOP-10's Reports step adds Wire used. The Warehouse, Tech, and Office role sheets say Proposal # and Job #, the cut's job, and Tracking's job. Not redrawn: the comic, the flow chart, the deck, and the storyboard sketches still show "Job #1042" and the old For job field.</li>
@@ -2693,7 +2700,7 @@ Staged 9/12 lines in Tech area. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
 </article>
 
 <footer class="pagefoot">
-  <p>Version 0.16.0, updated Nov 18, 2026</p>
+  <p>Version 0.17.0, updated Nov 19, 2026</p>
   <button type="button" class="btn-print" id="printTab">Print this tab as PDF</button>
   <button type="button" class="btn-print" id="printAll">Print everything as PDF</button>
 </footer>

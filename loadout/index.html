@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.16.0</title>
+<title>Loadout v0.17.0</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.16.0">
+<meta name="loadout-version" content="0.17.0">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -632,6 +632,18 @@ input.filehide{display:none}
 .uphead{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s2);flex-wrap:wrap;margin-bottom:var(--s1)}
 .upstate{margin:var(--s1) 0}
 .upstate.bad{color:var(--m-bad-text)}
+/* 0.17.0: Scan's lookup answer, closest matches, and search list */
+.upcfind{margin:var(--s1) 0 var(--s2);min-width:0}
+.umlike{margin:var(--s1) 0 0;overflow-wrap:anywhere}
+.umlist{display:flex;flex-direction:column;margin-top:4px;min-width:0}
+.umrow{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;align-items:center;width:100%;min-height:44px;text-align:left;background:none;border:0;border-bottom:1px dashed var(--m-line);padding:8px 2px;color:inherit;font:inherit;font-size:13.5px;cursor:pointer}
+.umrow:hover{background:var(--m-card2)}
+.umimg{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:1px solid var(--m-line);border-radius:6px;overflow:hidden;font-size:10px;line-height:1.1;text-align:center;color:var(--m-muted);background:var(--m-card2)}
+.umimg img{width:44px;height:44px;object-fit:cover;display:block}
+.umt{display:flex;flex-direction:column;gap:1px;min-width:0}
+.umt b,.umt small{overflow-wrap:anywhere}
+.umt small{color:var(--m-muted);font-size:12.5px}
+#upcQ{margin-top:2px}
 .upnames{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s1) var(--s3)}
 @media (min-width:520px){.upnames{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .upnames .lab{margin:0 0 2px}
@@ -1522,7 +1534,7 @@ a.textbtn{display:inline-flex;align-items:center}
     <!-- 0.10.0: the mark and name are one link to the person's Home; a relative hash keeps the demo's query string -->
     <a class="brand" href="#home" id="brandHome" aria-label="Loadout, go to Home">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.16.0</span>
+      Loadout <span class="v" id="verBadge">v0.17.0</span>
     </a>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
@@ -1562,7 +1574,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.16.0</span>
+    <span id="footVer">Loadout v0.17.0</span>
   </footer>
 
   <nav class="tabbar" aria-label="Views">
@@ -1588,7 +1600,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.16.0";
+const VERSION = "0.17.0";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -2333,7 +2345,7 @@ const TIPS = {
   "scanHist": "Looks this code up again as if it were scanned now, so the answer is current.",
   "scanHistClear": "Empties the list of codes scanned on this phone for you. Nothing in Loadout changes.",
   "scanPull": "Opens this job's Pull screen with this product's line marked. Nothing is pulled until you pull it there.",
-  "linkUpc": "Saves this barcode as the UPC of the product you picked, after a confirm, so scanning it finds that product from now on.",
+  "upcPick": "Asks to save this barcode as the UPC of that product, so scanning it finds the product from now on.",
   "printOne:prod": "Opens a print preview of this product's QR label. Scanning it opens the product.",
   "printOne:item": "Opens a print preview of this unit's QR label, with its serial or MAC. Scanning it shows who has the unit.",
   "printOne:loc": "Opens a print preview of this location's QR label. Scanning it makes this the active location on Scan.",
@@ -4029,11 +4041,11 @@ function loadDemo() {
   Object.assign(S.locations.get("storage-room--patch-cables"), { lastAuditedAt: t(19), lastAuditedBy: "warehouse@example.com", lastAuditedByName: "Warehouse" });
   Object.assign(S.locations.get("warehouse"), { lastAuditedAt: t(75), lastAuditedBy: "warehouse@example.com", lastAuditedByName: "Warehouse" });
   const P = (id, o) => S.products.set(id, Object.assign({ id, kind: "device", unit: "each", consumable: false, parLevel: null, upc: null, brand: "", model: "", type: "", category: "", description: "", defaultLocationId: null, lastCountAt: t(20), createdAt: t(30) }, o));
-  P("ubiquiti-u6-pro", { brand: "Ubiquiti", model: "U6-Pro", name: "Ubiquiti U6-Pro", type: "Network", category: "Network", description: "WiFi 6 access point", upc: "810010074409", parLevel: 2, consumable: true, defaultLocationId: "warehouse", lastCost: 159, imageUrl: demoPhoto("Ubiquiti U6-Pro"), imagePath: "loadout/products/ubiquiti-u6-pro.jpg", imageAt: t(6) });
+  P("ubiquiti-u6-pro", { brand: "Ubiquiti", model: "U6-Pro", name: "Ubiquiti U6-Pro", type: "Network", category: "Network", description: "WiFi 6 access point", upc: "810010074409", asin: "B0DEMO0U6P", parLevel: 2, consumable: true, defaultLocationId: "warehouse", lastCost: 159, imageUrl: demoPhoto("Ubiquiti U6-Pro"), imagePath: "loadout/products/ubiquiti-u6-pro.jpg", imageAt: t(6) });
   P("ubiquiti-udm-se", { brand: "Ubiquiti", model: "UDM-SE", name: "Ubiquiti UDM-SE", type: "Network", category: "Network", description: "Dream Machine SE gateway", defaultLocationId: "warehouse", lastCost: 499 });
   P("ubiquiti-usw-24-poe", { brand: "Ubiquiti", model: "USW-24-POE", name: "Ubiquiti USW-24-POE", type: "Network", category: "Network", description: "24-port PoE switch", lastCost: 379 });
   P("axis-m3065-v", { brand: "Axis", model: "M3065-V", name: "Axis M3065-V", type: "Surveillance", category: "Surveillance", description: "Mini dome camera", parLevel: 2, defaultLocationId: "warehouse" });
-  P("sonos-amp", { brand: "Sonos", model: "Amp", name: "Sonos Amp", type: "Amplifier", category: "Audio", description: "Streaming amplifier", lastCost: 449, imageUrl: demoPhoto("Sonos Amp"), imagePath: "loadout/products/sonos-amp.jpg", imageAt: t(12) });
+  P("sonos-amp", { brand: "Sonos", model: "Amp", asin: "B0DEMOAMP1", name: "Sonos Amp", type: "Amplifier", category: "Audio", description: "Streaming amplifier", lastCost: 449, imageUrl: demoPhoto("Sonos Amp"), imagePath: "loadout/products/sonos-amp.jpg", imageAt: t(12) });
   P("middle-atlantic-u2v", { brand: "Middle Atlantic", model: "U2V", name: "Middle Atlantic U2V", type: "Rack", category: "Rack", description: "2RU vented rack shelf" });
   P("leviton-61110-be6", { brand: "Leviton", model: "61110-BE6", name: "Leviton 61110-BE6", type: "Keystone", category: "Connector", kind: "connector", description: "Cat6 keystone jack, blue", consumable: true, parLevel: 100, upc: "078477581138" });
   P("wire-cat6-riser-234-blue", { kind: "wire", unit: "ft", type: "CAT6 Riser", wireType: "23/4", color: "Blue", grade: "Riser", name: "CAT6 Riser, 23/4, Blue", category: "Wire", consumable: true, parLevel: 1000, upc: "612825120034" });
@@ -7175,13 +7187,14 @@ function productCols() {
     { k: "par", label: "Par", r: true, title: "Reorder point in the product's unit", sort: p => p.parLevel == null || p.parLevel === "" ? null : num(p.parLevel), html: p => p.parLevel == null || p.parLevel === "" ? '<span class="z">-</span>' : '<span class="n">' + fmtN(p.parLevel) + "</span>" },
     { k: "last", label: "Last movement", sort: p => { const m = lastMovementFor(p.id); return m ? toDate(m.at) : null; }, text: p => mvSummary(lastMovementFor(p.id)) },
     { k: "upc", label: "UPC", def: false, html: p => p.upc ? '<span class="mono">' + esc(p.upc) + "</span>" : '<span class="z">Not learned yet</span>' },
+    { k: "asin", label: "Amazon ASIN", def: false, sort: p => p.asin || "", html: p => p.asin ? '<span class="mono">' + esc(p.asin) + "</span>" : "" },
     { k: "counted", label: "Last count", def: false, sort: p => toDate(p.lastCountAt), text: p => fmtDate(p.lastCountAt) },
     { k: "cost", label: "Last cost", r: true, def: false, sort: p => p.lastCost == null ? null : num(p.lastCost), text: p => S.general.showCosts && p.lastCost != null ? money(p.lastCost) : "" }
   ];
 }
 function matchesSearch(p, q) {
   if (!q) return true;
-  const hay = [productName(p), p.brand, p.model, p.type, p.category, p.upc, p.description, p.color].join(" ").toLowerCase();
+  const hay = [productName(p), p.brand, p.model, p.type, p.category, p.upc, p.asin, p.description, p.color].join(" ").toLowerCase();
   if (q.split(/\s+/).every(w => hay.includes(w))) return true;
   if (itemsFor(p.id).some(i => i.status !== "retired" && unitMatches(i, q))) return true;
   return allBoxesFor(p.id).some(c => String(c.label).toLowerCase().includes(q));
@@ -7310,7 +7323,7 @@ function renderStock() {
     (isWriter() ? (S.stockTab === "locations" ? '<button type="button" class="btn sm acc" data-act="newLocation">New location</button>' : '<button type="button" class="btn sm acc" data-act="newProduct">New product</button>') : "") +
     '</span></div><div class="toolbar"><div class="seg" role="group" aria-label="Shelf lists">' +
     tabs.map(([k, l, n]) => '<button type="button" aria-pressed="' + (tabOn === k) + '" class="' + (tabOn === k ? "on " : "") + (k === "low" ? "warnt" : "") + '" data-act="stockTab" data-tab="' + k + '">' + l + "<b>" + n + "</b></button>").join("") + "</div>" +
-    '<label class="sr" for="stockSearch">Search</label><span class="srch"><input class="fld search" id="stockSearch" type="search" value="' + esc(S.search) + '" placeholder="' + (S.stockTab === "locations" ? "Search area or shelf" : S.stockTab === "out" ? "Serial, MAC, product, or holder" : "Brand, model, UPC, box, serial, or MAC") + '" title="Matches brand, model, type, the learned UPC, box labels like A826, and a unit\'s serial or MAC. Press / to jump here."><button type="button" class="clr" data-act="clearSearch" data-for="stockSearch" aria-label="Clear the search">&times;</button></span></div>';
+    '<label class="sr" for="stockSearch">Search</label><span class="srch"><input class="fld search" id="stockSearch" type="search" value="' + esc(S.search) + '" placeholder="' + (S.stockTab === "locations" ? "Search area or shelf" : S.stockTab === "out" ? "Serial, MAC, product, or holder" : "Brand, model, UPC, box, serial, or MAC") + '" title="Matches brand, model, type, the learned UPC, the Amazon ASIN, box labels like A826, and a unit\'s serial or MAC. Press / to jump here."><button type="button" class="clr" data-act="clearSearch" data-for="stockSearch" aria-label="Clear the search">&times;</button></span></div>';
   /* 0.9.1 (PLAN 21.1): one row of filters above the table on a wide card; on
      a narrow one the Filter button beside search opens the same controls in
      the app's sheet (enhanceFilters). Chips under it on both. */
@@ -7797,6 +7810,7 @@ function openProductForm(p, prefill = {}) {
     '<div><label class="lab" for="pf_def" title="Where Check in and Receive point first">' + "<abbr>Default location</abbr></label><select class=\"fld\" id=\"pf_def\">" + locOptions(d.defaultLocationId, { blankLabel: "None" }) + "</select></div></div>" +
     '<div class="grid2"><div><label class="chk" title="Consumables show under Consumables only on Shelf and go Low below their par level."><input type="checkbox" id="pf_cons"' + (d.consumable ? " checked" : "") + "> Consumable</label></div>" +
     f("parLevel", "Par level", "Reorder point in the product's unit. Below this the product shows as Low.", "number", ' min="0" step="any"') + "</div>" +
+    f("asin", "Amazon ASIN", ASIN_TIP, "text", ' autocapitalize="characters" spellcheck="false" maxlength="14"') +
     (S.general.showCosts ? '<div><label class="lab" for="pf_lastCost" title="Used for the QR threshold: units received at or above the threshold in Settings get their own QR.">' + '<abbr>Last cost</abbr></label><div class="money"><input class="fld" id="pf_lastCost" data-money inputmode="decimal" value="' + (d.lastCost != null ? num(d.lastCost).toFixed(2) : "") + '"></div></div>' : "") +
     '<details class="more"' + (ATTR_FIELDS.some(([k]) => d[k]) ? " open" : "") + '><summary>Attributes</summary><div class="grid3">' + ATTR_FIELDS.map(([k, l, t]) => f(k, l, "", t || "text")).join("") + "</div></details>" +
     '<p class="err" id="pfErr" hidden></p>';
@@ -7813,7 +7827,7 @@ function openProductForm(p, prefill = {}) {
     if (bad) { const el = $('[aria-invalid="true"]', w); if (el) el.focus(); return; }
     const v = k => { const el = $("#pf_" + k, w); return el ? el.value.trim() : ""; };
     const out = { brand: v("brand"), model: v("model"), kind: v("kind"), unit: $("#pf_unit", w).value, type: v("type"), category: v("category"), description: v("description"),
-      upc: v("upc") || null, defaultLocationId: $("#pf_def", w).value || null, consumable: $("#pf_cons", w).checked, parLevel: v("parLevel") === "" ? null : num(v("parLevel")) };
+      upc: v("upc") || null, asin: asinNorm(v("asin")) || null, defaultLocationId: $("#pf_def", w).value || null, consumable: $("#pf_cons", w).checked, parLevel: v("parLevel") === "" ? null : num(v("parLevel")) };
     ATTR_FIELDS.forEach(([k, , t]) => { const x = v(k); out[k] = x === "" ? null : (t === "number" ? num(x) : x); });
     if (S.general.showCosts && $("#pf_lastCost", w)) { const c = v("lastCost").replace(/[$,]/g, ""); out.lastCost = c === "" ? null : num(c); }
     out.name = v("name") || composeName(out);
@@ -7821,6 +7835,7 @@ function openProductForm(p, prefill = {}) {
     const err = $("#pfErr", w);
     if (!out.name || (!out.brand && !out.model && !out.type)) { err.textContent = "Give it a brand and model, or at least a type."; err.hidden = false; return; }
     if (out.upc) { const dup = Array.from(S.products.values()).find(x => x.upc === out.upc && (!p || x.id !== p.id)); if (dup) { err.textContent = "That UPC already belongs to " + productName(dup) + "."; err.hidden = false; return; } }
+    if (!asinOk(out.asin)) { err.textContent = ASIN_BAD; err.hidden = false; const a = $("#pf_asin", w); if (a) a.focus(); return; }
     let id = p ? p.id : productIdFor(out);
     if (isNew && !id) { err.textContent = "Not enough detail to name this product."; err.hidden = false; return; }
     if (isNew && S.products.has(id)) { err.textContent = "That product is already in the catalog as " + productName(S.products.get(id)) + ". Open it instead."; err.hidden = false; return; }
@@ -8712,7 +8727,13 @@ function xLoadHist() {
   }
   render(true);
 }
-const XF_P = ["name", "brand", "model", "category", "unit", "parLevel", "defaultLocationId", "upc", "consumable", "lastCost", "type", "kind", "description"].concat(ATTR_FIELDS.map(a => a[0]));
+const XF_P = ["name", "brand", "model", "category", "unit", "parLevel", "defaultLocationId", "upc", "asin", "consumable", "lastCost", "type", "kind", "description"].concat(ATTR_FIELDS.map(a => a[0]));
+/* 0.17.0 (PLAN 33.1 item 9): an optional Amazon ASIN, 10 letters or digits, kept upper case */
+const ASIN_TIP = "Optional. Amazon's own product code, 10 letters or digits like B08XYZ1234. On the Amazon page it is under Product information as ASIN, and in the address after /dp/.";
+const ASIN_BAD = "An Amazon ASIN is 10 letters or digits, like B08XYZ1234. Fix it or clear the box.";
+const asinNorm = x => String(x == null ? "" : x).trim().toUpperCase();
+const asinOk = a => !a || /^[A-Z0-9]{10}$/.test(a);
+const asinLink = p => p.asin ? '<p class="hint" style="margin:6px 0 0">Amazon ASIN <span class="mono">' + esc(p.asin) + '</span>, <a href="https://www.amazon.com/dp/' + encodeURIComponent(p.asin) + '" target="_blank" rel="noopener">Open on Amazon</a></p>' : "";
 function productPanel(p) {
   const W = isWriter(), oh = onHandOf(p), bl = byLocation(p), boxes = allBoxesFor(p.id), units = itemsFor(p.id).filter(i => i.status !== "retired");
   const unitLocked = allBoxesFor(p.id).length || stockRowsFor(p.id).length;
@@ -8729,6 +8750,7 @@ function productPanel(p) {
       fi("parLevel", "Par level", "Reorder point in the product's unit. Below this the product shows as Low and joins the low-stock list.", ' type="number" min="0" step="any" inputmode="decimal"') +
       '<div><label class="lab" for="xf_defaultLocationId" title="Where Check in, Receive, and Reorder point first">' + '<abbr>Default location</abbr></label><select class="fld" id="xf_defaultLocationId" data-xf="defaultLocationId">' + locOptions(d.defaultLocationId, { blankLabel: "None" }) + "</select></div>" +
       '<div><label class="lab" for="xf_upc" title="Learned the first time a box is scanned. Set by scan opens Scan and takes the next barcode.">' + '<abbr>UPC</abbr></label><div class="upcrow"><input class="fld mono" id="xf_upc" data-xf="upc" inputmode="numeric" value="' + esc(d.upc) + '"><button type="button" class="btn sm" data-act="xupc" data-id="' + esc(p.id) + '">Set by scan</button></div></div>' +
+      fi("asin", "Amazon ASIN", ASIN_TIP, ' autocapitalize="characters" spellcheck="false" maxlength="14"') +
       '<div><label class="chk" title="Consumables show under Consumables only on Shelf and go Low below their par level."><input type="checkbox" id="xf_consumable" data-xf="consumable"' + (d.consumable === true || d.consumable === "true" ? " checked" : "") + "> Consumable</label></div>" +
       (S.general.showCosts ? '<div><label class="lab" for="xf_lastCost" title="Used for the QR threshold: units received at or above the threshold in Settings get their own QR.">' + '<abbr>Last cost</abbr></label><div class="money"><input class="fld" id="xf_lastCost" data-xf="lastCost" data-money inputmode="decimal" value="' + esc(d.lastCost) + '"></div></div>' : "") + "</div>" +
       '<details class="more"' + (S.x.attrOpen ? " open" : "") + ' data-xattr><summary>Type, description, and attributes</summary><div class="xgrid">' +
@@ -8736,10 +8758,11 @@ function productPanel(p) {
       cbField("xf", "type", "Type", CB_TIP.type, d.type) + "</div>" + fi("description", "Description") +
       '<div class="grid3">' + ATTR_FIELDS.map(([k, l, t]) => fi(k, l, "", t === "number" ? ' type="number" step="any"' : "")).join("") + "</div></details>";
   } else {
-    const attrs = [["Brand", p.brand], ["Model", p.model], ["Kind", KIND_LABEL[p.kind] || p.kind], ["Type", p.type], ["Category", p.category], ["Unit", p.unit === "ft" ? "Feet" : "Each"], ["UPC", p.upc], ["Par level", p.parLevel != null && p.parLevel !== "" ? qtyTxt(p, p.parLevel) : ""],
+    const attrs = [["Brand", p.brand], ["Model", p.model], ["Kind", KIND_LABEL[p.kind] || p.kind], ["Type", p.type], ["Category", p.category], ["Unit", p.unit === "ft" ? "Feet" : "Each"], ["UPC", p.upc], ["Amazon ASIN", p.asin], ["Par level", p.parLevel != null && p.parLevel !== "" ? qtyTxt(p, p.parLevel) : ""],
       ["Default location", p.defaultLocationId ? locName(p.defaultLocationId) : ""], ["Connector 1", p.connector1], ["Connector 2", p.connector2], ["Color", p.color], ["Length", p.length ? p.length + " " + (p.lengthUnit || "") : ""], ["Wire type", p.wireType], ["Grade", p.grade]].filter(a => a[1] != null && a[1] !== "");
     h += '<dl class="meta" style="margin-top:0">' + attrs.map(a => "<div><dt>" + esc(a[0]) + "</dt><dd>" + esc(a[1]) + "</dd></div>").join("") + "</dl>" + (p.description ? '<p class="hint">' + esc(p.description) + "</p>" : "");
   }
+  h += asinLink(p);
   h += '<div class="sect"><h4 class="h4">On hand by location</h4>' + (bl.length ? '<ul class="onhand">' + bl.map(e => "<li><span>" + esc(e.locationId ? locName(e.locationId) : "No location yet") + (e.boxes ? ' <span class="z">(' + e.boxes + " box" + (e.boxes > 1 ? "es" : "") + ")</span>" : "") + (e.items ? ' <span class="z">(' + e.items + " serialized)</span>" : "") + "</span><b>" + qtyTxt(p, e.qty) + "</b></li>").join("") + "</ul>" : '<p class="hint" style="margin-top:0">None on hand.</p>') + "</div>";
   if (p.unit === "ft") h += '<div class="sect"><h4 class="h4">Boxes</h4>' + (boxes.length ? '<div class="ctr">' + boxes.map(c => boxRow(c, p)).join("") + "</div>" : '<p class="hint" style="margin-top:0">No boxes yet.' + (W ? " Use New box when one arrives." : "") + "</p>") + "</div>";
   if (units.length) h += '<div class="sect"><h4 class="h4">Serialized units</h4><ul class="onhand">' + units.map(i => '<li><span><button type="button" class="textbtn" data-act="item" data-id="' + esc(i.id) + '">' + esc(itemLabel(i)) + "</button> " + statusPill(i.status) + "</span><span>" + esc(whereItem(i)) + "</span></li>").join("") + "</ul></div>";
@@ -8850,12 +8873,13 @@ async function xSave() {
     if (ce.brand || ce.category) { render(true); const el = $("#xf_" + (ce.category ? "category" : "brand")); if (el) el.focus(); return; }
     const v = k => String(d[k] == null ? "" : d[k]).trim();
     const out = { brand: v("brand"), model: v("model"), kind: v("kind") || p.kind, unit: v("unit") || p.unit || "each", type: v("type"), category: v("category"), description: v("description"),
-      upc: v("upc") || null, defaultLocationId: v("defaultLocationId") || null, consumable: d.consumable === true || d.consumable === "true", parLevel: v("parLevel") === "" ? null : num(v("parLevel")) };
+      upc: v("upc") || null, asin: asinNorm(d.asin == null ? p.asin : d.asin) || null, defaultLocationId: v("defaultLocationId") || null, consumable: d.consumable === true || d.consumable === "true", parLevel: v("parLevel") === "" ? null : num(v("parLevel")) };
     ATTR_FIELDS.forEach(([k, , t]) => { const s = v(k); out[k] = s === "" ? null : (t === "number" ? num(s) : s); });
     if (S.general.showCosts) { const c = v("lastCost").replace(/[$,]/g, ""); out.lastCost = c === "" ? null : num(c); }
     out.name = v("name") || composeName(out);
     if (!out.brand && !out.model && !out.type) return fail("Give it a brand and model, or at least a type.");
     if (out.upc) { const dup = Array.from(S.products.values()).find(y => y.upc === out.upc && y.id !== p.id); if (dup) return fail("That UPC already belongs to " + productName(dup) + "."); }
+    if (!asinOk(out.asin)) return fail(ASIN_BAD);
     if (out.parLevel != null && out.parLevel < 0) return fail("Par level must be zero or more.");
     const changed = Object.keys(out).filter(k => String(out[k] == null ? "" : out[k]) !== String(p[k] == null ? "" : p[k]) && !(k === "consumable" && !!out[k] === !!p[k]));
     if (!changed.length) { toast("Nothing changed"); return; }
@@ -8979,7 +9003,8 @@ async function doRemovePhoto(p) {
    field on the panel, New product), Loadout asks loadout-worker what the
    free UPC lookup knows and offers its photos in one sheet, "Photo for this
    UPC". The UPC is saved first and either way. A browser cannot call the
-   lookup, so the worker does, for signed-in admin and warehouse only; the
+   lookup, so the worker does, for signed-in admin, warehouse, and (since
+   0.17.0 and worker 0.4.0) tech; the
    photo needs the Authorization header, so it comes through fetch() and
    shows from a blob URL, revoked when the sheet closes. A chosen photo goes
    through doSetPhoto like a camera photo. The product keeps photoSource,
@@ -8994,8 +9019,34 @@ const DEMO_UPC_MODE = DEMO && ["busy", "offline"].includes(QUERY.get("upc")) ? Q
 const DEMO_UPC = {
   "810010074409": { found: true, title: "Ubiquiti UniFi 6 Pro access point", brand: "Ubiquiti", model: "U6-Pro", photos: 4 },
   "078477581138": { found: true, title: "Cat6 keystone jack, blue, 25 pack", brand: "Kenable", model: "KJ6-25", photos: 2 },
-  "612825120034": { found: false, photos: 0 }
+  "612825120034": { found: false, photos: 0 },
+  /* 0.17.0 (PLAN 33.1 item 5): codes on no demo product, for the Scan lookup's four states */
+  "810010071231": { found: true, title: "Ubiquiti UniFi Switch Pro 24 PoE, 24-port managed Layer 3 switch with 400W PoE budget", brand: "Ubiquiti", model: "USW-Pro-24-POE", photos: 2 },
+  "640177007702": { found: true, title: "Crestron TSW-770 7 in. wall mount touch screen, black", brand: "Crestron", model: "TSW-770", photos: 1 },
+  "012345678905": { found: false, photos: 0 },
+  "036000291452": { busy: true }
 };
+/* 0.17.0: every lookup answer is kept on this device for 30 days (per UPC),
+   so the shared 100-a-day limit is not spent twice on the same box. Busy
+   and errors are not kept. Storage that throws just means no cache. */
+const UPC_CACHE_KEY = "loadout.upcLookup" + (DEMO ? ".demo" : ""), UPC_CACHE_DAYS = 30, UPC_CACHE_MAX = 300;
+let UPC_CALLS = 0;
+function upcCacheAll() {
+  try { const o = JSON.parse(localStorage.getItem(UPC_CACHE_KEY) || "{}"); return o && typeof o === "object" && !Array.isArray(o) ? o : {}; } catch (e) { return {}; }
+}
+function upcCacheGet(upc) {
+  const e = upcCacheAll()[upc];
+  return e && e.f && num(e.t) > Date.now() - UPC_CACHE_DAYS * 864e5 ? e.f : null;
+}
+function upcCachePut(upc, f) {
+  try {
+    const all = upcCacheAll(), cut = Date.now() - UPC_CACHE_DAYS * 864e5;
+    all[upc] = { t: Date.now(), f: { found: !!f.found, title: f.title || "", brand: f.brand || "", model: f.model || "", photos: num(f.photos) } };
+    const keep = Object.keys(all).filter(k => all[k] && num(all[k].t) > cut).sort((a, b) => all[b].t - all[a].t).slice(0, UPC_CACHE_MAX);
+    const out = {}; keep.forEach(k => { out[k] = all[k]; });
+    localStorage.setItem(UPC_CACHE_KEY, JSON.stringify(out));
+  } catch (e) { /* private mode or full: no cache */ }
+}
 function demoUpcBlob(i) {
   const c = document.createElement("canvas"); c.width = 480; c.height = 480;
   const g = c.getContext("2d"), tint = ["#dfe7f2", "#e6e2d8", "#dbe8df", "#ece0e0"][i % 4];
@@ -9019,13 +9070,18 @@ async function upcFetch(path) {
   throw { kind: r.status === 429 ? "busy" : r.status === 403 ? (code === "origin_not_allowed" ? "origin" : "forbidden") : r.status === 401 ? "signin" : r.status === 400 ? "bad" : r.status === 404 ? "nophoto" : "unreachable", status: r.status, code };
 }
 async function upcLookup(upc) {
+  const hit = upcCacheGet(upc);
+  if (hit) return Object.assign({ ok: true, upc }, hit, { onDevice: true }, DEMO ? { demo: true } : {});
+  UPC_CALLS++;
+  let f;
   if (DEMO) {
     await upcSleep(450);
-    if (DEMO_UPC_MODE === "busy") throw { kind: "busy" };
-    const f = DEMO_UPC[upc];
-    return Object.assign({ ok: true, upc, found: false, photos: 0 }, f || {}, { demo: true });
-  }
-  return (await upcFetch("/upc/lookup?upc=" + encodeURIComponent(upc))).json();
+    const d = DEMO_UPC[upc];
+    if (DEMO_UPC_MODE === "busy" || (d && d.busy)) throw { kind: "busy" };
+    f = Object.assign({ ok: true, upc, found: false, photos: 0 }, d || {}, { demo: true });
+  } else f = await (await upcFetch("/upc/lookup?upc=" + encodeURIComponent(upc))).json();
+  if (f && f.ok !== false) upcCachePut(upc, f);
+  return f;
 }
 async function upcPhotoBlob(upc, i) {
   if (DEMO) { await upcSleep(150 + i * 120); return demoUpcBlob(i); }
@@ -9055,7 +9111,8 @@ const UPC_FAIL = {
   offline: "No connection, so nothing was looked up. The UPC is saved; use Find a photo on the product once you are back online.",
   busy: "The lookup is busy. Try again later.",
   unreachable: "Could not reach the lookup. The UPC is saved; try Find a photo on the product later.",
-  forbidden: "Your role cannot look photos up. Admin and warehouse can.",
+  forbidden: "Your role cannot use the UPC lookup. Admin, warehouse, and tech can.",
+  nowrite: "Only admin and warehouse can save a photo on a product.",
   origin: "This copy of Loadout is not allowed to use the lookup. Open it from its usual address.",
   signin: "Sign in again to look photos up.",
   bad: "The lookup does not take that UPC. Check the digits on the box.",
@@ -9132,7 +9189,7 @@ function openUpcPhoto(p0, upc, opts = {}) {
   };
   bodyEl.innerHTML = '<p class="upstate" role="status">Looking up this UPC.</p><div class="upgrid">' + '<span class="upth"><span class="upimg"><span class="skelbar"></span></span></span>'.repeat(4) + "</div>";
   const offline = DEMO ? DEMO_UPC_MODE === "offline" || !onlineNow() : !navigator.onLine;
-  if (!isWriter()) { paintFail("forbidden"); return w; }
+  if (!isWriter()) { paintFail("nowrite"); return w; }
   if (offline) { paintFail("offline"); return w; }
   upcLookup(upc).then(f => {
     if (st.closing) return;
@@ -9676,7 +9733,8 @@ function confirmUpc(pid, code) {
   const p = S.products.get(pid); if (!p) { S.pendingUpcFor = null; return; }
   const other = Array.from(S.products.values()).find(x => x.upc === code && x.id !== pid);
   if (other) { toast("That barcode already belongs to " + productName(other) + ".", true); return; }
-  confirmModal("Set UPC", "<p>Set <b class=\"mono\">" + esc(code) + "</b> as the UPC of <b>" + esc(productName(p)) + "</b>? Scanning it will find this product from now on.</p>", "Set UPC", async () => {
+  confirmModal("Save UPC", "<p>Save UPC <b class=\"mono\">" + esc(code) + "</b> on <b>" + esc(productName(p)) + "</b>? Scanning it will find this product from now on." +
+    (p.upc && p.upc !== code ? " It carries UPC <span class=\"mono\">" + esc(p.upc) + "</span> now; this replaces it." : "") + "</p>", "Save UPC", async () => {
     S.pendingUpcFor = null; render(true);
     if (await doSaveProduct(p.id, { upc: code, name: productName(p) }, false, ["upc"])) { toast("UPC saved"); S.scan = { kind: "prod", id: p.id }; refreshScan(); }
   });
@@ -9707,14 +9765,110 @@ function paintScanResult() {
     el.innerHTML = '<div class="rk"><span>Label not found</span></div><div class="rt mono">' + esc(sc.code) + '</div><p class="rm">This label points at a record that is not in Loadout any more, or has not reached this device yet. Check the sticker, or reprint it from ' + officeWord() + ", Labels.</p>";
     return;
   }
-  const isUpc = /^\d{8,14}$/.test(sc.code);
-  const noUpc = Array.from(S.products.values()).filter(p => !p.upc).sort((a, b) => toDate(b.updatedAt || b.createdAt) - toDate(a.updatedAt || a.createdAt) || productName(a).localeCompare(productName(b)));
+  const isUpc = /^\d{8,14}$/.test(sc.code), W = isWriter();
+  if (!isUpc) {
+    el.innerHTML = '<div class="rk"><span>Not in the catalog yet</span></div><div class="rt mono">' + esc(sc.code) + "</div>" +
+      (!W ? '<p class="rm">Ask the warehouse to add it, or check the code and try again.</p>' :
+        '<div class="btnrow"><button type="button" class="btn acc" data-act="newProduct" data-upc="" data-prefill="' + esc(sc.code) + '">New product</button></div>');
+    return;
+  }
+  /* 0.17.0 (PLAN 33.1 item 5): an unknown UPC is looked up first (admin,
+     warehouse, and tech), with the closest products already in Loadout; the
+     long dropdown is a type-to-search list. Saving the UPC or making a
+     product stays with admin and warehouse; anyone else can open a product. */
+  S.upcFound = null;
   el.innerHTML = '<div class="rk"><span>Not in the catalog yet</span></div><div class="rt mono">' + esc(sc.code) + "</div>" +
-    (!isWriter() ? '<p class="rm">Ask the warehouse to add it, or check the code and try again.</p>' :
-      (isUpc && noUpc.length ? '<label class="lab" for="linkUpc" title="Products imported from the sheet have no UPC yet. Pick the one this box is, and the barcode is learned.">' + '<abbr>Link to a product without a UPC</abbr></label><div class="manual" style="margin:0"><select class="fld" id="linkUpc" data-decide><option value="">Choose the product</option>' +
-        noUpc.slice(0, 400).map(p => '<option value="' + esc(p.id) + '">' + esc(productName(p)) + "</option>").join("") + '</select><button type="button" class="btn acc" data-act="linkUpc" data-code="' + esc(sc.code) + '">Link</button></div>' : "") +
-      '<div class="btnrow"><button type="button" class="btn' + (isUpc && noUpc.length ? "" : " acc") + '" data-act="newProduct" data-upc="' + (isUpc ? esc(sc.code) : "") + '" data-prefill="' + (isUpc ? "" : esc(sc.code)) + '">New product</button></div>');
-  wireGlow(el);
+    '<div class="upcfind" id="upcFind"></div>' +
+    '<label class="lab" for="upcQ" title="Searches every product by name, brand, model or part number, category, and Amazon ASIN. ' + (W ? "Tap the one this box is, confirm, and the barcode is learned." : "Tap one to open it.") + '"><abbr>' + (W ? "Find the product this box is" : "Find the product") + "</abbr></label>" +
+    '<input class="fld" id="upcQ" type="search" placeholder="Name, brand, model, or ASIN" autocomplete="off" spellcheck="false">' +
+    '<div class="umlist" id="upcList"></div>' +
+    (W ? '<div class="btnrow" id="upcNewRow"><button type="button" class="btn" data-act="newProduct" data-upc="' + esc(sc.code) + '" data-prefill="">New product</button></div>'
+      : '<p class="rm">The office or warehouse can link this UPC to a product.</p>');
+  const q = $("#upcQ", el);
+  paintUpcList(sc.code, "");
+  q.addEventListener("input", () => paintUpcList(sc.code, q.value));
+  paintUpcFind(sc);
+}
+/* one row of the Scan search list and of the lookup's closest matches */
+function upcRowHTML(p, code) {
+  const W = isWriter(), bm = [p.brand, p.model].filter(Boolean).join(" ");
+  const shelf = p.defaultLocationId ? locName(p.defaultLocationId) : "No usual shelf";
+  return '<button type="button" class="umrow" data-act="' + (W ? "upcPick" : "scanProd") + '" data-id="' + esc(p.id) + '" data-code="' + esc(code) + '" title="' +
+    esc(W ? "Asks to save UPC " + code + " on " + productName(p) + ". Nothing is saved until you confirm." : "Opens " + productName(p) + ".") + '">' +
+    '<span class="umimg">' + (p.imageUrl ? '<img src="' + esc(p.imageUrl) + '" alt="" width="44" height="44" loading="lazy">' : '<span aria-hidden="true">No photo</span>') + "</span>" +
+    '<span class="umt"><b>' + esc(productName(p)) + "</b>" + (bm && bm !== productName(p) ? "<small>" + esc(bm) + "</small>" : "") +
+    "<small>" + esc(qtyTxt(p, onHandOf(p))) + " on hand, " + esc(shelf) + (p.upc ? ", has UPC " + esc(p.upc) : "") + "</small></span></button>";
+}
+/* the Scan list: every product by name, brand, model, category, type, SKU, ASIN, or UPC; spaces and dashes optional */
+function upcHay(p) { const h = [productName(p), p.brand, p.model, p.category, p.type, p.sku, p.asin, p.upc].filter(Boolean).join(" ").toLowerCase(); return { h, n: h.replace(/[\s-]+/g, "") }; }
+function paintUpcList(code, qRaw) {
+  const box = $("#upcList"); if (!box) return;
+  const words = String(qRaw || "").toLowerCase().split(/\s+/).filter(Boolean), all = Array.from(S.products.values());
+  let list, note = "";
+  if (!words.length) {
+    list = all.filter(p => !p.upc).sort((a, b) => toDate(b.updatedAt || b.createdAt) - toDate(a.updatedAt || a.createdAt) || productName(a).localeCompare(productName(b))).slice(0, 8);
+    note = list.length ? "Products with no UPC yet, newest first. Type to search every product." : "Type to search every product.";
+  } else {
+    const hits = all.filter(p => { const y = upcHay(p); return words.every(w => y.h.includes(w) || y.n.includes(w.replace(/-+/g, ""))); })
+      .sort((a, b) => productName(a).localeCompare(productName(b)));
+    list = hits.slice(0, 30);
+    note = !hits.length ? "Nothing matches that. Check the spelling, or search by model." : hits.length > 30 ? "The first 30 of " + hits.length + ". Keep typing to narrow it." : "";
+  }
+  box.innerHTML = (note ? '<p class="hint" style="margin:6px 0 0">' + esc(note) + "</p>" : "") + list.map(p => upcRowHTML(p, code)).join("");
+}
+/* closest products to a lookup answer: the model (case-blind, spaces and
+   dashes ignored) counts most, then shared model words, then the brand;
+   brand alone only when nothing shares the model; best first, at most 5 */
+const upcSquash = x => String(x || "").toLowerCase().replace(/[\s\-_/.]+/g, "");
+function upcClosest(f) {
+  const fm = upcSquash(f.model), fb = upcSquash(f.brand);
+  const toks = String(f.model || "").toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length >= 3);
+  const rows = [];
+  S.products.forEach(p => {
+    const pm = upcSquash(p.model), pn = upcSquash(productName(p)), pb = upcSquash(p.brand);
+    let m = 0;
+    if (fm && pm && fm === pm) m = 100;
+    else if (fm.length >= 3 && ((pm.length >= 3 && (pm.includes(fm) || fm.includes(pm))) || pn.includes(fm))) m = 70;
+    else if (toks.length) { const pt = new Set(((p.model || "") + " " + productName(p)).toLowerCase().split(/[^a-z0-9]+/)); m = Math.min(50, toks.filter(w => pt.has(w)).length * 20); }
+    const b = fb && (pb ? pb === fb : pn.startsWith(fb)) ? 20 : 0;
+    if (m + b) rows.push({ p, m, s: m + b });
+  });
+  const strong = rows.some(r => r.m > 0);
+  return rows.filter(r => !strong || r.m > 0).sort((a, b) => b.s - a.s || productName(a.p).localeCompare(productName(b.p))).slice(0, 5).map(r => r.p);
+}
+const UPC_SCAN_FAIL = {
+  not_found: "The lookup does not know this UPC. Search for the product below.",
+  busy: "The free lookup's shared daily limit is used up. Try again later, or search for the product below.",
+  offline: "No connection, so nothing was looked up. Search for the product below.",
+  unreachable: "Could not reach the lookup. Search for the product below.",
+  forbidden: "Your role cannot use the UPC lookup. Search for the product below.",
+  signin: "Sign in again to use the lookup. Until then, search for the product below.",
+  origin: "This copy of Loadout is not allowed to use the lookup. Search for the product below.",
+  bad: "The lookup does not take this code as a UPC. Search for the product below."
+};
+/* who may call the worker's UPC routes (loadout-worker 0.4.0, UPC_ROLES there) */
+const UPC_LOOKUP_ROLES = ["admin", "warehouse", "tech"];
+function paintUpcFind(sc) {
+  const code = sc.code, box = () => S.scan === sc ? $("#upcFind") : null;
+  const line = kind => { const b = box(); if (b) b.innerHTML = '<p class="upstate">' + esc(UPC_SCAN_FAIL[kind] || UPC_SCAN_FAIL.unreachable) + "</p>"; };
+  const b0 = box(); if (!b0) return;
+  if (!UPC_LOOKUP_ROLES.includes(S.role)) { line("forbidden"); return; }
+  const offline = DEMO ? DEMO_UPC_MODE === "offline" || !onlineNow() : !navigator.onLine;
+  if (offline && !upcCacheGet(code)) { line("offline"); return; }
+  b0.innerHTML = '<p class="upstate" role="status">Looking it up.</p>';
+  upcLookup(code).then(f => {
+    const b = box(); if (!b) return;
+    if (!f || !f.found) { line("not_found"); return; }
+    S.upcFound = { code, f };
+    const bm = [f.brand, f.model].filter(Boolean).join(" ") || f.title || "an unnamed product";
+    const title = f.title && f.title !== bm ? (f.title.length > 80 ? f.title.slice(0, 79).trim() + "..." : f.title) : "";
+    const ms = upcClosest(f), W = isWriter();
+    b.innerHTML = '<p class="umlike">This looks like: <b>' + esc(bm) + "</b></p>" + (title ? '<p class="hint" style="margin:2px 0 0">' + esc(title) + "</p>" : "") +
+      (ms.length ? '<h4 class="h4" style="margin-top:10px">Closest products in Loadout</h4><div class="umlist">' + ms.map(p => upcRowHTML(p, code)).join("") + "</div>"
+        : '<p class="hint">Nothing in Loadout looks like it.</p>') +
+      (W ? '<div class="btnrow"><button type="button" class="btn' + (ms.length ? "" : " acc") + '" data-act="upcNewProduct" data-code="' + esc(code) + '" title="Opens New product with the name, brand, model, and this UPC filled in from the lookup. Check them before you create it.">None of these: make a new product</button></div>' : "");
+    const nr = $("#upcNewRow"); if (nr) nr.hidden = true;
+  }).catch(e => line(e && e.kind ? e.kind : "unreachable"));
 }
 /* 0.14.0 (PLAN 33.1 item 10): the open jobs a scanned unit or product is on;
    nothing at all when it is on none. It never opens a job by itself. A
@@ -10446,6 +10600,7 @@ async function exportTables() {
       continue;
     }
     push(coll, docs.map(d => flatten(d)), ["id"]);
+    if (coll === "loadout_products" && !out[out.length - 1].keys.includes("asin")) out[out.length - 1].keys.push("asin");
   }
   return out;
 }
@@ -10677,7 +10832,7 @@ const DATA_DICTIONARY = [
     ["description", "Free text"], ["name", "Display name: brand and model, or type and attributes"],
     ["connector1, connector2", "Connector at each end"], ["color", "Color"], ["length, lengthUnit", "Length and its unit (ft, m, in)"], ["gauge, gaugeUnit", "Wire gauge and unit (awg, mm)"],
     ["amps", "Current rating"], ["inputs, outputs", "Splitter ports"], ["sex", "Male or female"], ["band", "Band"], ["pins", "Pin count"], ["wireType", "Pair count or cable spec, as 23/4 or RG6"], ["grade", "GP, Riser, Plenum, or Shielded"],
-    ["unit", "each or ft"], ["upc", "Barcode, learned on first scan"], ["category", "Wire, Network, Camera, and so on, picked from the category list and saved in its spelling (0.11.0)"], ["consumable", "Shows in Consumables with a par level"],
+    ["unit", "each or ft"], ["upc", "Barcode, learned on first scan"], ["asin", "Amazon ASIN, optional: 10 letters or digits, upper case; the panel links to amazon.com/dp/ it (0.17.0)"], ["category", "Wire, Network, Camera, and so on, picked from the category list and saved in its spelling (0.11.0)"], ["consumable", "Shows in Consumables with a par level"],
     ["parLevel", "Reorder point in the product's unit"], ["defaultLocationId", "Usual shelf"], ["defaultLocationName", "Its name when set"], ["imageUrl", "Download link of the product photo (Firebase Storage)"], ["imagePath", "Storage path of the photo: loadout/products/{id}.jpg"], ["imageAt", "When the photo was last added or replaced"],
     ["photoSource", "Where the photo came from: camera (taken or picked on a phone or computer) or upc (chosen from the UPC lookup) (0.10.0)"],
     ["upcLookupAt", "When someone last answered Photo for this UPC for this product (0.10.0)"], ["upcLookupResult", "That answer: used (a lookup photo was saved), none (None of these), kept (Keep the current photo), or not_found (the lookup knew nothing) (0.10.0)"],
@@ -11277,7 +11432,7 @@ const HDR = { type: ["type"], make: ["make", "brand", "manufacturer"], part: ["p
   sex: ["sex"], band: ["band"], pins: ["pin", "pins"], box: ["box"], wireType: ["wire type"], purchase: ["purchase date"], location: ["location"], grade: ["grade"],
   /* 0.7.0: the Devices tab's pull tracking and serials (PLAN 17, lessons 8 to 11). A header cell
      with a line break ("Serial/MAC" over "Device Only") reads as one line: clean() folds it to a space. */
-  upc: ["upc", "barcode"], serial: ["serial/mac device only", "serial/mac", "serial", "serial number", "mac"], pullDate: ["pull date"],
+  upc: ["upc", "barcode"], asin: ["asin", "amazon asin"], serial: ["serial/mac device only", "serial/mac", "serial", "serial number", "mac"], pullDate: ["pull date"],
   pullClient: ["client pulled for"], pullFor: ["pulled for"], note: ["note", "notes"] };
 const MAKE_ALIASES = { "ubiquity": "Ubiquiti", "unifi": "Ubiquiti", "ubiquiti": "Ubiquiti" };
 S.imp = null;
@@ -11467,6 +11622,9 @@ function buildImportPlan(imp) {
     /* lesson 8: the UPC arrives as a number; it lands as text without the .0, and an empty cell never clears one */
     const upc = clean(rec.upc).replace(/\.0+$/, "");
     if (upc) pe.upc = upc;
+    /* 0.17.0: an optional ASIN column; a bad one is listed and left out, never required */
+    const asin = asinNorm(clean(rec.asin));
+    if (asin && asinOk(asin)) pe.asin = asin; else if (asin) warnings.push("Tab " + rec.tab + " row " + rec.row + " has an ASIN that is not 10 letters or digits; it was left out.");
     const cond = clean(rec.condition), sheetNote = clean(rec.note), pullFor = clean(rec.pullFor), pullDate = asDate(rec.pullDate), pullClient = clean(rec.pullClient);
     const serRaw = clean(rec.serial) ? String(rec.serial).trim() : "";
     const where = "Tab " + rec.tab + " row " + rec.row;
@@ -11634,7 +11792,7 @@ function importOps(plan) {
     if (!p.isNew) { delete d.consumable; }
     Object.keys(d).forEach(k => { if (d[k] === undefined) d[k] = null; });
     const data = Object.assign(d, { onHand: onHand.get(p.id) || 0, lastCountAt: p.lastCountAt || null, updatedAt: NOW },
-      p.isNew ? { upc: p.upc || null, parLevel: null, defaultLocationId: null, portalItemId: null, imageUrl: null, createdAt: NOW } : p.upc ? { upc: p.upc } : {});
+      p.isNew ? { upc: p.upc || null, parLevel: null, defaultLocationId: null, portalItemId: null, imageUrl: null, createdAt: NOW } : p.upc ? { upc: p.upc } : {}, p.asin ? { asin: p.asin } : {});
     if (!p.isNew && sameDoc(S.products.get(p.id), data)) return;
     ops.push({ op: "set", coll: "loadout_products", id: p.id, merge: true, data });
   });
@@ -11755,7 +11913,7 @@ function impDoneHTML() {
     '<button type="button" class="btn" data-act="impDoneX">Done</button></div></div>';
 }
 /* demo-only hooks for checking the importer and the loading and error states by script */
-if (DEMO) window.Loadout = { tipAudit, importBuffer:(buf, name) => importLoad(buf, name || "workbook.xlsx"), state: S, render: () => render(true), setLive, sampleCsv: () => SAMPLE_CSV, board: BD,
+if (DEMO) window.Loadout = { tipAudit, upcCalls: () => UPC_CALLS, importBuffer:(buf, name) => importLoad(buf, name || "workbook.xlsx"), state: S, render: () => render(true), setLive, sampleCsv: () => SAMPLE_CSV, board: BD,
   /* 0.11.0 (PLAN 25): the matcher, the formatter, and the lists, for the self-test and the checks by script */
   lists: { normKey, tidyName, brandList, categoryList, listSpell, importOps: () => S.imp && S.imp.plan ? importOps(S.imp.plan) : null },
   /* 0.13.1 (PLAN 33): the label link and the one parser every scan path uses, for the checks by script */
@@ -11878,7 +12036,13 @@ document.addEventListener("click", e => {
     case "scanPull": S.pullFocus = { tid: id, pid: b.dataset.pid }; go("pull", id); break;
     case "clearLoc": setActiveLoc(null); break;
     case "cancelUpc": S.pendingUpcFor = null; render(true); break;
-    case "linkUpc": { const sel = $("#linkUpc"); if (!sel || !sel.value) { toast("Pick the product first.", true); return; } S.pendingUpcFor = sel.value; confirmUpc(sel.value, b.dataset.code); break; }
+    case "upcPick": if (isWriter()) confirmUpc(id, b.dataset.code); break;
+    case "upcNewProduct": {
+      const u = S.upcFound; if (!u || u.code !== b.dataset.code) break;
+      const f = u.f, t = String(f.title || "").trim();
+      openProductForm(null, { upc: u.code, brand: f.brand || "", model: f.model || "", name: t.length > 80 ? t.slice(0, 80).trim() : t });
+      break;
+    }
     case "printOne": printLabels([{ kind: b.dataset.kind, id }]); break;
     case "mvCsv": exportMvCsv(); break;
     case "mvClear": S.mvFilter = { type: "", person: "", q: "", from: "", to: "" }; render(true); break;

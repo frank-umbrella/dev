@@ -17,7 +17,7 @@ import { parseProposal, buildImport, matchProduct, secretsMatch, slug } from './
 import { portalConfigured, handlePortalWebhook } from './portal.js';
 import { handleUpc, appOrigins } from './upc.js';
 
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 
 // Root collections in the same order as the app's Console export
 // (index.html EXPORT_COLLS); ticket and order lines are added after, and a

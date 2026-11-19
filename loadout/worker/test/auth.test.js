@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { requireStaff, verifyIdToken, rosterRole, maxAgeSeconds, _resetKeyCache, JWKS_URL } from '../src/auth.js';
+import { requireStaff, STAFF_ROLES, UPC_ROLES, verifyIdToken, rosterRole, maxAgeSeconds, _resetKeyCache, JWKS_URL } from '../src/auth.js';
 
 // A key pair made here stands in for Google's; nothing touches the network.
 const PROJECT = 'watchtower-6fbe1';
@@ -76,6 +76,26 @@ test('auth: roster missing, inactive, tech and accounting are 403', async () => 
   assert.equal(await status(requireStaff(req(t), env, deps({ 'uid-1': { role: 'tech', active: true } }))), 403);
   assert.equal(await status(requireStaff(req(t), env, deps({ 'uid-1': { role: 'accounting', active: true } }))), 403);
   assert.equal(await status(requireStaff(req(t), env, deps({ 'uid-1': { active: true } }))), 403); // no role = tech
+});
+
+test('auth: UPC_ROLES lets an active tech through; the default staff list still refuses tech (0.4.0)', async () => {
+  const t = await sign();
+  assert.deepEqual(STAFF_ROLES, ['admin', 'warehouse']);
+  assert.deepEqual(UPC_ROLES, ['admin', 'warehouse', 'tech']);
+  const tech = await requireStaff(req(t), env, deps({ 'uid-1': { role: 'tech', active: true } }), UPC_ROLES);
+  assert.equal(tech.role, 'tech');
+  const noRole = await requireStaff(req(t), env, deps({ 'uid-1': { active: true } }), UPC_ROLES);
+  assert.equal(noRole.role, 'tech');
+  assert.equal(await status(requireStaff(req(t), env, deps({ 'uid-1': { role: 'tech', active: true } }), STAFF_ROLES)), 403);
+  assert.equal(await status(requireStaff(req(t), env, deps({ 'uid-1': { role: 'tech', active: false } }), UPC_ROLES)), 403);
+  assert.equal(await status(requireStaff(req(t), env, deps({}), UPC_ROLES)), 403);
+  assert.equal(await status(requireStaff(req(t), env, deps({ 'uid-1': { role: 'accounting', active: true } }), UPC_ROLES)), 403);
+  assert.equal(await status(requireStaff(req(t), env, deps({ 'uid-1': { role: 'board', active: true } }), UPC_ROLES)), 403);
+  try {
+    await requireStaff(req(t), env, deps({ 'uid-1': { role: 'accounting', active: true } }), UPC_ROLES);
+  } catch (e) {
+    assert.equal(e.message, 'Role accounting cannot use the UPC lookup');
+  }
 });
 
 test('auth: an unverified or off-domain address is 403 before the roster is read', async () => {
