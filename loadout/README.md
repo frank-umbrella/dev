@@ -1066,9 +1066,10 @@ settings, the board, and the brand lists; refusals for a manager writing
 movement in another name; warehouse still cannot approve or write `access`
 or other general settings; tech and accounting cannot write `access`; admin
 writes and clears `access` and makes a person a manager). The storage
-rules below still name only admin and warehouse (photos) and admin and
-accounting (backups); until manager is added there, a manager's product
-photo upload and Backups list are refused.
+rules below now include manager too: a manager uploads product photos like
+warehouse and reads and lists backups like accounting (13 of 13 checks in
+the local Storage and Firestore emulators, an inactive manager refused;
+storage rules not deployed either).
 **Not deployed.**
 The owner of the Firebase project deploys it from `work/watchtower` with:
 
@@ -1410,7 +1411,9 @@ Storage and Firestore emulators: admin and accounting read, download, and
 list both levels; warehouse, tech, an account with no roster doc, a paused
 admin, an outside account, and a signed-out request get 403 on all of them;
 nobody can write or delete. Not deployed; until it is, the Backups tab shows
-its "Storage rules do not allow your role" message.
+its "Storage rules do not allow your role" message. Since 0.19.0 (PLAN 34.2)
+both `loadoutWriter()` and `loadoutReader()` also accept manager, so a
+manager uploads photos like warehouse and reads backups like accounting.
 
 ```
 rules_version = '2';
@@ -1434,25 +1437,28 @@ service firebase.storage {
         && request.auth.token.email_verified == true
         && request.auth.token.email.matches('.*@umbrellaautomation[.]com');
     }
-    // Admin and warehouse, read from the Loadout roster in Firestore. A
-    // missing roster doc counts as tech and a paused one (active == false)
-    // as nobody, exactly as loadoutRole() does in firestore.rules.
+    // Admin, manager, and warehouse, read from the Loadout roster in
+    // Firestore (manager uploads product photos like warehouse since Loadout
+    // 0.19.0, PLAN 34.2). A missing roster doc counts as tech and a paused
+    // one (active == false) as nobody, exactly as loadoutRole() does in
+    // firestore.rules.
     function loadoutWriter() {
       let path = /databases/(default)/documents/loadout_users/$(request.auth.uid);
       return loadoutSignedIn()
         && firestore.exists(path)
         && firestore.get(path).data.get('active', true) == true
-        && firestore.get(path).data.get('role', 'tech') in ['admin', 'warehouse'];
+        && firestore.get(path).data.get('role', 'tech') in ['admin', 'manager', 'warehouse'];
     }
-    // Admin and accounting: the two roles that see the Console, where the
-    // Backups tab lists the nightly files. Reads the roster exactly as
-    // loadoutWriter() does.
+    // Admin, manager, and accounting: the roles that see the Console, where
+    // the Backups tab lists the nightly files (manager reads backups like
+    // accounting since Loadout 0.19.0, PLAN 34.2). Reads the roster exactly
+    // as loadoutWriter() does.
     function loadoutReader() {
       let path = /databases/(default)/documents/loadout_users/$(request.auth.uid);
       return loadoutSignedIn()
         && firestore.exists(path)
         && firestore.get(path).data.get('active', true) == true
-        && firestore.get(path).data.get('role', 'tech') in ['admin', 'accounting'];
+        && firestore.get(path).data.get('role', 'tech') in ['admin', 'manager', 'accounting'];
     }
     // Product photos: loadout/products/{productId}.{jpg|jpeg|png|webp}.
     // The app shrinks a photo to 1200 px and uploads JPEG; the rule holds
@@ -1467,7 +1473,7 @@ service firebase.storage {
     }
     // Nightly backups (loadout-worker 0.2.0): loadout/backups/YYYY-MM-DD/
     // <collection>.csv. Every collection is in them, the roster and costs
-    // included, so only admin and accounting may read or list them. The
+    // included, so only admin, manager, and accounting may read or list them. The
     // worker writes and prunes through its service account, which skips
     // these rules, so no one writes here from the app.
     match /loadout/backups/{day}/{file} {
@@ -1493,9 +1499,9 @@ proposal, the job, and its lines with the same ids the CSV import uses,
 flagged `needsReview` until someone looks. Every night at 09:00 UTC it writes
 one CSV per collection to this project's Storage bucket under
 `loadout/backups/YYYY-MM-DD/` and deletes days older than 90 (PLAN section 16
-rule 7); Office, Backups lists them for admin and accounting. It
+rule 7); Office, Backups lists them for admin, manager, and accounting. It
 writes through a service account, so the Firestore rules do not change and
-the Storage rules only need to let the two roles read. The
+the Storage rules only need to let those roles read. The
 Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 

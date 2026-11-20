@@ -2659,10 +2659,10 @@ by the rules or the file store, greyed with the reason):
 
 Reports, Movements, and Export only read, and every role reads every
 loadout collection, so any role may be given them. Backups are refused to
-warehouse and tech by the storage rules. **Open:** `watchtower/storage.rules`
-still lets only admin and accounting read backups and only admin and
-warehouse upload product photos; manager has to be added there before a
-manager's Backups list and photo upload work.
+warehouse and tech by the storage rules. `watchtower/storage.rules` now
+includes manager: admin, manager, and accounting read backups, and admin,
+manager, and warehouse upload product photos (checked in the Storage and
+Firestore emulators; not deployed).
 
 - New role "manager": everything admin does except People and Who sees what.
   In rules it is a writer like warehouse, plus the reads accounting has.
