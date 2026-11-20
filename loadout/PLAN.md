@@ -2564,7 +2564,7 @@ and unit for printing (admin, warehouse, tech). There is no page to manage
 codes: every QR is the record's id (`?c=<kind>:<id>`, PAYLOAD / labelLink), so
 a code cannot be changed, only reprinted. The user picked both builds below.
 
-### 34.1 Office > QR codes (0.18.0, admin; manager too once 34.2 adds it)
+### 34.1 Office > QR codes (0.18.0, admin; manager too since 0.19.0)
 **Built in 0.18.0 (2026-11-19).** Choices made in the build:
 - The generation separator is a dot (`?c=loc:<id>.2`, `loadout:loc:<id>.2`):
   every id comes from slug() or rid(), letters, digits, and dashes only, so
@@ -2611,6 +2611,59 @@ a code cannot be changed, only reprinted. The user picked both builds below.
   labelPrinted* pair while they can still print. Emulator-proven.
 
 ### 34.2 Who sees what + a Manager role (0.19.0)
+**Built in 0.19.0 (2026-11-20).** Choices made in the build:
+- Keys: `door_<door>` for the six Home doors, `office_<card>` for the twelve
+  Office cards in the grid (Orders and tracking, Clients, Reports, People,
+  Settings, Audit, Labels, QR codes, Movements, Import, Backups, Export).
+  Brands and categories follows Settings; This phone and About are for
+  everyone and not in the grid. Who sees what is its own page
+  (`#office/access`, admin only), opened from Settings, with its own Save,
+  so the Settings Save (which a manager may use) never writes `access`.
+- Stored: only the ticks that differ from the defaults. The save is a
+  Firestore update of the whole `access` field, so a tick put back to its
+  default is dropped; Reset to defaults writes `access: {}`.
+- A stored tick never beats the ceiling: a refused box is off whatever is
+  stored. A role's default stays the 0.18.0 split, so a later release that
+  changes a default changes it for every shop that did not tick that box.
+- Audit has a door and an Office card on the same screen: `#audit` opens
+  when either is on, and says it is turned off only when both are.
+- A screen opened by link shows "This screen is turned off for your role"
+  only when a tick took it away; a screen the role never had keeps its
+  0.18.0 message. A next-step button on a job card whose door is off
+  becomes Open job. Accounting with Reports off lands on Office.
+- Manager in the app: isBoss() (admin or manager) replaced every isAdmin()
+  except the first-run location seed. Admin only: People (roster, roles,
+  active), Who sees what, the seed, and the last-admin guard.
+- Demo: `?demo=1&role=manager`; a Who sees what save applies in memory so
+  hiding can be tried.
+
+Ceiling matrix (D = on by default, A = allowed, off by default, R = refused
+by the rules or the file store, greyed with the reason):
+
+| Key | Manager | Warehouse | Tech | Accounting |
+|---|---|---|---|---|
+| door_pickup, door_deliver, door_return | D | D | D | R |
+| door_pull, door_receive, door_audit | D | D | R | R |
+| office_orders | D | D | R | R |
+| office_clients | D | A | R | R |
+| office_reports | D | A | A | D |
+| office_people | R | R | R | R |
+| office_settings | D | R | R | R |
+| office_audit | D | D | R | R |
+| office_labels | D | D | D | R |
+| office_qrcodes | D | A | R | R |
+| office_movements | D | D | D | A |
+| office_import | D | A | R | R |
+| office_backups | D | R | R | D |
+| office_export | D | A | A | D |
+
+Reports, Movements, and Export only read, and every role reads every
+loadout collection, so any role may be given them. Backups are refused to
+warehouse and tech by the storage rules. **Open:** `watchtower/storage.rules`
+still lets only admin and accounting read backups and only admin and
+warehouse upload product photos; manager has to be added there before a
+manager's Backups list and photo upload work.
+
 - New role "manager": everything admin does except People and Who sees what.
   In rules it is a writer like warehouse, plus the reads accounting has.
 - Office > Settings > Who sees what (admin only): a grid of roles (manager,

@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP, Tech spec and History v0.18.0</title>
+<title>Loadout - In pictures, Overview, Test drive, Storyboard, SOP, Tech spec and History v0.19.0</title>
 <meta name="description" content="Storyboard and functional SOP for Loadout, the internal inventory, job, and order tracking tool, matching the built app. The shop's reference document.">
 <meta name="robots" content="noindex, nofollow">
-<meta name="version" content="0.18.0">
+<meta name="version" content="0.19.0">
 <script>
   // ?print=1 strips the chrome for a PDF. ?tab=pictures|overview|drive|story|sop|tech|history picks the tab
-  // (In pictures when none is given); ?sheet=warehouse|tech|office|accounting|all lays out the role sheets;
+  // (In pictures when none is given); ?sheet=warehouse|tech|office|manager|accounting|all lays out the role sheets;
   // ?all=1 shows every tab at once (for a single PDF of the whole document).
   (function () {
     var q = new URLSearchParams(location.search);
@@ -485,7 +485,7 @@
   .rolepick label { font-weight: 600; }
   .rolepick select { font: inherit; min-height: 44px; padding: 6px 10px; border: 1px solid #767f8c; border-radius: 8px; background: #fff; color: var(--m-text); max-width: 100%; }
   .sheets { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
-  @media (min-width: 700px) { .sheets { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 700px) { .sheets { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sheets > .sheet:last-child:nth-child(odd) { grid-column: 1 / -1; } }
   .sheet { min-width: 0; border: 1px solid var(--line-strong); border-radius: 10px; padding: 14px 16px; background: var(--surface); }
   .sheet h4 { font-size: 18px; margin: 0 0 4px; }
   .sheet .who { font-size: 14.5px; color: var(--muted); margin: 0 0 8px; }
@@ -674,7 +674,7 @@
     Loadout
   </h1>
   <p class="subtitle">How product moves through the shop, from approved proposal to installed, and what gets recorded at each step</p>
-  <p class="meta">Version 0.18.0, updated Nov 19, 2026 <a href="#history" id="whatChanged">What changed</a></p>
+  <p class="meta">Version 0.19.0, updated Nov 20, 2026 <a href="#history" id="whatChanged">What changed</a></p>
 
   <div class="tabs" role="tablist" aria-label="Sections of this document">
     <button type="button" role="tab" id="tabbtn-pictures" aria-controls="tab-pictures" aria-selected="true" data-tab="pictures">In pictures<span class="hint">nine panels and one chart</span></button>
@@ -1041,10 +1041,11 @@
   <div class="rolepick noprint">
     <label for="roleSel">Sheet to print</label>
     <select id="roleSel">
-      <option value="all">All four, one per page</option>
+      <option value="all">All five, one per page</option>
       <option value="warehouse">Warehouse</option>
       <option value="tech">Tech</option>
       <option value="office">Office</option>
+      <option value="manager">Manager</option>
       <option value="accounting">Accounting</option>
     </select>
     <button type="button" class="btn-print" id="printRole">Print the sheet</button>
@@ -1084,21 +1085,35 @@
       </ol>
     </article>
     <article class="sheet" id="role-office" data-role="office">
-      <div class="phead"><b>Your job in Loadout: Office</b><span>Loadout v0.18.0</span></div>
+      <div class="phead"><b>Your job in Loadout: Office</b><span>Loadout v0.19.0</span></div>
       <h4>Office</h4>
-      <p class="who">The desk at the front: proposals, orders, and closing jobs. In the app this is the admin or warehouse role.</p>
+      <p class="who">The desk at the front: proposals, orders, and closing jobs. In the app this is the admin, manager, or warehouse role.</p>
       <ol>
         <li><b>Jobs, New job:</b> when a client accepts, upload the proposal file (.csv) from Portal with Use a proposal file, check Here is what the file says, and press Create job. No file? Make the list yourself.</li>
         <li><b>The job page:</b> Request what is short puts every Short line on an order request.</li>
-        <li><b>Office, Orders and tracking:</b> requests waiting for your approval come first. Approve one, or Send back with a note (admin only).</li>
+        <li><b>Office, Orders and tracking:</b> requests waiting for your approval come first. Approve one, or Send back with a note (admin or manager).</li>
         <li><b>Mark ordered:</b> once a request is approved, then Add shipment with the tracking number.</li>
         <li><b>Tracking:</b> what is on the way and which job each box is for, and any box that arrived and was never received.</li>
         <li><b>Week:</b> the installs day by day, with each job's lines.</li>
         <li><b>Copy for Portal:</b> a status note to paste into the proposal.</li>
         <li><b>Close job:</b> once every line is delivered; leftovers are scanned back onto their shelf or written off.</li>
         <li><b>Office, Reports, Job report:</b> every line of one job, with its units, boxes, PO, and costs.</li>
-        <li><b>Office, People and Settings:</b> roles, the QR threshold, and the wall board (admin only).</li>
-        <li><b>Office, QR codes (admin only):</b> every label code, where each thing is, and when its label was last printed. A torn, lost, or misplaced label: Retire label with the reason, then Reprint. Every copy printed before stops working.</li>
+        <li><b>Office, People and Settings:</b> roles, the QR threshold, and the wall board. People is admin only; a manager has Settings.</li>
+        <li><b>Settings, Who sees what (admin only):</b> tick which Home doors and Office cards each role sees, so people only see what they use. A greyed box is one the database would refuse anyway. Hiding is not security.</li>
+        <li><b>Office, QR codes (admin or manager):</b> every label code, where each thing is, and when its label was last printed. A torn, lost, or misplaced label: Retire label with the reason, then Reprint. Every copy printed before stops working.</li>
+      </ol>
+    </article>
+    <article class="sheet" id="role-manager" data-role="manager">
+      <div class="phead"><b>Your job in Loadout: Manager</b><span>Loadout v0.19.0</span></div>
+      <h4>Manager</h4>
+      <p class="who">Runs the shop day to day: everything an admin does except People and Who sees what. An admin gives this role in Office, People.</p>
+      <ol>
+        <li><b>Home:</b> every door the warehouse has (Pick up, Confirm a delivery, Pull, Receive, Return, Audit), the jobs, and Week.</li>
+        <li><b>Office, Orders and tracking:</b> requests waiting for approval come first. Approve one, or Send back with a note.</li>
+        <li><b>Office, QR codes:</b> Retire label with the reason, then Reprint.</li>
+        <li><b>Office, Settings:</b> costs, QR threshold, carriers, vendors, brands and categories, and the wall board.</li>
+        <li><b>Office, Import, Reports, Backups, Export everything:</b> the same as the admin.</li>
+        <li><b>Not yours:</b> People (who works here and their roles) and Who sees what stay with the admin.</li>
       </ol>
     </article>
     <article class="sheet" id="role-accounting" data-role="accounting">
@@ -1154,7 +1169,8 @@
   <table class="cmp">
     <thead><tr><th>Role</th><th>Can</th><th>Cannot</th></tr></thead>
     <tbody>
-      <tr><td data-l="Role">Admin</td><td data-l="Can">Everything, plus every Office section: People, Settings, Clients, Import, Reports.</td><td data-l="Cannot">Nothing is off limits.</td></tr>
+      <tr><td data-l="Role">Admin</td><td data-l="Can">Everything, plus every Office section: People, Settings, Who sees what, Clients, Import, Reports.</td><td data-l="Cannot">Nothing is off limits.</td></tr>
+      <tr><td data-l="Role">Manager</td><td data-l="Can">Everything an admin does: approve order requests, QR codes, Settings, Import, Reports, Backups, Export.</td><td data-l="Cannot">People (roles and who works here) and Who sees what.</td></tr>
       <tr><td data-l="Role">Warehouse</td><td data-l="Can">Build and close jobs, pull, pick up, deliver, audit shelves, raise order requests, mark approved ones ordered, receive, adjust counts, print labels, move units.</td><td data-l="Cannot">Add people or change settings.</td></tr>
       <tr><td data-l="Role">Tech</td><td data-l="Can">Scan, stage, pick up, and deliver job lines, check units out and in, save box marks.</td><td data-l="Cannot">Edit products, audit or adjust counts, order, or receive.</td></tr>
       <tr><td data-l="Role">Accounting</td><td data-l="Can">Read everything; Office, Reports (its Home), Backups, Export everything, and About.</td><td data-l="Cannot">Change any count; there are no edit buttons at all.</td></tr>
@@ -1189,6 +1205,7 @@
     <li><b>0.6.0 to 0.7.0, 2026-11-02 to 11-05.</b> One-handed phone layout, the nightly backup listed in the app, serials and MAC addresses, and the inventory sheet's pulled units.</li>
     <li><b>0.8.0, 2026-11-05.</b> Home with the doors, the words Job and Pull sheet, Shelf and Office, Pick up as its own step, Audit a shelf, and the board as a grid of six jobs.</li>
     <li><b>0.9.0, 2026-11-11.</b> Pull has its own screen, shelf by shelf, opened from the Pull list or the QR on the printed pull sheet. Bring back takes product from a van to the bay or a shelf, and Close job waits for it. Receive a shipment is a door, and a costly unit asks for its serial or MAC there. A carrier's box has Arrived, not Delivered. The progress line names only what has happened. The wall board reads on a phone.</li>
+    <li><b>0.19.0, 2026-11-20.</b> A Manager role that runs the shop without control over who works there, and Office, Settings, Who sees what, where the admin chooses which Home doors and Office cards each role sees.</li>
     <li><b>0.18.0, 2026-11-19.</b> Office, QR codes: every label code in one table, with when it was last printed and by whom. Retire label stops a damaged, lost, or misplaced label from working; the reprint carries a new number after a dot, and labels never retired still scan as before.</li>
     <li><b>0.17.0, 2026-11-19.</b> Find it by UPC: Scan looks an unknown box up and shows the closest products, a search list replaces the long dropdown, techs can use the lookup, and products can carry an Amazon ASIN.</li>
     <li><b>0.16.0, 2026-11-18.</b> Which job: every wire cut says which job it was for (or Not for a job), and the Job report and job page show Wire used. A job from a proposal shows Proposal #, a hand-made one Job # with No proposal. Tracking names the job each package is for.</li>
@@ -2366,7 +2383,8 @@
     <p class="purpose">Give each person the access their job needs, and let accounting pull numbers without touching stock.</p>
     <p class="whowhen"><span><b>Who</b>Admin for people and settings; Accounting for reports</span><span><b>When</b>A new hire, a role change, someone leaving, or month end</span></p>
     <div class="roles">
-      <div><h4>Admin</h4><p>Everything, plus Office, People and Settings: show costs, QR threshold, week start, Work week default, label sheet, box start lengths, carriers, vendors, the Portal tier, and the wall board; and from Settings, Brands and categories, to rename or merge a brand or category everywhere it is used.</p></div>
+      <div><h4>Admin</h4><p>Everything, plus Office, People and Settings: show costs, QR threshold, week start, Work week default, label sheet, box start lengths, carriers, vendors, the Portal tier, and the wall board; and from Settings, Brands and categories, to rename or merge a brand or category everywhere it is used, and Who sees what, to choose which Home doors and Office cards each role sees.</p></div>
+      <div><h4>Manager</h4><p>Runs the shop day to day: everything an admin does, approvals, QR codes, and Settings included, except People and Who sees what.</p></div>
       <div><h4>Warehouse</h4><p>Build and close jobs, pull, order, receive, adjust counts, print labels, move and retire units, change a holder.</p></div>
       <div><h4>Tech</h4><p>Scan, stage and deliver job lines, check out and check in, and save box marks. No product edits, no adjustments.</p></div>
       <div><h4>Accounting</h4><p>Reads everything; in Office, Reports, About, and Export everything. Sees no edit buttons at all.</p></div>
@@ -2561,6 +2579,12 @@ Staged 9/12 lines in Tech area. Delivered 0/12. On order: Ubiquiti UDM-SE x1, PO
   <h2 id="history">History</h2>
   <p class="lede">What changed in this document, newest first. The app's own releases are in the Overview, under What is built.</p>
   <ol class="hist">
+    <li>
+      <h3>0.19.0 <span class="when">Nov 20, 2026</span></h3>
+      <ul>
+        <li>A Manager role sheet joins the role sheet picker. The Office role sheet says approvals and QR codes are admin or manager and adds Settings, Who sees what (admin only). The Overview's Who uses it table and SOP-10 add Manager, and the admin's entries name Who sees what. What is built has 0.19.0. Not redrawn: the comic, the flow chart, the deck, and the storyboard sketches; none of them shows the Manager role or Who sees what.</li>
+      </ul>
+    </li>
     <li>
       <h3>0.18.0 <span class="when">Nov 19, 2026</span></h3>
       <ul>

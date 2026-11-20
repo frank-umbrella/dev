@@ -18,7 +18,7 @@ Cloudflare Worker for Loadout (`work/loadout`). It does three jobs:
 The Portal API intake (T2) is a stub until PLAN D1 is answered; see
 "T2 boundary" below.
 
-Version: **0.4.0**. Worker URL once deployed:
+Version: **0.5.0**. Worker URL once deployed:
 `https://loadout-worker.umbrelladev.workers.dev`.
 
 ## Endpoints
@@ -248,8 +248,8 @@ lookup answer is the service's own count of what is left.
 **Who can call it.** Only the app's own address (`APP_ORIGINS`, exact
 match; anything else, and a request with no `Origin`, gets 403 before any
 lookup), and only a person signed in to the app whose roster document
-(`loadout_users/{uid}`) is active with role admin, warehouse, or tech
-(`UPC_ROLES` in `src/auth.js`; tech since 0.4.0), from a
+(`loadout_users/{uid}`) is active with role admin, manager, warehouse, or tech
+(`UPC_ROLES` in `src/auth.js`; tech since 0.4.0, manager since 0.5.0), from a
 verified `@umbrellaautomation.com` address, the same test the Firestore
 rules use. The app sends the Firebase ID token as `Authorization: Bearer`;
 the worker checks its signature against Google's published keys, its
@@ -355,6 +355,14 @@ roster role and pause, and which roles each list lets through), and the UPC rout
 photo address filtering, image type and size limits, and CORS).
 
 ## Changelog
+
+### 0.5.0 (2026-11-20)
+
+Loadout 0.19.0 adds a Manager role: someone who runs the shop day to day
+without control over who works there. A manager does every warehouse job,
+so the sign-in check now lets an active manager through wherever it lets
+warehouse through (`STAFF_ROLES` and `UPC_ROLES`). Accounting and board are
+still refused. Nothing else changed. Not deployed.
 
 ### 0.4.0 (2026-11-19)
 

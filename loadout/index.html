@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Loadout v0.18.0</title>
+<title>Loadout v0.19.0</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="loadout-version" content="0.18.0">
+<meta name="loadout-version" content="0.19.0">
 <meta name="description" content="Umbrella Automation shop inventory. Restricted to @umbrellaautomation.com accounts.">
 <meta name="theme-color" content="#1e6fd9">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -1078,6 +1078,25 @@ body.preview #printSheet .picksheet{box-shadow:0 2px 10px rgba(0,0,0,.15)}
   .bkfiles .bkn{grid-column:1/-1}
 }
 .setsect{margin-top:22px;padding-top:14px;border-top:1px solid var(--m-line)}
+/* ---------- 0.19.0 (PLAN 34.2): Who sees what grid; a card per row on a phone ---------- */
+.acgrp{margin-top:var(--s3)}
+.acrow{display:grid;grid-template-columns:minmax(0,1fr) repeat(4,minmax(64px,96px));align-items:center;gap:4px var(--s2);padding:6px 0;border-top:1px solid var(--m-line)}
+.acrow.achead{border-top:0;font-size:12px;font-weight:600;color:var(--m-muted);padding:0}
+.acrow.achead span{text-align:center}
+.acname{min-width:0;overflow-wrap:anywhere}
+.acbox{display:flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;cursor:pointer}
+.acbox input{width:20px;height:20px;margin:0;cursor:pointer}
+.acbox.no,.acbox.no input{cursor:not-allowed}
+.acbox.no input{opacity:.45}
+.acbox .acrl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.nodoors{margin:var(--s3) 0}
+@media (max-width:640px){
+  .acrow.achead{display:none}
+  .acrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:10px 0}
+  .acname{grid-column:1/-1;font-weight:600}
+  .acbox{justify-content:flex-start;gap:8px}
+  .acbox .acrl{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal}
+}
 .setsect>h3{margin:0 0 4px;font-size:16px}
 /* ---------- 0.11.0 (PLAN 25): brand, category, and type pick lists ----------
    The list hangs under its field inside the field's own box (left and right 0),
@@ -1534,7 +1553,7 @@ a.textbtn{display:inline-flex;align-items:center}
     <!-- 0.10.0: the mark and name are one link to the person's Home; a relative hash keeps the demo's query string -->
     <a class="brand" href="#home" id="brandHome" aria-label="Loadout, go to Home">
       <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="20" width="48" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="5"/><path d="M24 20v-6a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M8 35h48" stroke="currentColor" stroke-width="4"/><rect x="27" y="31" width="10" height="8" rx="2" fill="currentColor"/></svg>
-      Loadout <span class="v" id="verBadge">v0.18.0</span>
+      Loadout <span class="v" id="verBadge">v0.19.0</span>
     </a>
     <nav class="nav" aria-label="Views">
       <!-- 0.8.0 (PLAN 18): the same five as the phone tab bar, in the same order -->
@@ -1574,7 +1593,7 @@ a.textbtn{display:inline-flex;align-items:center}
   </main>
 
   <footer class="foot">
-    <span id="footVer">Loadout v0.18.0</span>
+    <span id="footVer">Loadout v0.19.0</span>
   </footer>
 
   <nav class="tabbar" aria-label="Views">
@@ -1600,7 +1619,7 @@ a.textbtn{display:inline-flex;align-items:center}
    and its Google sign-in, like Backup Audits and Sundial. Data lives
    in loadout_* collections; rules are in watchtower/firestore.rules.
    ============================================================== */
-const VERSION = "0.18.0";
+const VERSION = "0.19.0";
 const SDK = "https://www.gstatic.com/firebasejs/12.13.0/";
 const XLSX_URL = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 /* @zxing/library is not on cdnjs, so the fallback decoder comes from jsDelivr,
@@ -1628,8 +1647,9 @@ const PRINT = QUERY.get("print") === "1";
 let BOARD = QUERY.get("board") === "1";
 const DEMO_EMPTY = DEMO && QUERY.get("empty") === "1";
 
-const ROLES = ["admin", "warehouse", "tech", "accounting", "board"];
-const ROLE_LABEL = { admin: "Admin", warehouse: "Warehouse", tech: "Tech", accounting: "Accounting", board: "Board", none: "Deactivated" };
+/* 0.19.0 (PLAN 34.2): manager runs the shop day to day; People and Who sees what stay with the admin */
+const ROLES = ["admin", "manager", "warehouse", "tech", "accounting", "board"];
+const ROLE_LABEL = { admin: "Admin", manager: "Manager", warehouse: "Warehouse", tech: "Tech", accounting: "Accounting", board: "Board", none: "Deactivated" };
 const KINDS = ["device", "patch-cable", "splitter", "connector", "wire", "other"];
 const KIND_LABEL = { device: "Device", "patch-cable": "Patch cable", splitter: "Splitter", connector: "Connector", wire: "Wire", other: "Other" };
 /* 0.7.0: vehicle is a person's car or truck that carries stock (the sheet's "<name> Car" area); it reads like other */
@@ -1796,11 +1816,15 @@ const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&a
 const num = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
 const fmtN = v => num(v).toLocaleString("en-US", { maximumFractionDigits: 2 });
 const money = v => "$" + num(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const isWriter = () => S.role === "admin" || S.role === "warehouse";
+const isWriter = () => S.role === "admin" || S.role === "manager" || S.role === "warehouse";
 const isTech = () => isWriter() || S.role === "tech";
+/* 0.19.0 (PLAN 34.2): isAdmin is the admin alone (People, Who sees what,
+   the first-run seed); isBoss is admin or manager, for everything else
+   that was admin-only (approvals, QR codes, renames, settings, import) */
 const isAdmin = () => S.role === "admin";
+const isBoss = () => S.role === "admin" || S.role === "manager";
 /* the Console (PLAN 4): the management surface for admins, read-only for accounting */
-const canConsole = () => S.role === "admin" || S.role === "accounting";
+const canConsole = () => isBoss() || S.role === "accounting";
 function toDate(v) {
   if (!v) return null;
   if (v instanceof Date) return isNaN(v) ? null : v;
@@ -2851,6 +2875,7 @@ function firestoreStore(user) {
         const g = docs.find(d => d.id === "general");
         S.counters = docs.find(d => d.id === "counters") || null;
         S.general = Object.assign({}, DEFAULT_GENERAL, g || {});
+        S.generalExists = !!g;
         S.general.boxStart = Object.assign({}, DEFAULT_GENERAL.boxStart, (g && g.boxStart) || {});
         S.board = Object.assign({}, DEFAULT_BOARD, docs.find(d => d.id === "board") || {});
         S.importMap = docs.find(d => d.id === "importMap") || null;
@@ -4689,7 +4714,9 @@ function render(force) {
   $$(".view").forEach(v => v.hidden = v.id !== "v-" + S.view);
   $("#app").classList.toggle("wide", S.view === "week");
   paintA2(); paintOfficeBar();
-  if (S.view === "home") renderHome();
+  /* 0.19.0 (PLAN 34.2): a screen turned off in Who sees what, opened by a link */
+  if (viewOff(S.view)) $("#v-" + S.view).innerHTML = OFF_HTML;
+  else if (S.view === "home") renderHome();
   else if (S.view === "pull") renderPull();
   else if (S.view === "pickup" || S.view === "deliver") renderFlow(S.view);
   else if (S.view === "receive") renderReceive();
@@ -4773,6 +4800,7 @@ function paintSync() {
 const officeWord = () => S.role === "tech" ? "More" : "Office";
 const ROLE_WHAT = {
   admin: "Everything: jobs, the shelf, orders, reports, people, and settings.",
+  manager: "Runs the shop day to day: everything an admin does except People and Who sees what.",
   warehouse: "Builds jobs, pulls and stages them, receives shipments, audits shelves, and orders. People, settings, and reports stay with the admin.",
   tech: "Picks up from the staging area, confirms deliveries, scans product back from the van, cuts wire, and checks units in and out. Building jobs and ordering stay with the warehouse.",
   accounting: "Reads reports, backups, and exports. Changes nothing.",
@@ -4956,7 +4984,7 @@ function renderTicket() {
     (canDlv ? '<a class="btn" href="' + jobHref(t, "deliver") + '" title="Tick what arrived on site and confirm it">Confirm delivery</a>' : "") + (t.needsReview && W ? '<button type="button" class="btn acc" data-act="tkReviewed" title="Clears the review flag once the lines, quantities, and product matches from Portal look right. The timeline keeps who reviewed it.">Mark reviewed</button>' : "") + '<button type="button" class="btn" data-act="tkCopy" title="Copies the status block below so you can paste it into the proposal\'s internal notes in Portal">Copy for Portal</button>' +
     '<button type="button" class="btn" data-act="tkPrint" title="The pull sheet for the clipboard, grouped by area, with where to pull each line from">Print pull sheet</button>' +
     /* 0.10.0 (PLAN 23): the same job as a report, with costs, units, and exports */
-    (canConsole() ? '<a class="btn" href="#office/reports/job/' + encodeURIComponent(t.id) + '" title="Every line of this job in Reports, with its units, wire boxes, and costs when they are on, ready to export or print">Open as a report</a>' : "") +
+    (officeCan("reports") ? '<a class="btn" href="#office/reports/job/' + encodeURIComponent(t.id) + '" title="Every line of this job in Reports, with its units, wire boxes, and costs when they are on, ready to export or print">Open as a report</a>' : "") +
     (closed || !W ? "" : lines.some(isShort) ? '<button type="button" class="btn" data-act="tkOrder" title="Puts every Short line (the shelves cannot cover it and no request carries it yet) on an order request for an admin to approve">Request what is short</button>'
       : '<span title="Every line is covered by stock or an order request"><button type="button" class="btn" disabled aria-describedby="omHint" data-tk="tkOrderOff">Request what is short</button><span class="sr" id="omHint">Every line is covered by stock or an order request</span></span>') +
     (W && !closed ? '<button type="button" class="btn" data-act="tkBoard" aria-pressed="' + pinned + '" title="' + (pinned ? "Takes this job off the warehouse TV" : "Pins this job to the warehouse TV so its pull sheet shows in the warehouse") + '">' + (pinned ? "Remove from board" : "Show on board") + "</button>" : "") +
@@ -5238,7 +5266,7 @@ function openPullAll(t) {
   });
 }
 function openClose(t) {
-  const lo = closeLeftovers(t), van = ticketLines(t.id).filter(l => lineInVan(l) > 0), A = isAdmin();
+  const lo = closeLeftovers(t), van = ticketLines(t.id).filter(l => lineInVan(l) > 0), A = isBoss();
   const vanIds = new Set(van.flatMap(l => vanUnits(t, l).map(i => i.id))), inst = installsFor(t).filter(i => !vanIds.has(i.id));
   /* 0.9.0 (PLAN 20.2): what is still in a van sits beside what is left in the bay. The job closes once
      each van line is delivered or brought back; only the admin may write it off here instead. */
@@ -5588,7 +5616,7 @@ function openCamScan(o) {
   })();
 }
 function openNewTicket(opts = {}) {
-  const addTo = opts.ticket || null, fileFirst = S.role === "admin";
+  const addTo = opts.ticket || null, fileFirst = isBoss();
   const I = { tab: opts.tab || (fileFirst ? "csv" : "hand"), step: 0, rows: [], headers: [], map: {}, lines: new Map(), skipped: [], noCreate: new Set(), hand: [], rooms: false, q: "", typeOpen: false, fixOpen: false,
     client: addTo ? addTo.clientId : "", newClient: "", job: addTo ? addTo.jobId : "", newJob: "", newAddr: "", proposal: "", proposalTouched: false, bay: "", install: "" };
   const STEPS = addTo ? ["list", "check"] : ["who", "list", "check"];
@@ -5597,7 +5625,7 @@ function openNewTicket(opts = {}) {
   const cards = [card("hand", "Make the list yourself", "Pick products from the shelf list and type how many. For service calls and small jobs."),
     card("csv", "Use a proposal file (.csv)", "The office downloads this from Portal when a client accepts a proposal. If someone sent you a file ending in .csv, choose this.")];
   if (fileFirst) cards.reverse();
-  const portalOn = isAdmin() && S.portal && (S.portal.tier === "t1" || S.portal.tier === "t2");
+  const portalOn = isBoss() && S.portal && (S.portal.tier === "t1" || S.portal.tier === "t2");
   const body = (addTo ? '<p class="ntlead">Add product to ' + esc(jobLabel(addTo, 1)) + ", " + esc(tkWho(addTo)) + ". Lines already on it stay as they are.</p>"
       : '<p class="ntlead">A job is the list of product one client\'s install needs. Loadout uses it to show what to pull, what to order, and what was delivered.</p>') +
     (portalOn && !addTo ? '<p class="hint" style="margin-top:0">Accepted proposals arrive here on their own; look for jobs marked To review.</p>' : "") +
@@ -5925,7 +5953,7 @@ function createTicket(I, addTo, w, err) {
     toast(ex ? numLbl + " updated: " + nNew + " new, " + nChg + " changed" : numLbl + " created");
   });
   /* 0.10.0 (PLAN 22.1): a new job lands on its Pull screen for whoever can pull; an update stays on the job page */
-  if (!DEMO) go(!ex && isWriter() ? "pull" : "ticket", tid);
+  if (!DEMO) go(!ex && isWriter() && sees("door_pull") ? "pull" : "ticket", tid);
 }
 
 /* ==============================================================
@@ -6396,7 +6424,9 @@ function jobStripHTML(s, big) {
 function jobMeta(t) { return [t.jobName, tkBay(t) || "No staging area yet", t.installAt ? "Install " + fmtShort(t.installAt) : "No install date"].filter(Boolean).join(", "); }
 /* the one next step for a job card: something in a van is confirmed first,
    then pulling while the shelves have it, then pick up, then close */
-function jobNext(t) {
+/* 0.19.0: a next step whose door is turned off for the role opens the job instead */
+function jobNext(t) { const nx = jobNextAll(t), m = nx && nx.href && /^#(pull|pickup|deliver)\//.exec(nx.href); return m && !sees("door_" + m[1]) ? { label: "Open job", href: jobHref(t) } : nx; }
+function jobNextAll(t) {
   const st = tkStatus(t); if (st === "closed") return null;
   const lines = ticketLines(t.id);
   if (!lines.length) return { label: "Open job", href: jobHref(t) };
@@ -6439,10 +6469,11 @@ function renderHome() {
   let h = "";
   /* the doors in the order the shop uses them most, Audit last (PLAN 18.7) */
   /* 0.9.0: Receive a shipment is fourth, above Audit, for warehouse and admin */
-  if (isTech()) h += '<h2 class="sr">What are you doing?</h2><div class="doors">' + ["pickup", "deliver", "pull", "receive", "return", "audit"].filter(k => (k !== "audit" && k !== "receive") || isWriter()).map(doorHTML).join("") + "</div>";
+  /* 0.19.0 (PLAN 34.2): only the doors Who sees what leaves on */
+  if (isTech()) { const ds = HOME_DOORS.filter(k => ((k !== "audit" && k !== "receive") || isWriter()) && sees("door_" + k)); h += '<h2 class="sr">What are you doing?</h2>' + (ds.length ? '<div class="doors">' + ds.map(doorHTML).join("") + "</div>" : NO_DOORS); }
   const list = liveJobs().sort(byInstall);
   h += '<div class="mcard"' + (isTech() ? ' style="margin-top:var(--s3)"' : "") + '><div class="thead"><h2 class="vt">Jobs</h2><span class="sp">' +
-    (isAdmin() ? '<a class="btn sm" href="#week" title="The install schedule a week at a time. It also sits under ' + officeWord() + ', Orders and tracking.">Week</a>' : "") +
+    (isBoss() && sees("office_orders") ? '<a class="btn sm" href="#week" title="The install schedule a week at a time. It also sits under ' + officeWord() + ', Orders and tracking.">Week</a>' : "") +
     '<a class="btn sm" href="#jobs" title="Every job in a table you can sort, filter, and lay out, closed ones too">All jobs</a>' +
     (isWriter() ? '<button type="button" class="btn sm acc" data-act="newTicket" title="Make the list of product for one client\'s install, by hand or from the proposal file">New job</button>' : "") + "</span></div>" +
     jobCardsHTML(list, "<p>No open jobs. New job makes the list of product for a client's install.</p>" + (isWriter() ? '<button type="button" class="btn acc" data-act="newTicket">New job</button>' : "")) +
@@ -6463,11 +6494,12 @@ function techHomeHTML() {
     /* 0.9.0 (PLAN 20.2): Bring back sits under Confirm delivery, for a postponed job or a line not needed */
     if (vanJobs.length) h += '<h3 class="h4">In the van, by job</h3><div class="jcards">' + vanJobs.map(t => jobCardHTML(t, null,
       '<ul class="flowlist">' + ticketLines(t.id).filter(l => vanLine.has(l.id)).map(l => '<li class="fl"><span>' + esc(lineName(l)) + "<small>" + esc(lqty(l, lineInVan(l))) + (l.pickedUpAt ? ", picked up " + esc(fmtShort(l.pickedUpAt)) : "") + "</small></span></li>").join("") + "</ul>" +
-      '<a class="btn acc" href="' + jobHref(t, "deliver") + '">Confirm delivery</a>' + bringBackBtn(t, true))).join("") + "</div>";
+      (sees("door_deliver") ? '<a class="btn acc" href="' + jobHref(t, "deliver") + '">Confirm delivery</a>' : "") + bringBackBtn(t, true))).join("") + "</div>";
     if (units.length) h += '<h3 class="h4" style="margin-top:var(--s3)">Units checked out to me</h3><div class="outme">' + units.map(i => '<div class="om"><b>' + esc(i.productName || "") + '</b> <span class="mono">' + esc(unitShort(i)) + "</span><small>" + esc(i.jobName || "No job") + (i.checkedOutAt ? ", since " + esc(fmtShort(i.checkedOutAt)) : "") + "</small></div>").join("") + "</div>";
   }
   h += "</div>";
-  h += '<h2 class="sr">What are you doing?</h2><div class="doors" style="margin-top:var(--s3)">' + doorHTML("pickup") + doorHTML("deliver") + doorHTML("return") + "</div>";
+  const ds = ["pickup", "deliver", "return"].filter(k => sees("door_" + k));
+  h += '<h2 class="sr">What are you doing?</h2>' + (ds.length ? '<div class="doors" style="margin-top:var(--s3)">' + ds.map(doorHTML).join("") + "</div>" : NO_DOORS);
   return h;
 }
 /* serial or MAC, last six; the full value is on the unit's own panel */
@@ -7132,47 +7164,132 @@ function notFoundChip(i) {
 
 /* ---------------- Office (More + the Console, PLAN 18.1) ---------------- */
 const OFFICE = [
-  ["orders", "Orders and tracking", "What is on order, where each package is, and the install week.", r => r === "admin" || r === "warehouse"],
-  ["clients", "Clients", "Client names and the job names under them; most arrive with an import.", r => r === "admin"],
-  ["reports", "Reports", "Stock value, spend by vendor, what went to each job.", r => r === "admin" || r === "accounting"],
+  ["orders", "Orders and tracking", "What is on order, where each package is, and the install week.", r => r === "admin" || r === "manager" || r === "warehouse"],
+  ["clients", "Clients", "Client names and the job names under them; most arrive with an import.", r => r === "admin" || r === "manager"],
+  ["reports", "Reports", "Stock value, spend by vendor, what went to each job.", r => r === "admin" || r === "manager" || r === "accounting"],
   ["people", "People", "Who can sign in, and what each person can do.", r => r === "admin"],
-  ["settings", "Settings", "Costs, label size, carriers, QR threshold, brands and categories, and the wall board.", r => r === "admin"],
+  ["settings", "Settings", "Costs, label size, carriers, QR threshold, brands and categories, and the wall board.", r => r === "admin" || r === "manager"],
+  /* 0.19.0 (PLAN 34.2): opened from Settings, admin only, no card */
+  ["access", "Who sees what", "Which Home doors and Office cards each role sees.", r => r === "admin", true],
   /* 0.11.0 (PLAN 25): opened from Settings, so it has no card of its own (the fifth field hides it from the grid) */
-  ["lists", "Brands and categories", "The pick lists on every product: rename, merge, and the likely duplicates.", r => r === "admin", true],
-  ["audit", "Audit", "Every shelf by the date it was last audited.", r => r === "admin" || r === "warehouse"],
-  ["labels", "Labels", "Print labels for shelves, wire boxes, and serialized units.", r => r === "admin" || r === "warehouse" || r === "tech"],
-  /* 0.18.0 (PLAN 34.1): admin only for now; the manager role joins in 0.19.0 (PLAN 34.2) */
-  ["qrcodes", "QR codes", "Every label code, what it points to, when it was last printed, and retiring a label.", r => r === "admin"],
-  ["movements", "Movements", "Every pull, audit, pick-up, and check-out, with who and when.", r => r === "admin" || r === "warehouse" || r === "tech"],
-  ["import", "Import inventory sheet", "Bring the shop's inventory spreadsheet in.", r => r === "admin"],
-  ["backups", "Backups", "The nightly copies of the data, to download by day.", r => r === "admin" || r === "accounting"],
-  ["export", "Export everything", "Every collection as a workbook or zipped CSVs.", r => r === "admin" || r === "accounting"],
+  ["lists", "Brands and categories", "The pick lists on every product: rename, merge, and the likely duplicates.", r => r === "admin" || r === "manager", true],
+  ["audit", "Audit", "Every shelf by the date it was last audited.", r => r === "admin" || r === "manager" || r === "warehouse"],
+  ["labels", "Labels", "Print labels for shelves, wire boxes, and serialized units.", r => r === "admin" || r === "manager" || r === "warehouse" || r === "tech"],
+  /* 0.18.0 (PLAN 34.1): admin; 0.19.0 (PLAN 34.2): manager too */
+  ["qrcodes", "QR codes", "Every label code, what it points to, when it was last printed, and retiring a label.", r => r === "admin" || r === "manager"],
+  ["movements", "Movements", "Every pull, audit, pick-up, and check-out, with who and when.", r => r === "admin" || r === "manager" || r === "warehouse" || r === "tech"],
+  ["import", "Import inventory sheet", "Bring the shop's inventory spreadsheet in.", r => r === "admin" || r === "manager"],
+  ["backups", "Backups", "The nightly copies of the data, to download by day.", r => r === "admin" || r === "manager" || r === "accounting"],
+  ["export", "Export everything", "Every collection as a workbook or zipped CSVs.", r => r === "admin" || r === "manager" || r === "accounting"],
   /* 0.8.1: every role; the strip and the card can be dismissed, this cannot.
      0.9.1: phones and tablets only (a2Device); a computer never sees it */
   ["phone", "This phone", "Put Loadout on the home screen, or get the tip back.", () => a2Device()],
   ["about", "About", "Version, what changed, and what each field means.", () => true]
 ];
-const officeCan = k => { const o = OFFICE.find(x => x[0] === k); return !!o && o[3](S.role); };
+/* 0.19.0: a card in Who sees what follows its tick; Brands and categories follows Settings */
+const officeCan = k => { const o = OFFICE.find(x => x[0] === k); if (!o) return false; return ACCESS_BY.has("office_" + k) ? sees("office_" + k) : o[3](S.role) && (k !== "lists" || officeCan("settings")); };
 const officeName = k => { const o = OFFICE.find(x => x[0] === k); return o ? o[1] : k; };
+/* ---------------- Who sees what (0.19.0, PLAN 34.2) ----------------
+   Every Home door and Office card is a key, door_<door> or office_<card>.
+   What a role sees is its tick stored in settings/general access, else the
+   0.18.0 split (DOOR_ROLES and the OFFICE tests above, manager beside
+   admin). A box the rules refuse for that role (ACCESS_NO) is never on,
+   whatever is stored. Admin sees everything. Hiding is not security: the
+   rules still decide every write. */
+const ACCESS_ROLES = ["manager", "warehouse", "tech", "accounting"];
+const HOME_DOORS = ["pickup", "deliver", "pull", "receive", "return", "audit"];
+const DOOR_ROLES = { pickup: ["admin", "manager", "warehouse", "tech"], deliver: ["admin", "manager", "warehouse", "tech"], return: ["admin", "manager", "warehouse", "tech"],
+  pull: ["admin", "manager", "warehouse"], receive: ["admin", "manager", "warehouse"], audit: ["admin", "manager", "warehouse"] };
+const accNo = (what, roles) => roles.reduce((o, r) => (o[r] = "The database refuses " + what + " from " + (r === "tech" ? "techs" : r), o), {});
+const PEOPLE_NO = "Only an admin changes who works here and what each person can do";
+const BK_NO = "Backups hold the roster and every cost; the file store lets only admins, managers, and accounting read them";
+const ACCESS_NO = {
+  door_pickup: accNo("pick-ups", ["accounting"]), door_deliver: accNo("deliveries", ["accounting"]), door_return: accNo("returns", ["accounting"]),
+  door_pull: accNo("shelf pulls", ["tech", "accounting"]), door_receive: accNo("receiving", ["tech", "accounting"]), door_audit: accNo("shelf counts", ["tech", "accounting"]),
+  office_orders: accNo("order changes", ["tech", "accounting"]), office_clients: accNo("client and job changes", ["tech", "accounting"]),
+  office_people: { manager: PEOPLE_NO, warehouse: PEOPLE_NO, tech: PEOPLE_NO, accounting: PEOPLE_NO },
+  office_settings: accNo("settings changes", ["warehouse", "tech", "accounting"]), office_audit: accNo("shelf counts", ["tech", "accounting"]),
+  office_labels: accNo("label print stamps", ["accounting"]), office_qrcodes: accNo("label retires", ["tech", "accounting"]),
+  office_import: accNo("catalog changes", ["tech", "accounting"]), office_backups: { warehouse: BK_NO, tech: BK_NO }
+};
+const ACCESS = HOME_DOORS.map(k => ({ k: "door_" + k, name: DOORS[k].label, def: r => DOOR_ROLES[k].includes(r) }))
+  .concat(OFFICE.filter(o => !o[4] && o[0] !== "phone" && o[0] !== "about").map(o => ({ k: "office_" + o[0], name: o[1], def: o[3] })));
+const ACCESS_BY = new Map(ACCESS.map(a => [a.k, a]));
+const accessNo = (k, r) => (ACCESS_NO[k] && ACCESS_NO[k][r]) || "";
+function sees(k, r) {
+  r = r || S.role;
+  const a = ACCESS_BY.get(k);
+  if (!a || r === "admin") return true;
+  if (!ACCESS_ROLES.includes(r)) return !!a.def(r);
+  if (accessNo(k, r)) return false;
+  const m = S.general && S.general.access && S.general.access[r];
+  return m && typeof m[k] === "boolean" ? m[k] : !!a.def(r);
+}
+/* hidden by Who sees what where 0.18.0 would have shown it */
+const turnedOff = (k, r) => { r = r || S.role; const a = ACCESS_BY.get(k); return !!a && ACCESS_ROLES.includes(r) && !accessNo(k, r) && !!a.def(r) && !sees(k, r); };
+function viewOff(v) {
+  if (["pull", "pickup", "deliver", "receive", "return"].includes(v)) return turnedOff("door_" + v);
+  if (v === "audit") return !sees("door_audit") && !sees("office_audit") && (turnedOff("door_audit") || turnedOff("office_audit"));
+  if (["orders", "order", "tracking", "week"].includes(v)) return turnedOff("office_orders");
+  return false;
+}
+const OFF_HTML = '<div class="mcard"><div class="empty"><p>This screen is turned off for your role.</p><a class="btn" href="#home">Home</a></div></div>';
+const NO_DOORS = '<p class="hint nodoors">Nothing is turned on for your role. Ask an admin.</p>';
+function accessHTML() {
+  const head = '<div class="acrow achead" aria-hidden="true"><span></span>' + ACCESS_ROLES.map(r => "<span>" + ROLE_LABEL[r] + "</span>").join("") + "</div>";
+  const row = a => '<div class="acrow" role="group" aria-label="' + esc(a.name) + '"><span class="acname">' + esc(a.name) + "</span>" + ACCESS_ROLES.map(r => {
+    const no = accessNo(a.k, r), on = sees(a.k, r);
+    const tip = no || (ROLE_LABEL[r] + (on ? " sees " : " does not see ") + a.name + (a.def(r) ? ". On by default." : ". Off by default."));
+    return '<label class="acbox' + (no ? " no" : "") + '" title="' + esc(tip) + '"><input type="checkbox" data-ak="' + a.k + '" data-ar="' + r + '"' + (on ? " checked" : "") + (no ? " disabled" : "") + '><span class="acrl">' + ROLE_LABEL[r] + "</span></label>";
+  }).join("") + "</div>";
+  const grp = (title, pre) => '<section class="acgrp" aria-label="' + title + '"><h3 class="h4">' + title + "</h3>" + head + ACCESS.filter(a => a.k.startsWith(pre)).map(row).join("") + "</section>";
+  const g = S.general || {};
+  return '<p class="hint" style="margin-top:0">Admins always see everything, so there is no Admin column. A greyed box is one the database would refuse for that role; hold the pointer on it to see why.</p>' +
+    '<p class="hint warn">Hiding a door or card is not security. The database still decides every change.</p>' +
+    grp("Home doors", "door_") + grp("Office", "office_") +
+    '<div class="btnrow"><button type="button" class="btn acc" data-act="accSave" title="Saves the ticks for every role. People signed in pick it up without a reload.">Save who sees what</button>' +
+    '<button type="button" class="btn" data-act="accReset" title="Puts every role back to the doors and cards Loadout shows out of the box">Reset to defaults</button></div>' +
+    (g.access && Object.keys(g.access).length ? '<p class="hint">Changed from the defaults for ' + Object.keys(g.access).filter(r => ROLE_LABEL[r]).map(r => ROLE_LABEL[r]).join(", ") + ".</p>" : '<p class="hint">Every role is on the defaults.</p>');
+}
+/* only the ticks that differ from the defaults are stored */
+function accessCollect() {
+  const out = {};
+  $$("#v-office input[data-ak]").forEach(c => {
+    const a = ACCESS_BY.get(c.dataset.ak), r = c.dataset.ar;
+    if (!a || c.disabled || !!a.def(r) === c.checked) return;
+    (out[r] = out[r] || {})[a.k] = c.checked;
+  });
+  return out;
+}
+async function accessSave(acc) {
+  if (!isAdmin()) return;
+  const data = { access: acc, updatedAt: NOW, updatedBy: S.user.email, updatedByName: S.user.name };
+  /* update replaces the whole map, so a tick put back to its default is dropped */
+  const ok = await DB.commit([S.generalExists ? { op: "update", coll: "loadout_settings", id: "general", data } : { op: "set", coll: "loadout_settings", id: "general", merge: true, data }], "who sees what");
+  /* demo applies it in memory, so hiding a door can be tried */
+  if (DEMO) S.general.access = acc;
+  if (ok) toast("Saved");
+  if (ok || DEMO) render(true);
+}
 let _offBuilt = "";
 function renderOffice(force) {
   const el = $("#v-office"), sec = S.officeSec;
   if (!sec) {
     _offBuilt = "";
-    const list = OFFICE.filter(o => o[3](S.role) && !o[4]);
+    const list = OFFICE.filter(o => officeCan(o[0]) && !o[4]);
     el.innerHTML = '<div class="mcard"><div class="thead"><h2 class="vt">' + officeWord() + "</h2></div>" + installCardHTML() +
       '<div class="ocards">' + list.map(o => '<a class="oc" href="#' + (o[0] === "orders" ? "orders" : o[0] === "audit" ? "audit" : "office/" + o[0]) + '"><b>' + esc(o[1]) + "</b><span>" + esc(o[2]) + "</span>" +
         /* 0.13.0 (PLAN 32.3): an admin sees how many order requests wait for them, the way the doors count */
         (o[0] === "orders" && ordersAwaitingMe().length ? '<span class="dn"><b>' + fmtN(ordersAwaitingMe().length) + "</b> waiting for your approval</span>" : "") + "</a>").join("") + "</div>" +
-      (OFFICE.some(o => o[0] !== "phone" && !o[3](S.role)) ? '<p class="hint">' + (S.role === "accounting" ? "Orders, people, settings, and the warehouse sections are for the admin." : "Orders, reports, people, settings, and the rest are for the admin.") + "</p>" : "") + "</div>";
+      (OFFICE.some(o => o[0] !== "phone" && !o[4] && !officeCan(o[0])) ? '<p class="hint">' + (S.role === "manager" ? "People and Who sees what are for the admin." : S.role === "accounting" ? "Orders, people, settings, and the warehouse sections are for the admin." : "Orders, reports, people, settings, and the rest are for the admin.") + "</p>" : "") + "</div>";
     return;
   }
   /* 0.9.1: #office/phone on a computer lands on Office itself */
   if (sec === "phone" && !a2Device()) { S.officeSec = null; setHash(); renderOffice(force); return; }
-  const crumb = '<div class="crumb"><a class="textbtn" href="#office">' + officeWord() + "</a> / " + (sec === "lists" && officeCan("settings") ? '<a class="textbtn" href="#office/settings">Settings</a> / ' : "") + esc(officeName(sec)) + "</div>";
-  if (!officeCan(sec)) { _offBuilt = ""; el.innerHTML = '<div class="mcard">' + crumb + '<div class="empty"><p>' + esc(officeName(sec)) + ' is not open to your role.</p><a class="btn" href="#office">Back to ' + officeWord() + "</a></div></div>"; return; }
+  const crumb = '<div class="crumb"><a class="textbtn" href="#office">' + officeWord() + "</a> / " + ((sec === "lists" || sec === "access") && officeCan("settings") ? '<a class="textbtn" href="#office/settings">Settings</a> / ' : "") + esc(officeName(sec)) + "</div>";
+  if (!officeCan(sec)) { _offBuilt = ""; el.innerHTML = turnedOff("office_" + (sec === "lists" ? "settings" : sec)) ? OFF_HTML : '<div class="mcard">' + crumb + '<div class="empty"><p>' + esc(officeName(sec)) + ' is not open to your role.</p><a class="btn" href="#office">Back to ' + officeWord() + "</a></div></div>"; return; }
   /* forms keep what is typed: Import and Settings only redraw when asked to */
-  if (!force && _offBuilt === sec && (sec === "import" || sec === "settings")) { if (sec === "settings" && $("#setBayNote")) $("#setBayNote").innerHTML = bayNoteHTML(); return; }
+  if (!force && _offBuilt === sec && (sec === "import" || sec === "settings" || sec === "access")) { if (sec === "settings" && $("#setBayNote")) $("#setBayNote").innerHTML = bayNoteHTML(); return; }
   if (sec === "settings" && _offBuilt !== "settings") { S.genDraft = null; S.boardDraft = null; }
   if (sec === "backups" && (_offBuilt !== "backups" || !S.bk)) bkLoad();
   _offBuilt = sec;
@@ -7186,6 +7303,7 @@ function renderOffice(force) {
   else if (sec === "people") h += peopleHTML();
   else if (sec === "settings") h += settingsHTML();
   else if (sec === "lists") h += listsPageHTML();
+  else if (sec === "access") h += accessHTML();
   else if (sec === "backups") h += backupsHTML();
   else if (sec === "export") h += exportHTML();
   else if (sec === "about") h += aboutHTML();
@@ -7371,7 +7489,7 @@ function renderStock() {
   else if (S.stockTab === "out") html += unitsTableHTML(UNIT_TABS[0], S.search, "stockSearch");
   else if (S.stockTab === "consumables") html += fEmpty ? '<div class="empty">' + fEmpty + "</div>" : consumablesHTML(list, q);
   else {
-    if (!prods.length) html += '<div class="empty"><p>No products yet. Scan a box on the shelf or import the inventory sheet to start the catalog.</p>' + (isAdmin() ? '<button type="button" class="btn acc" data-act="go" data-view="more" data-sub="import">Import the inventory sheet</button>' : "") + "</div>";
+    if (!prods.length) html += '<div class="empty"><p>No products yet. Scan a box on the shelf or import the inventory sheet to start the catalog.</p>' + (isBoss() ? '<button type="button" class="btn acc" data-act="go" data-view="more" data-sub="import">Import the inventory sheet</button>' : "") + "</div>";
     else {
       /* 12c item 11: an empty list reads inside the table, under its headers, with the next step */
       const empty = fEmpty ? fEmpty : q ? "<p>Nothing matches '" + esc(S.search.trim()) + "'." + (isWriter() ? " Add it as a new product?" : "") + "</p>" + (isWriter() ? '<button type="button" class="btn acc" data-act="newProduct" data-prefill="' + esc(S.search.trim()) + '">Add as a new product</button>' : "")
@@ -7689,7 +7807,7 @@ function cbPaint(inp) {
   let html = hits.map((e, i) => '<li role="option" id="' + lb.id + "-" + i + '" data-v="' + esc(e.name) + '" aria-selected="false"><span class="cbt">' + esc(e.name) + '</span><span class="sr">, </span><span class="cbn">' +
     (e.n ? fmtN(e.n) + " product" + (e.n === 1 ? "" : "s") : "No products yet") + "</span></li>").join("");
   if (L && raw && !listEntry(f, raw)) {
-    html += isAdmin() ? '<li role="option" id="' + lb.id + '-add" data-add="1" aria-selected="false" class="cbadd">Add \'' + esc(raw) + "' as a new " + L.one + "</li>"
+    html += isBoss() ? '<li role="option" id="' + lb.id + '-add" data-add="1" aria-selected="false" class="cbadd">Add \'' + esc(raw) + "' as a new " + L.one + "</li>"
       : '<li role="option" id="' + lb.id + '-no" aria-disabled="true" aria-selected="false" class="cbno">' + CB_REFUSE + "</li>";
   }
   lb.innerHTML = html; lb.hidden = !html;
@@ -7769,7 +7887,7 @@ async function cbResolve(f, raw, orig) {
   if (orig != null && v === oneSpace(orig)) return { v };
   const e = listEntry(f, v);
   if (e) return { v: e.name };
-  if (!isAdmin()) return { err: CB_REFUSE };
+  if (!isBoss()) return { err: CB_REFUSE };
   const n = await cbAsk(f, v);
   return n ? { v: n } : { err: CB_UNADDED };
 }
@@ -7922,10 +8040,10 @@ function orderCols() {
 function ordRank(o) {
   const rs = reqState(o);
   if (!rs) return 10 + ORD_STATUS.indexOf(o.status);
-  const first = isAdmin() ? "waiting" : "sent_back";
+  const first = isBoss() ? "waiting" : "sent_back";
   return rs === first ? 0 : rs === "approved" ? 1 : 2;
 }
-const ordersAwaitingMe = () => isAdmin() ? Array.from(S.orders.values()).filter(o => reqState(o) === "waiting") : [];
+const ordersAwaitingMe = () => isBoss() ? Array.from(S.orders.values()).filter(o => reqState(o) === "waiting") : [];
 function ordMatches(o) {
   const f = S.ordFilter;
   if (f.status === "open" && (o.status === "received" || o.status === "cancelled")) return false;
@@ -7951,7 +8069,7 @@ function renderOrders() {
       empty: '<p>No POs match these filters.</p><button type="button" class="btn" data-act="ofClear">Clear filters</button>',
       defaultSort: (a, b) => (a.status === "draft" ? 0 : 1) - (b.status === "draft" ? 0 : 1) || ordRank(a) - ordRank(b) || ordDnr(b) - ordDnr(a) || num(b.number) - num(a.number),
       rowClass: o => (o.status === "draft" && (!o.vendor || ordRank(o) === 0)) || ordDnr(o) ? "need" : o.status === "cancelled" ? "dim" : ""
-    }) + (list.length ? '<p class="hint">' + list.length + " of " + all.length + " POs and requests. Requests first" + (isAdmin() ? ", waiting for approval at the top" : ", sent back at the top") + ", then anything arrived and not received.</p>" : "");
+    }) + (list.length ? '<p class="hint">' + list.length + " of " + all.length + " POs and requests. Requests first" + (isBoss() ? ", waiting for approval at the top" : ", sent back at the top") + ", then anything arrived and not received.</p>" : "");
   }
   el.innerHTML = h + "</div>";
   wireGlow(el);
@@ -8009,7 +8127,7 @@ function renderOrder() {
   const anyRecv = sm.qtyReceived > 0;
   let btns = "";
   /* 0.13.0 (PLAN 32.3): an order request is approved (admin) before Mark ordered */
-  const rs = reqState(o), A = isAdmin();
+  const rs = reqState(o), A = isBoss();
   if (draft && A && rs !== "approved") btns += '<button type="button" class="btn acc" data-act="poApprove"' + (lines.length ? "" : ' disabled aria-describedby="apHint"') + ">Approve</button>" + (lines.length ? "" : '<span class="sr" id="apHint">Add a line first</span>');
   if (draft && A && rs !== "sent_back") btns += '<button type="button" class="btn" data-act="poSendBack">Send back</button>';
   if (draft && W && rs === "sent_back") btns += '<button type="button" class="btn acc" data-act="poAskAgain">Ask again</button>';
@@ -8872,7 +8990,7 @@ function locPanel(l) {
   S.containers.forEach(c => { if (c.locationId === id && c.status !== "empty") rows.push('<li><span>Box <button type="button" class="textbtn mono" data-act="boxSheet" data-id="' + esc(c.id) + '">' + esc(c.label) + "</button> " + esc(c.productName || "") + "</span><b>" + fmtN(c.ftLeft) + " ft</b></li>"); });
   S.items.forEach(i => { if (i.locationId === id && i.status !== "retired" && i.status !== "checked_out") rows.push('<li><span><button type="button" class="textbtn" data-act="item" data-id="' + esc(i.id) + '">' + esc(itemLabel(i)) + "</button> " + esc(i.productName || "") + "</span>" + statusPill(i.status) + "</li>"); });
   const tks = l.kind === "bay" ? ticketForBay(id) : [];
-  const A = isAdmin(), run = S.ls.run, busy = !!(run && run.state === "running"), off = !onlineNow();
+  const A = isBoss(), run = S.ls.run, busy = !!(run && run.state === "running"), off = !onlineNow();
   let h = '<div class="xhead"><b>' + esc(l.name) + '</b><span class="st">' + esc(locKindLabel(l.kind)) + "</span>" + (l.archived ? '<span class="st warn">Archived</span>' : "") + (S.activeLoc === id ? '<span class="st ok">Active on Scan</span>' : "") + "</div>";
   if (W) {
     const d = xDraft(l, ["kind"]);
@@ -9718,7 +9836,7 @@ function route(code, opt) {
   const lab = parseLabel(code), r = resolveCode(code), upcWait = S.pendingUpcFor && !lab && r.kind !== "job";
   if (!upcWait && !(opt && opt.noLog)) logScan(code, r);
   /* 0.9.0: a pull sheet's QR opens that job: the Pull screen for whoever pulls, the job page for everyone else */
-  if (r.kind === "job") { go(isWriter() ? "pull" : "ticket", r.id); return; }
+  if (r.kind === "job") { go(isWriter() && sees("door_pull") ? "pull" : "ticket", r.id); return; }
   if (upcWait) { confirmUpc(S.pendingUpcFor, code); return; }
   if (r.kind === "loc") setActiveLoc(r.id);
   S.scan = r;
@@ -10190,7 +10308,7 @@ function routeAlias(view, sub) {
   if (view === "office" && sub === "orders") return ["orders", null];
   if (view === "office" && sub === "audit") return ["audit", null];
   /* accounting's Home is Office, Reports (PLAN 18.2) */
-  if (view === "home" && S.role === "accounting") return ["office", "reports"];
+  if (view === "home" && S.role === "accounting") return ["office", officeCan("reports") ? "reports" : null];
   return [view, sub];
 }
 /* ---------------- movements log ---------------- */
@@ -10381,10 +10499,10 @@ function qrOpen(kind, id) {
   if (kind === "loc") navLoc(id); else if (kind === "item") navItem(id); else if (kind === "prod") navProduct(id); else if (kind === "ctr") openBoxSheet(id);
 }
 function qrRename(kind, id) {
-  if (kind === "loc") { const l = S.locations.get(id); if (l && isAdmin()) openLocRename(l); } else qrOpen(kind, id);
+  if (kind === "loc") { const l = S.locations.get(id); if (l && isBoss()) openLocRename(l); } else qrOpen(kind, id);
 }
 function openRetireLabel(kind, id) {
-  const rec = lblRec(kind, id); if (!rec || !isAdmin()) return;
+  const rec = lblRec(kind, id); if (!rec || !isBoss()) return;
   const name = lblThing(kind, rec);
   const body = '<p class="hint" style="margin-top:0"><b>' + esc(name) + '</b>, code <span class="mono">' + esc(labelCode(kind, id)) + "</span></p>" +
     '<span class="lab" id="rlWhyL" title="Kept on the record, so this page and a scan of the old label can say why">Why retire it <span class="req">required</span></span>' +
@@ -10428,7 +10546,7 @@ function retiredCardHTML(kind, id) {
   const rec = lblRec(kind, id); if (!rec) return "";
   return '<div class="rk"><span>Retired label</span><span class="st bad">Retired</span></div><div class="rt">' + esc(lblThing(kind, rec)) + '</div><p class="rm" role="status">' + esc(retiredLine(rec)) + ". Nothing was changed.</p>" +
     '<div class="btnrow"><button type="button" class="btn" data-act="qrOpen" data-kind="' + kind + '" data-id="' + esc(id) + '" title="Opens it on its own screen">Open</button>' +
-    (isAdmin() ? '<button type="button" class="btn acc" data-act="qrReprint" data-kind="' + kind + '" data-id="' + esc(id) + '" title="Opens the print preview for a new label with the current code">Reprint</button>' : "") + "</div>";
+    (isBoss() ? '<button type="button" class="btn acc" data-act="qrReprint" data-kind="' + kind + '" data-id="' + esc(id) + '" title="Opens the print preview for a new label with the current code">Reprint</button>' : "") + "</div>";
 }
 
 /* ---------------- settings (admin, Console) ---------------- */
@@ -10458,7 +10576,7 @@ function settingsHTML() {
   const g = genDraft(), pt = S.portal || {};
   if (!S.boardDraft) S.boardDraft = Object.assign({}, DEFAULT_BOARD, S.board, { ticketIds: (S.board.ticketIds || []).slice() });
   const tier = { t0: "T0, proposal CSV import", t1: "T1, Zapier intake", t2: "T2, Portal API" }[pt.tier || "t0"] || pt.tier;
-  return '<div id="setBayNote">' + bayNoteHTML() + "</div>" + '<p class="hint" style="margin-top:0">Shared by everyone. Only admins change these. One Save writes the whole tab, wall board included.</p>' +
+  return '<div id="setBayNote">' + bayNoteHTML() + "</div>" + '<p class="hint" style="margin-top:0">Shared by everyone. Only admins and managers change these. One Save writes the whole tab, wall board included.</p>' +
     '<div class="setsect" style="margin-top:8px;border-top:0;padding-top:0"><h3>General</h3>' +
     '<label class="chk" title="Off by default: the warehouse does not need prices. On shows cost fields on products and receiving, and values in Office, Reports."><input type="checkbox" id="setCosts"' + (g.showCosts ? " checked" : "") + "> Show costs</label>" +
     '<div class="grid2"><div><label class="lab" for="setThr" title="A unit received at or above this cost gets its own QR and record, so it can be followed one by one.">' + '<abbr>QR threshold</abbr></label><div class="money"><input class="fld" id="setThr" data-money inputmode="decimal" value="' + esc(g.qrThreshold) + '"></div></div>' +
@@ -10466,6 +10584,8 @@ function settingsHTML() {
     '<div><label class="lab" for="setLabel" title="The sheet the Labels tab starts on. Anyone can switch sheets when they print.">' + '<abbr>Default label sheet</abbr></label><select class="fld" id="setLabel"><option value="5160"' + (g.labelSize !== "5163" ? " selected" : "") + '>Avery 5160</option><option value="5163"' + (g.labelSize === "5163" ? " selected" : "") + ">2 x 4 in</option></select></div></div>" +
     '<label class="chk" title="How the Week view opens for anyone who has not chosen for themselves. A person\'s own Work week button still wins on their devices."><input type="checkbox" id="setWw"' + (g.workWeek ? " checked" : "") + "> Week view hides the weekend by default (Work week)</label></div>" +
     lsSettingsSect() +
+    /* 0.19.0 (PLAN 34.2): admin only */
+    (isAdmin() ? '<div class="setsect"><h3 title="Which Home doors and Office cards each role sees. Only an admin changes this.">Who sees what</h3><p class="hint" style="margin-top:0">Turn Home doors and Office cards on or off for each role. It saves on its own page.</p><div class="btnrow"><a class="btn" href="#office/access">Open Who sees what</a></div></div>' : "") +
     /* 0.11.1 (PLAN 28.2): so a person who looks for locations here finds them */
     '<div class="setsect"><h3 title="Add a shelf, staging area, van, or vehicle, rename one (admin), or archive one that is empty (admin)">Locations</h3><p class="hint" style="margin-top:0">Shelves, staging areas, vans, and vehicles are managed on Shelf, Locations.</p><div class="btnrow"><a class="btn" href="#shelf/locations">Open Shelf, Locations</a></div></div>' +
     '<div class="setsect"><h3 title="Used when a new box is received or imported. A box whose feet left is already higher takes its feet left as the start.">Box start length by cable type (ft)</h3><div class="grid3">' +
@@ -10702,8 +10822,8 @@ function lastAdminBlock(u, role, active) {
   return u.role === "admin" && u.active !== false && (role !== "admin" || !active) && !admins.length;
 }
 function openUser(u) {
-  const body = '<p class="hint" style="margin-top:0">' + esc(u.name || "") + ", " + esc(u.email) + '</p><label class="lab" for="uRole" title="Admin: everything, People and Settings in Office too. Warehouse: receive, audit, move, labels, jobs, orders. Tech: scan, check out and in, box readings, stage and deliver. Accounting: reads everything and Office, Reports, changes nothing. Board: the wall board TV\'s own account.">' + '<abbr>Role</abbr></label><select class="fld" id="uRole">' +
-    ROLES.map(r => '<option value="' + r + '"' + (u.role === r ? " selected" : "") + ">" + ROLE_LABEL[r] + "</option>").join("") + '</select><label class="chk" title="A deactivated person can still sign in but only reads. Their name stays on every record they touched."><input type="checkbox" id="uActive"' + (u.active === false ? "" : " checked") + '> Active</label><p class="err" id="uErr" hidden></p>';
+  const body = '<p class="hint" style="margin-top:0">' + esc(u.name || "") + ", " + esc(u.email) + '</p><label class="lab" for="uRole" title="Admin: everything, People and Settings in Office too. Manager: everything an admin does except People and Who sees what. Warehouse: receive, audit, move, labels, jobs, orders. Tech: scan, check out and in, box readings, stage and deliver. Accounting: reads everything and Office, Reports, changes nothing. Board: the wall board TV\'s own account.">' + '<abbr>Role</abbr></label><select class="fld" id="uRole">' +
+    ROLES.map(r => '<option value="' + r + '" title="' + esc(ROLE_WHAT[r] || "") + '"' + (u.role === r ? " selected" : "") + ">" + ROLE_LABEL[r] + "</option>").join("") + '</select><label class="chk" title="A deactivated person can still sign in but only reads. Their name stays on every record they touched."><input type="checkbox" id="uActive"' + (u.active === false ? "" : " checked") + '> Active</label><p class="err" id="uErr" hidden></p>';
   const w = openModal("Change " + (u.name || u.email), body, '<button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn acc" data-ok data-tk="userOk">Save</button>');
   w.querySelector("[data-ok]").addEventListener("click", async () => {
     const role = $("#uRole", w).value, active = $("#uActive", w).checked;
@@ -10974,7 +11094,7 @@ const DD_LABEL = [["labelGen", "Which label is the live one (0.18.0). Missing me
   ["labelPrintedAt, labelPrintedBy, labelPrintedByName", "When a label for it was last printed, and who (sign-in id and name). Written when Print is pressed in the preview, not on the preview. Techs may write only these three"]];
 const DATA_DICTIONARY = [
   { coll: "loadout_users", id: "Firebase sign-in uid", about: "The roster: one person per document, with their role.", fields: [
-    ["email", "Sign-in address, lower case"], ["name", "Display name from the Google account"], ["role", "admin, warehouse, tech, accounting, or board"],
+    ["email", "Sign-in address, lower case"], ["name", "Display name from the Google account"], ["role", "admin, manager, warehouse, tech, accounting, or board"],
     ["active", "false when deactivated: they still sign in, but only read"], ["confirmed", "false until an admin confirms the role of a self sign-in"],
     ["addedBy", "Who added them, or self-sign-in"], ["addedAt", "First sign-in"], ["lastSeen", "Latest sign-in or page load"],
     ["updatedBy", "Email of the admin who last changed the role"], ["updatedByName", "Name of that admin"], ["updatedAt", "When the role last changed"]] },
@@ -10983,6 +11103,7 @@ const DATA_DICTIONARY = [
     ["weekStart", "First day of the week: 0 Sunday, 1 Monday"], ["workWeek", "Week view hides the weekend for anyone who has not chosen"],
     ["boxStart.cat, .coax, .audio, .stranded, .other", "Default start length in feet for a new box of that cable type"],
     ["carriers", "Carrier name and tracking URL with {n} for the number"], ["vendors", "Vendor list for purchase orders"],
+    ["access.<role>.<key>", "Who sees what (0.19.0): true or false for role manager, warehouse, tech, or accounting; key is door_<door> (a Home door) or office_<card> (an Office card). Only ticks that differ from the defaults are stored; missing means the default. Only an admin writes it; the rules refuse it from anyone else."],
     ["updatedBy", "Email of whoever saved last"], ["updatedByName", "Name of whoever saved last"], ["updatedAt", "When it was saved"]] },
   { coll: "loadout_settings/board", id: "board", about: "The warehouse wall board.", fields: [
     ["mode", "pinned, all_open, or today"], ["ticketIds", "Pinned jobs in rotation order"], ["rotateSec", "Seconds each job stays up"],
@@ -11102,6 +11223,9 @@ function aboutHTML() {
     /* 0.12.0 (PLAN 29.3): every role reaches the comic and the flow chart from the phone */
     '<div class="abouthow"><a class="btn" href="storyboard.html?tab=pictures" target="_blank" rel="noopener" data-tk="aboutHow">How Loadout works</a>' +
     '<p class="hint">The nine-panel comic and the flow chart.</p></div>' +
+    /* 0.19.0 (PLAN 34.2) */
+    '<h4 class="h4" style="margin-top:16px">Roles</h4>' + ROLES.map(r => "<p><b>" + ROLE_LABEL[r] + ".</b> " + esc(ROLE_WHAT[r]) + "</p>").join("") +
+    '<p class="hint">An admin can hide Home doors and Office cards from a role in Office, Settings, Who sees what. Hiding is not security: the database still decides every change.</p>' +
     '<h4 class="h4" style="margin-top:16px">Readability rules</h4>' +
     "<p>The data has to read without the app. Collections are flat with plain English names, one per kind of thing, nested at most one level (job and order lines). Field names are English words; qty, ft, and id are the only abbreviations. " +
     "Every record that points at another carries the readable name beside the id, written at the moment of the change, so a row reads on its own in the database console or a CSV; names are snapshots, and renaming a client does not rewrite history. " +
@@ -12194,9 +12318,11 @@ document.addEventListener("click", e => {
     case "lsDismiss": S.ls.run = null; render(true); break;
     case "newLocation": openLocationForm(null); break;
     /* 0.11.1 (PLAN 28.2): rename and archive a location (admin) */
-    case "locRename": if (isAdmin()) openLocRename(S.locations.get(id)); break;
-    case "locArchive": if (isAdmin()) locArchive(S.locations.get(id)); break;
-    case "locUnarchive": if (isAdmin()) locUnarchive(S.locations.get(id)); break;
+    case "locRename": if (isBoss()) openLocRename(S.locations.get(id)); break;
+    case "accSave": accessSave(accessCollect()); break;
+    case "accReset": confirmModal("Reset to defaults?", "<p>Every role goes back to the Home doors and Office cards Loadout shows out of the box. Admins keep seeing everything.</p>", "Reset to defaults", () => accessSave({})); break;
+    case "locArchive": if (isBoss()) locArchive(S.locations.get(id)); break;
+    case "locUnarchive": if (isBoss()) locUnarchive(S.locations.get(id)); break;
     case "editLocation": case "location": navLoc(id); break;
     case "newBox": openNewBox(P()); break;
     case "boxSheet": closeAllModals(); if (S.view === "scan" && !b.dataset.tk) { S.scan = { kind: "ctr", id }; paintScanResult(); } else openBoxSheet(id, b.dataset.tk || null); break;
@@ -12552,7 +12678,7 @@ function startApp(user) {
   if (BOARD || S.role === "board") { enterBoard(); return; }
   paintA2();
   /* 0.8.0: the app opens on Home (the doors); accounting lands on Office, Reports */
-  if (!(location.hash && applyHash())) { [S.view, S.officeSec] = S.role === "accounting" ? ["office", "reports"] : ["home", null]; setHash(); render(true); }
+  if (!(location.hash && applyHash())) { [S.view, S.officeSec] = S.role === "accounting" ? ["office", officeCan("reports") ? "reports" : null] : ["home", null]; setHash(); render(true); }
   if (PRINT && DEMO) { S.labelSel = new Set(labelGroups().flatMap(g => g[1].map(x => x.key))); printLabels(Array.from(S.labelSel).map(k => { const i = k.indexOf(":"); return { kind: k.slice(0, i), id: k.slice(i + 1) }; })); }
 }
 function stopApp() {
@@ -12570,10 +12696,10 @@ function stopApp() {
 if (DEMO) {
   /* No Firebase module is imported on this path, so nothing in demo mode can reach Firestore. */
   signOutFn = () => { location.href = location.pathname; };
-  /* ?demo=1&role=tech|warehouse|accounting|board shows that role's view; admin otherwise */
-  const qr = QUERY.get("role"), demoRole = ["tech", "warehouse", "accounting", "board"].includes(qr) ? qr : "admin";
+  /* ?demo=1&role=tech|warehouse|manager|accounting|board shows that role's view; admin otherwise */
+  const qr = QUERY.get("role"), demoRole = ["tech", "warehouse", "manager", "accounting", "board"].includes(qr) ? qr : "admin";
   S.role = demoRole;
-  const demoName = { admin: "Warehouse", warehouse: "Warehouse", tech: "Tech", accounting: "Accounting", board: "Board" }[demoRole];
+  const demoName = { admin: "Warehouse", manager: "Manager", warehouse: "Warehouse", tech: "Tech", accounting: "Accounting", board: "Board" }[demoRole];
   startApp(demoRole === "tech" ? { uid: "demo-tech", email: "tech@example.com", name: "Tech" } : demoRole === "admin" ? { uid: "demo-warehouse", email: "warehouse@example.com", name: "Warehouse" } : { uid: "demo-" + demoRole, email: demoRole + "@example.com", name: demoName });
   S.me = S.users.get(S.user.uid) || { id: S.user.uid, role: demoRole, active: true };
 } else {

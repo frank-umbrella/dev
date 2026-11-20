@@ -4,17 +4,19 @@
 // <jwt>`. The worker checks it with WebCrypto against Google's published
 // keys (no library), then reads the person's roster document with the
 // service account and lets through only the roles a route allows: by
-// default admin and warehouse (STAFF_ROLES), the same roles that
+// default admin, manager and warehouse (STAFF_ROLES), the same roles that
 // loadoutWriter() in watchtower/firestore.rules allows to change the catalog.
 // The UPC routes pass UPC_ROLES, which adds tech (0.4.0): a lookup only reads,
 // and saving the answer onto a product still needs a catalog write.
+// 0.5.0: manager (Loadout 0.19.0, PLAN 34.2) is in both lists, wherever
+// warehouse is.
 
 import { getAccessToken, getDoc, SCOPE_DATASTORE } from './firestore.js';
 
 export const JWKS_URL = 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
-export const STAFF_ROLES = ['admin', 'warehouse'];
+export const STAFF_ROLES = ['admin', 'manager', 'warehouse'];
 // /upc/lookup and /upc/photo only. Do not use for any route that writes.
-export const UPC_ROLES = ['admin', 'warehouse', 'tech'];
+export const UPC_ROLES = ['admin', 'manager', 'warehouse', 'tech'];
 // Same test as isMSPAdmin() in the rules: a verified address on the domain.
 const STAFF_EMAIL = /@umbrellaautomation\.com$/i;
 const LEEWAY_S = 60;

@@ -69,6 +69,16 @@ test('auth: exp inside the 60 s leeway still passes', async () => {
   assert.equal(await status(requireStaff(req(await sign({ exp: nowS - 30 })), env, deps())), 200);
 });
 
+test('auth: an active manager passes the default staff list and the UPC list (0.5.0)', async () => {
+  const t = await sign();
+  const m = await requireStaff(req(t), env, deps({ 'uid-1': { role: 'manager', active: true } }));
+  assert.equal(m.role, 'manager');
+  const mu = await requireStaff(req(t), env, deps({ 'uid-1': { role: 'manager', active: true } }), UPC_ROLES);
+  assert.equal(mu.role, 'manager');
+  assert.equal(await status(requireStaff(req(t), env, deps({ 'uid-1': { role: 'manager', active: false } }))), 403);
+  assert.equal(await status(requireStaff(req(t), env, deps({ 'uid-1': { role: 'board', active: true } }))), 403);
+});
+
 test('auth: roster missing, inactive, tech and accounting are 403', async () => {
   const t = await sign();
   assert.equal(await status(requireStaff(req(t), env, deps({}))), 403);
@@ -80,8 +90,8 @@ test('auth: roster missing, inactive, tech and accounting are 403', async () => 
 
 test('auth: UPC_ROLES lets an active tech through; the default staff list still refuses tech (0.4.0)', async () => {
   const t = await sign();
-  assert.deepEqual(STAFF_ROLES, ['admin', 'warehouse']);
-  assert.deepEqual(UPC_ROLES, ['admin', 'warehouse', 'tech']);
+  assert.deepEqual(STAFF_ROLES, ['admin', 'manager', 'warehouse']);
+  assert.deepEqual(UPC_ROLES, ['admin', 'manager', 'warehouse', 'tech']);
   const tech = await requireStaff(req(t), env, deps({ 'uid-1': { role: 'tech', active: true } }), UPC_ROLES);
   assert.equal(tech.role, 'tech');
   const noRole = await requireStaff(req(t), env, deps({ 'uid-1': { active: true } }), UPC_ROLES);

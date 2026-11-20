@@ -11,7 +11,7 @@ pages, `noindex, nofollow`, and the shared Watchtower sign-in
 (`@umbrellaautomation.com` Google accounts only). The plan is `PLAN.md`; the
 chosen look is direction B, Ledger, in `design-preview.html`.
 
-Current version: **0.18.0**.
+Current version: **0.19.0**.
 
 ## Files
 
@@ -1049,6 +1049,26 @@ tech stamping printed on each of the four collections, warehouse and admin
 retiring labels, and refusals for a tech writing `labelGen` or
 `labelRetired*`, stamping in someone else's name, adding another key, a
 tech retiring a label, and accounting stamping).
+0.19.0 (PLAN 34.2) adds the manager role. `loadoutBoss()` is admin or
+manager; manager joins `loadoutWriter()`, `loadoutTech()`, and the item, box,
+and product update functions, so a manager writes wherever warehouse does
+(it already read everything, like accounting). The three order-approval
+checks use `loadoutBoss()` instead of `loadoutRole() == 'admin'`, so a
+manager approves and sends back requests. A manager writes every settings
+document except `general` through `{key}`, and `general` in full except the
+`access` map (Who sees what), which stays admin-only; roles and the roster
+stay admin-only (`loadoutAdmin()`). On 2026-11-20 the block ran in the local
+emulator: 131 of 131 cases passed (the 96 earlier cases and 35 new ones:
+manager receiving, raising, approving, sending back, retiring a label,
+editing items, boxes, products, locations, stock, and jobs, saving general
+settings, the board, and the brand lists; refusals for a manager writing
+`access`, deleting `general`, changing a role, adding a person, or writing a
+movement in another name; warehouse still cannot approve or write `access`
+or other general settings; tech and accounting cannot write `access`; admin
+writes and clears `access` and makes a person a manager). The storage
+rules below still name only admin and warehouse (photos) and admin and
+accounting (backups); until manager is added there, a manager's product
+photo upload and Backups list are refused.
 **Not deployed.**
 The owner of the Firebase project deploys it from `work/watchtower` with:
 
@@ -1059,7 +1079,10 @@ The owner of the Firebase project deploys it from `work/watchtower` with:
 // Shop inventory. Shares THIS project's login like Backup Audits and
 // Sundial. Data lives in loadout_* collections shared by everyone on
 // the domain; what differs per person is the role on
-// /loadout_users/{uid}: admin, warehouse, tech, accounting, board.
+// /loadout_users/{uid}: admin, manager, warehouse, tech, accounting,
+// board. 0.19.0 (PLAN 34.2): manager writes wherever warehouse does and
+// also approves order requests and saves settings; only an admin changes
+// roles and the access map (Who sees what) in settings/general.
 // Accounting and board appear in no writer list, so they only read.
 // A signed-in account with no roster doc counts as tech; a paused one
 // (active == false) counts as 'none' and only reads.
@@ -1078,8 +1101,10 @@ function loadoutRole() {
     : (get(path).data.get('active', true) == true ? get(path).data.get('role', 'tech') : 'none');
 }
 function loadoutAdmin()  { return isMSPAdmin() && loadoutRole() == 'admin'; }
-function loadoutWriter() { return isMSPAdmin() && loadoutRole() in ['admin', 'warehouse']; }
-function loadoutTech()   { return isMSPAdmin() && loadoutRole() in ['admin', 'warehouse', 'tech']; }
+// 0.19.0: admin or manager, for order approval and settings
+function loadoutBoss()   { return isMSPAdmin() && loadoutRole() in ['admin', 'manager']; }
+function loadoutWriter() { return isMSPAdmin() && loadoutRole() in ['admin', 'manager', 'warehouse']; }
+function loadoutTech()   { return isMSPAdmin() && loadoutRole() in ['admin', 'manager', 'warehouse', 'tech']; }
 function loadoutOnly(keys) {
   return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
 }
@@ -1099,7 +1124,7 @@ function loadoutPrintStamp() {
 }
 function loadoutItemUpdate() {
   let r = loadoutRole();
-  return r in ['admin', 'warehouse']
+  return r in ['admin', 'manager', 'warehouse']
     || (r == 'tech' && loadoutPrintStamp())
     || (r == 'tech' && loadoutOnly(['status', 'holderUid', 'holderName', 'jobId', 'jobName',
          'clientName', 'clientId', 'holderNote', 'ticketId', 'ticketNumber', 'ticketLineId', 'locationId', 'locationName',
@@ -1114,7 +1139,7 @@ function loadoutKeepsCreated() {
 }
 function loadoutContainerUpdate() {
   let r = loadoutRole();
-  return (r in ['admin', 'warehouse'] && loadoutKeepsCreated())
+  return (r in ['admin', 'manager', 'warehouse'] && loadoutKeepsCreated())
     || (r == 'tech' && loadoutPrintStamp())
     || (r == 'tech' && loadoutOnly(['ftLeft', 'lastMark', 'status', 'pickTicketId', 'pickTicketNumber',
          'lastReadingAt', 'lastReadingBy', 'locationId', 'locationName', 'confirmLocation',
@@ -1124,7 +1149,7 @@ function loadoutContainerUpdate() {
 // a tech's cut or check-out moves the product's denormalized on-hand total
 function loadoutProductUpdate() {
   let r = loadoutRole();
-  return r in ['admin', 'warehouse'] || (r == 'tech' && loadoutPrintStamp())
+  return r in ['admin', 'manager', 'warehouse'] || (r == 'tech' && loadoutPrintStamp())
     || (r == 'tech' && loadoutOnly(['onHand', 'updatedAt']));
 }
 
@@ -1143,9 +1168,11 @@ match /loadout_users/{uid} {
     && ((request.auth.uid == uid && loadoutOnly(['lastSeen', 'name'])) || loadoutAdmin());
   allow delete: if loadoutAdmin();
 }
+// 0.19.0: a manager writes every settings doc but general, which has
+// its own rule below (everything there except the access map).
 match /loadout_settings/{key} {
   allow read: if isMSPAdmin();
-  allow write: if loadoutAdmin();
+  allow write: if loadoutAdmin() || (key != 'general' && loadoutBoss());
 }
 // Audit trail: append-only, and each entry names its own author.
 match /loadout_movements/{id} {
@@ -1268,6 +1295,11 @@ match /loadout_settings/general {
     && request.resource.data.keys().hasOnly(['vendors', 'updatedAt', 'updatedBy', 'updatedByName']);
   allow update: if loadoutWriter()
     && loadoutOnly(['vendors', 'updatedAt', 'updatedBy', 'updatedByName']);
+  // 0.19.0 (PLAN 34.2): a manager saves Settings like an admin, but the
+  // access map (Who sees what) stays admin-only.
+  allow create: if loadoutBoss() && !request.resource.data.keys().hasAny(['access']);
+  allow update: if loadoutBoss()
+    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['access']);
 }
 // 0.13.0 (PLAN 32.3): a draft PO is an order request. An admin approves
 // it (approvedAt, approvedBy, approvedByName) or sends it back with a
@@ -1279,6 +1311,8 @@ match /loadout_settings/general {
 // carries an approval. Orders already past draft are not checked here,
 // so POs ordered before 0.13.0 keep their shipments, receiving, notes,
 // backorders, and cancel. Techs and accounting write no orders.
+// 0.19.0 (PLAN 34.2): a manager approves and sends back like an admin
+// (loadoutBoss).
 function loadoutSameOrNull(k) {
   return request.resource.data.get(k, null) == null
     || request.resource.data.get(k, null) == resource.data.get(k, null);
@@ -1305,9 +1339,9 @@ match /loadout_orders/{oid} {
   allow read: if isMSPAdmin();
   allow create: if loadoutWriter()
     && request.resource.data.get('status', '') == 'draft'
-    && (loadoutRole() == 'admin' || loadoutNoApproval());
+    && (loadoutBoss() || loadoutNoApproval());
   allow update: if loadoutWriter()
-    && (loadoutRole() == 'admin' || loadoutApprovalKept())
+    && (loadoutBoss() || loadoutApprovalKept())
     && loadoutLeavesDraftApproved();
   allow delete: if loadoutWriter();
   // order lines: a non-admin's write may not leave an approved request
@@ -1316,7 +1350,7 @@ match /loadout_orders/{oid} {
   match /lines/{lid} {
     allow read: if isMSPAdmin();
     allow write: if loadoutWriter()
-      && (loadoutRole() == 'admin'
+      && (loadoutBoss()
           || getAfter(/databases/$(database)/documents/loadout_orders/$(oid)).data.get('status', '') != 'draft'
           || getAfter(/databases/$(database)/documents/loadout_orders/$(oid)).data.get('approvedAt', null) == null);
   }
@@ -1466,6 +1500,29 @@ Portal API intake (T2) is a stub until D1 is answered. Secrets, owner setup,
 the Zap, and deploy steps are in `worker/README.md`.
 
 ## Changelog
+
+### 0.19.0 (2026-11-20)
+
+The owner wanted someone to run the shop day to day without also handing
+over control of who works there, and wanted to decide which doors and Office
+cards each role sees, so people only see what they use (PLAN 34.2).
+
+- New role: Manager. Everything an admin does (approving order requests,
+  QR codes and retiring labels, Settings, Import, Reports, Backups, Export)
+  except People and Who sees what. Only an admin gives someone a role.
+- Office, Settings, Who sees what (admin): a grid of every Home door and
+  Office card against Manager, Warehouse, Tech, and Accounting. Untick a
+  box and that role no longer sees the door or card, its count, or its
+  shortcuts; a link to it says the screen is turned off. A box the database
+  would refuse for that role is greyed, and its tooltip says why. Admins
+  always see everything. Reset to defaults puts back the split Loadout
+  ships with. Nothing changes for anyone until an admin saves.
+- Hiding is not security: the database still decides every change.
+- Rules: manager writes wherever warehouse does, approves requests, and
+  saves settings; only an admin changes roles or Who sees what. Not
+  deployed.
+- loadout-worker 0.5.0 lets a manager through wherever warehouse goes.
+  Not deployed.
 
 ### 0.18.0 (2026-11-19)
 

@@ -4,7 +4,7 @@
 //   GET /upc/photo?upc=&i=   the bytes of photo i from that UPC's own lookup
 //
 // Both answer only to the app's origins (APP_ORIGINS) and only to a signed-in
-// admin, warehouse or tech person (UPC_ROLES in src/auth.js; tech since 0.4.0). A browser cannot call the lookup
+// admin, manager, warehouse or tech person (UPC_ROLES in src/auth.js; tech since 0.4.0, manager since 0.5.0). A browser cannot call the lookup
 // service itself (it allows only its own site), so the app asks here.
 //
 // The photo route never takes a URL from the request: it re-reads the

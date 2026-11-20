@@ -26,7 +26,7 @@ async function sign(uid = 'uid-w') {
 }
 const TOKEN = await sign();
 const ROSTER = {
-  'uid-w': { role: 'warehouse', active: true }, 'uid-t': { role: 'tech', active: true },
+  'uid-w': { role: 'warehouse', active: true }, 'uid-t': { role: 'tech', active: true }, 'uid-m': { role: 'manager', active: true }, 'uid-b': { role: 'board', active: true },
   'uid-a': { role: 'accounting', active: true }, 'uid-p': { role: 'tech', active: false },
 };
 
@@ -184,7 +184,7 @@ test('upc: signed-out and wrong-role callers are refused before any lookup', asy
   assert.equal(r.status, 403);
   assert.deepEqual(await r.json(), { ok: false, error: 'forbidden' });
   assert.equal(r.headers.get('Access-Control-Allow-Origin'), ORIGIN);
-  for (const uid of ['uid-a', 'uid-p', 'uid-nobody']) {
+  for (const uid of ['uid-a', 'uid-b', 'uid-p', 'uid-nobody']) {
     for (const path of ['/upc/lookup?upc=' + UPC, '/upc/photo?upc=' + UPC + '&i=0']) {
       r = await handleUpc(get(path, { token: await sign(uid) }), env, {}, d);
       assert.equal(r.status, 403, uid + ' ' + path);
@@ -206,6 +206,18 @@ test('upc: an active tech may call both the lookup and the photo route (0.4.0)',
   r = await handleUpc(get('/upc/photo?upc=' + UPC + '&i=0', { token: tech }), env, {}, d);
   assert.equal(r.status, 200);
   assert.equal(r.headers.get('Content-Type'), 'image/jpeg');
+});
+
+test('upc: an active manager may call both the lookup and the photo route (0.5.0)', async () => {
+  _resetUpcCache();
+  const bytes = new Uint8Array([0xff, 0xd8, 0xff, 7]);
+  const d = deps(Object.assign(lookupRoute(lookupBody([IMG1])), { [IMG1]: () => imageResp(bytes) }));
+  const mgr = await sign('uid-m');
+  let r = await handleUpc(get('/upc/lookup?upc=' + UPC, { token: mgr }), env, {}, d);
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).ok, true);
+  r = await handleUpc(get('/upc/photo?upc=' + UPC + '&i=0', { token: mgr }), env, {}, d);
+  assert.equal(r.status, 200);
 });
 
 test('upc: photo returns the bytes of entry i from the lookup list', async () => {
